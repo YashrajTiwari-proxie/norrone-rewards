@@ -1,0 +1,50 @@
+{
+	"name": "norrone-loyalty-program",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"workspaces": ["packages/*"],
+	"scripts": {
+		"postinstall": "bun run --cwd packages/authz-tenant-kit build && bun run --cwd packages/better-auth-tenant-kit build",
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"lint": "prettier --check .",
+		"format": "prettier --write .",
+		"test:e2e": "playwright install && playwright test",
+		"test:unit": "vitest run",
+		"test": "npm run test:unit",
+		"stress-test": "bun run scripts/stress-test.ts",
+		"example:api-client": "bun run examples/api-client.ts"
+	},
+	"devDependencies": {
+		"@edge-runtime/vm": "^5.0.0",
+		"@playwright/test": "^1.60.0",
+		"@sveltejs/adapter-auto": "^7.0.1",
+		"@sveltejs/kit": "^2.63.0",
+		"@sveltejs/vite-plugin-svelte": "^7.1.2",
+		"@types/node": "^26.5.0",
+		"prettier": "^3.8.3",
+		"prettier-plugin-svelte": "^4.1.0",
+		"svelte": "^5.56.1",
+		"svelte-check": "^4.6.0",
+		"typescript": "^6.0.3",
+		"vite": "^8.0.16",
+		"vitest": "^4.1.4",
+		"convex-test": "0.0.47"
+	},
+	"dependencies": {
+		"@convex-dev/better-auth": "^0.12.5",
+		"@proxie-studio/authz-tenant-kit": "workspace:*",
+		"@proxie-studio/better-auth-tenant-kit": "workspace:*",
+		"@supabase/ssr": "^0.12.7",
+		"@supabase/supabase-js": "^2.116.0",
+		"better-auth": "1.6.25",
+		"convex": "^1.45.0",
+		"convex-helpers": "^0.1.116",
+		"convex-svelte": "^0.14.0"
+	}
+}

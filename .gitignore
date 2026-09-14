@@ -1,0 +1,39 @@
+node_modules
+packages/*/dist
+packages/*/.svelte-kit
+packages/*/*.tsbuildinfo
+*.tsbuildinfo
+
+# Convex — CLI-managed local state; convex/_generated IS committed (plain
+# codegen from schema/functions, no secrets), only this local cache isn't.
+.convex
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+coverage
+
+# OS
+.DS_Store
+Thumbs.db
+# macOS AppleDouble resource-fork shadow files — this filesystem produces
+# one per real file (._foo instead of foo); never commit these.
+._*
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+# Playwright
+test-results
+
+CLAUDE_CODE_BUILD_SPEC_V2_SUPABASE.md

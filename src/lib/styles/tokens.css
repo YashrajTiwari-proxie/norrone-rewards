@@ -1,0 +1,357 @@
+:root {
+	--ink: #1b2430;
+	--ink-2: #28323f;
+	--ink-3: #3b4653;
+	--ink-4: #6e7885;
+	--paper: #eff1ed;
+	--card: #ffffff;
+	--line: #dbdacf;
+	--line-2: #edece4;
+	--dash: #b9b7a9;
+	--surface-soft: #fafaf7;
+	--stamp-green: #2f6f4e;
+	--stamp-green-bg: #e6efe9;
+	--stamp-amber: #b8863b;
+	--stamp-amber-bg: #f5edde;
+	--stamp-rust: #a23e2a;
+	--stamp-rust-bg: #f4e5e1;
+	--stamp-grey-bg: #f1f0ea;
+	--text: #1b2430;
+	--text-muted: #6e6c61;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	background: var(--paper);
+	color: var(--text);
+	-webkit-font-smoothing: antialiased;
+}
+
+body {
+	font-family: 'IBM Plex Sans', sans-serif;
+}
+
+a {
+	color: var(--stamp-green);
+	text-decoration: none;
+}
+a:hover {
+	color: var(--ink);
+	text-decoration: underline;
+}
+
+button,
+input,
+select,
+textarea {
+	font-family: 'IBM Plex Sans', sans-serif;
+}
+
+.mono {
+	font-family: 'IBM Plex Mono', monospace;
+}
+
+table {
+	border-collapse: collapse;
+	width: 100%;
+}
+th {
+	text-align: left;
+	padding: 12px 12px 10px 0;
+	font: 500 10px/1 'IBM Plex Sans', sans-serif;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+	border-bottom: 1px solid var(--line);
+}
+th.right {
+	text-align: right;
+}
+td {
+	padding: 15px 12px 15px 0;
+	border-bottom: 1px solid var(--line-2);
+	font: 400 13px 'IBM Plex Sans', sans-serif;
+}
+td.right {
+	text-align: right;
+}
+
+.card {
+	background: var(--card);
+	border: 1px solid var(--line);
+	border-radius: 12px;
+}
+
+.btn {
+	border-radius: 6px;
+	font: 500 13px 'IBM Plex Sans', sans-serif;
+	padding: 9px 15px;
+	cursor: pointer;
+	border: 1px solid transparent;
+	white-space: nowrap;
+}
+.btn-primary {
+	background: var(--ink);
+	color: var(--paper);
+	border-color: var(--ink);
+}
+.btn-primary:hover {
+	background: var(--ink-2);
+}
+.btn-accent {
+	background: var(--stamp-green);
+	color: #fff;
+	border-color: var(--stamp-green);
+}
+.btn-accent:hover {
+	filter: brightness(0.94);
+}
+.btn-outline {
+	background: transparent;
+	color: var(--ink);
+	border-color: var(--ink);
+}
+.btn-outline:hover {
+	background: var(--ink);
+	color: var(--paper);
+}
+.btn-ghost {
+	background: transparent;
+	color: var(--text-muted);
+	border-color: var(--line);
+}
+.btn-ghost:hover {
+	color: var(--ink);
+}
+.btn-danger-text {
+	background: transparent;
+	border: 0;
+	color: var(--stamp-rust);
+	font: 500 12px 'IBM Plex Sans', sans-serif;
+	cursor: pointer;
+	padding: 0;
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 7px;
+}
+.field-label {
+	font: 500 12px/1 'IBM Plex Sans', sans-serif;
+	color: var(--ink);
+}
+.input,
+select.input {
+	height: 38px;
+	padding: 0 11px;
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	font: 400 14px 'IBM Plex Sans', sans-serif;
+	color: var(--text);
+	outline: none;
+	width: 100%;
+}
+.input.mono {
+	font-family: 'IBM Plex Mono', monospace;
+}
+.input-sm {
+	height: 34px;
+	font-size: 12px;
+}
+
+.chip {
+	display: inline-block;
+	padding: 4px 9px;
+	border-radius: 7px;
+	font: 500 11px/1 'IBM Plex Sans', sans-serif;
+	white-space: nowrap;
+}
+.chip-green {
+	background: var(--stamp-green-bg);
+	color: var(--stamp-green);
+}
+.chip-amber {
+	background: var(--stamp-amber-bg);
+	color: var(--stamp-amber);
+}
+.chip-rust {
+	background: var(--stamp-rust-bg);
+	color: var(--stamp-rust);
+}
+.chip-grey {
+	background: var(--stamp-grey-bg);
+	color: var(--text-muted);
+}
+.chip.mono {
+	font-family: 'IBM Plex Mono', monospace;
+}
+
+.stamp {
+	width: 62px;
+	height: 62px;
+	flex: 0 0 62px;
+	border-radius: 50%;
+	display: grid;
+	place-items: center;
+	transform: rotate(-7deg);
+	border: 1.5px dashed;
+	text-align: center;
+}
+.stamp-title {
+	font: 600 10px/1 'IBM Plex Sans', sans-serif;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+.stamp-sub {
+	margin-top: 3px;
+	font: 500 9px/1 'IBM Plex Mono', monospace;
+}
+
+.punch-dot {
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+}
+.punch-filled {
+	background: var(--stamp-amber);
+}
+.punch-empty {
+	border: 1.5px dashed var(--dash);
+}
+
+.stub {
+	display: flex;
+	background: var(--card);
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	min-height: 106px;
+}
+.stub-body {
+	flex: 1;
+	min-width: 0;
+	padding: 16px 18px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+.stub-perforation {
+	position: relative;
+	width: 0;
+	border-left: 1px dashed var(--line);
+}
+.stub-perforation::before,
+.stub-perforation::after {
+	content: '';
+	position: absolute;
+	left: -6px;
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	background: var(--paper);
+	border: 1px solid var(--line);
+}
+.stub-perforation::before {
+	top: -6px;
+}
+.stub-perforation::after {
+	bottom: -6px;
+}
+.stub-end {
+	width: 118px;
+	flex: 0 0 118px;
+	display: grid;
+	place-items: center;
+	padding: 12px;
+	background: var(--surface-soft);
+	border-radius: 0 11px 11px 0;
+}
+
+.empty-state {
+	background: var(--card);
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	padding: 64px 40px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+}
+.empty-icon {
+	width: 58px;
+	height: 58px;
+	border: 1.5px dashed var(--dash);
+	border-radius: 50%;
+	display: grid;
+	place-items: center;
+	transform: rotate(-8deg);
+}
+
+@keyframes drawerIn {
+	from {
+		transform: translateX(24px);
+		opacity: 0.4;
+	}
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.drawer-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(27, 36, 48, 0.28);
+	display: flex;
+	justify-content: flex-end;
+	z-index: 40;
+	animation: fadeIn 0.15s ease;
+}
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+.spinner {
+	display: inline-block;
+	width: 13px;
+	height: 13px;
+	border: 2px solid currentColor;
+	border-right-color: transparent;
+	border-radius: 50%;
+	animation: spin 0.6s linear infinite;
+	vertical-align: -2px;
+	margin-right: 7px;
+	opacity: 0.85;
+}
+.btn:disabled {
+	cursor: default;
+	opacity: 0.7;
+}
+
+.drawer-panel {
+	width: 420px;
+	flex: 0 0 420px;
+	max-width: 100%;
+	background: #fff;
+	box-shadow: -18px 0 40px rgba(27, 36, 48, 0.16);
+	display: flex;
+	flex-direction: column;
+	animation: drawerIn 0.18s ease;
+	font-family: 'IBM Plex Sans', sans-serif;
+}

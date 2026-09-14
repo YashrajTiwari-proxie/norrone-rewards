@@ -1,0 +1,32 @@
+@proxie-studio/authz-tenant-kit
+
+This package is a fork of @djpanda/convex-authz
+(https://github.com/dbjpanda/convex-authz), forked at tag v2.4.1
+(commit 0717b7f), licensed under the Apache License, Version 2.0.
+A copy of that license is included as LICENSE in this directory.
+
+Summary of changes made in this fork (all implemented, see src/component/unified.ts,
+src/client/index.ts, and the accompanying tests):
+- Removed the bundled React integration (src/react/*) and its
+  peer/dev dependencies — this fork is consumed by a SvelteKit
+  application, not React.
+- Removed the example app, CI workflows, and release-automation
+  tooling that shipped with the upstream package.
+- Extended the permission-check path (src/component/unified.ts,
+  src/component/indexed.ts) and the client (src/client/index.ts) to
+  accept a scope *chain* (an array of scopes checked in order, allow-
+  anywhere-wins within the chain) instead of a single scope, so an
+  organization-wide role assignment can satisfy a restaurant-scoped
+  permission check without fanning out one role-assignment row per
+  restaurant. Single-scope calls are unaffected.
+- Added an `assignableRoles` configuration option, enforced inside
+  role-assignment mutations, so that holding a permission to assign
+  roles does not implicitly allow assigning a role higher than the
+  assigner's own (the upstream package did not guard this).
+- Wired up the expired-role/audit-retention cleanup cron
+  (src/component/cronSetup.ts's `ensureCleanupCronRegistered`), which
+  shipped in upstream but was never actually called from anywhere —
+  `assignRole` now registers it idempotently on first use.
+
+This NOTICE file is provided for informational purposes only and does
+not modify the License terms for any of the above.

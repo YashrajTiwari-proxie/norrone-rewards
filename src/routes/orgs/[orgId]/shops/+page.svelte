@@ -1,0 +1,217 @@
+<script lang="ts">
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import Drawer from '$lib/components/Drawer.svelte';
+	import EmptyState from '$lib/components/EmptyState.svelte';
+	import RegionCurrencyFields from '$lib/components/RegionCurrencyFields.svelte';
+	import { page } from '$app/state';
+	import { useQuery, useMutation } from 'convex-svelte';
+	import { api } from '../../../../../convex/_generated/api';
+	import type { Id } from '../../../../../convex/_generated/dataModel';
+
+	let organizationId = $derived(page.params.orgId as Id<'organizations'>);
+	const shops = useQuery(api.shops.list, () => ({ organizationId }));
+	const org = useQuery(api.organizations.getForStaff, () => ({ organizationId }));
+	const regions = useQuery(api.regions.list, {});
+	const createShop = useMutation(api.shops.create);
+	const updateShop = useMutation(api.shops.update);
+
+	let drawerOpen = $state(false);
+	let saving = $state(false);
+	let editOpen = $state(false);
+	let editSaving = $state(false);
+	let editingShop = $state<NonNullable<typeof shops.data>[number] | null>(null);
+	let errorMessage = $state<string | null>(null);
+
+	let name = $state('');
+	let externalShopId = $state('');
+	let phoneNumber = $state('');
+	let address = $state('');
+	let regionId = $state('');
+	let currencyCode = $state('');
+
+	function openAdd() {
+		name = '';
+		externalShopId = '';
+		phoneNumber = org.data?.organization.phoneNumber ?? '';
+		address = org.data?.organization.address ?? '';
+		regionId = org.data?.organization.regionId ?? '';
+		currencyCode = org.data?.organization.currencyCode ?? '';
+		errorMessage = null;
+		drawerOpen = true;
+	}
+
+	function openEdit(shop: NonNullable<typeof shops.data>[number]) {
+		editingShop = shop;
+		name = shop.name;
+		externalShopId = shop.externalShopId ?? '';
+		phoneNumber = shop.phoneNumber ?? '';
+		address = shop.address ?? '';
+		regionId = shop.regionId ?? '';
+		currencyCode = shop.currencyCode ?? '';
+		errorMessage = null;
+		editOpen = true;
+	}
+
+	async function submitCreate(event: SubmitEvent) {
+		event.preventDefault();
+		saving = true;
+		errorMessage = null;
+		try {
+			await createShop({
+				organizationId,
+				name: name.trim(),
+				externalShopId: externalShopId.trim() || undefined,
+				phoneNumber: phoneNumber.trim() || undefined,
+				address: address.trim() || undefined,
+				regionId: (regionId || undefined) as Id<'regions'> | undefined,
+				currencyCode: currencyCode.trim() ? currencyCode.trim().toUpperCase() : undefined
+			});
+			drawerOpen = false;
+		} catch {
+			errorMessage = 'Failed to create shop.';
+		} finally {
+			saving = false;
+		}
+	}
+
+	async function submitUpdate(event: SubmitEvent) {
+		event.preventDefault();
+		if (!editingShop) return;
+		editSaving = true;
+		errorMessage = null;
+		try {
+			await updateShop({
+				organizationId,
+				shopId: editingShop._id,
+				name: name.trim(),
+				externalShopId: externalShopId.trim() || undefined,
+				phoneNumber: phoneNumber.trim() || undefined,
+				address: address.trim() || undefined,
+				regionId: (regionId || undefined) as Id<'regions'> | undefined,
+				currencyCode: currencyCode.trim() ? currencyCode.trim().toUpperCase() : undefined
+			});
+			editOpen = false;
+		} catch {
+			errorMessage = 'Failed to update shop.';
+		} finally {
+			editSaving = false;
+		}
+	}
+</script>
+
+<PageHeader title="Shops" subtitle="Every location running this rewards program.">
+	{#snippet actions()}
+		<button class="btn btn-primary" onclick={openAdd}>Add a shop</button>
+	{/snippet}
+</PageHeader>
+
+<div style="padding:34px 40px 72px;max-width:1260px">
+	{#if shops.isLoading}
+		<p>Loading…</p>
+	{:else if shops.error}
+		<p>Failed to load shops: {shops.error.message}</p>
+	{:else if shops.data.length === 0}
+		<EmptyState title="No shops yet" body="Add your first shop to start creating customers and configuring the program for it.">
+			{#snippet action()}
+				<button class="btn btn-accent" onclick={openAdd}>Add a shop</button>
+			{/snippet}
+		</EmptyState>
+	{:else}
+		<div class="card" style="padding:6px 20px 14px">
+			<table>
+				<thead>
+					<tr>
+						<th>Shop</th>
+						<th>Shop ID in your system</th>
+						<th>Country</th>
+						<th>Currency</th>
+						<th class="right">Customers</th>
+						<th class="right">Added</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each shops.data as shop (shop._id)}
+						<tr onclick={() => openEdit(shop)} style="cursor:pointer">
+							<td style="font:500 14px 'IBM Plex Sans',sans-serif;color:var(--ink)">{shop.name}</td>
+							<td class="mono" style="color:var(--text-muted)">{shop.externalShopId ?? '—'}</td>
+							<td style="color:var(--text-muted)">{shop.regionName ?? '—'}</td>
+							<td class="mono" style="color:var(--text-muted)">{shop.currencyCode ?? '—'}</td>
+							<td class="right mono" style="font-weight:500;color:var(--ink)">{shop.customerCount}</td>
+							<td class="right mono" style="color:var(--text-muted)">
+								{new Date(shop._creationTime).toLocaleDateString()}
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
+	{/if}
+</div>
+
+<Drawer bind:open={drawerOpen} title="Add a shop" note="Give it a name your staff will recognize. Location details default from your organization but can be changed for this shop.">
+	<form id="drawer-form" onsubmit={submitCreate}>
+		<div style="display:flex;flex-direction:column;gap:18px">
+			<label class="field">
+				<span class="field-label">Name</span>
+				<input type="text" bind:value={name} required class="input" placeholder="Kettle &amp; Coal — Fort" />
+			</label>
+			<label class="field">
+				<span class="field-label">External shop ID</span>
+				<input type="text" bind:value={externalShopId} class="input mono" placeholder="Optional — your own reference" />
+			</label>
+			<label class="field">
+				<span class="field-label">Phone number</span>
+				<input type="tel" bind:value={phoneNumber} class="input" />
+			</label>
+			<label class="field">
+				<span class="field-label">Address</span>
+				<input type="text" bind:value={address} class="input" />
+			</label>
+			<RegionCurrencyFields regions={regions.data ?? []} bind:regionId bind:currencyCode />
+		</div>
+	</form>
+	{#if errorMessage}
+		<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+	{/if}
+	{#snippet footer()}
+		<button type="button" class="btn btn-ghost" onclick={() => (drawerOpen = false)} disabled={saving}>Cancel</button>
+		<button type="submit" form="drawer-form" class="btn btn-accent" disabled={saving}>
+			{#if saving}<span class="spinner"></span>Adding…{:else}Add shop{/if}
+		</button>
+	{/snippet}
+</Drawer>
+
+<Drawer bind:open={editOpen} title={editingShop?.name ?? ''} note="This shop's own location and currency — independent of the organization's defaults.">
+	{#if editingShop}
+		<form id="edit-shop-form" onsubmit={submitUpdate}>
+			<div style="display:flex;flex-direction:column;gap:18px">
+				<label class="field">
+					<span class="field-label">Name</span>
+					<input type="text" bind:value={name} required class="input" />
+				</label>
+				<label class="field">
+					<span class="field-label">External shop ID</span>
+					<input type="text" bind:value={externalShopId} class="input mono" />
+				</label>
+				<label class="field">
+					<span class="field-label">Phone number</span>
+					<input type="tel" bind:value={phoneNumber} class="input" />
+				</label>
+				<label class="field">
+					<span class="field-label">Address</span>
+					<input type="text" bind:value={address} class="input" />
+				</label>
+				<RegionCurrencyFields regions={regions.data ?? []} bind:regionId bind:currencyCode />
+			</div>
+		</form>
+	{/if}
+	{#if errorMessage}
+		<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+	{/if}
+	{#snippet footer()}
+		<button type="button" class="btn btn-ghost" onclick={() => (editOpen = false)} disabled={editSaving}>Cancel</button>
+		<button type="submit" form="edit-shop-form" class="btn btn-accent" disabled={editSaving}>
+			{#if editSaving}<span class="spinner"></span>Saving…{:else}Save shop{/if}
+		</button>
+	{/snippet}
+</Drawer>

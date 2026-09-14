@@ -1,0 +1,90 @@
+{
+  "name": "@proxie-studio/authz-tenant-kit",
+  "description": "RBAC for multi-tenant Convex apps — role/permission checks scoped to an organization/restaurant hierarchy, an assignableRoles privilege-escalation guard, and tenant-defined custom roles. Fork of @djpanda/convex-authz — see NOTICE.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Proxie-Studio/authz-tenant-kit.git"
+  },
+  "homepage": "https://github.com/Proxie-Studio/authz-tenant-kit#readme",
+  "bugs": {
+    "url": "https://github.com/Proxie-Studio/authz-tenant-kit/issues"
+  },
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Ghanshyam Singh Shaktawat",
+    "email": "ghanshyam.dev@weareproxie.com",
+    "url": "https://github.com/proxie-ghanshyam"
+  },
+  "keywords": [
+    "convex",
+    "component",
+    "authorization",
+    "rbac",
+    "abac",
+    "rebac",
+    "permissions",
+    "access-control"
+  ],
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc --project ./tsconfig.build.json",
+    "build:codegen": "npx convex codegen --component-dir ./src/component && npm run build",
+    "build:clean": "rm -rf dist *.tsbuildinfo && npm run build:codegen",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run --typecheck",
+    "test:watch": "vitest --typecheck --clearScreen false"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/client/index.d.ts",
+      "default": "./dist/client/index.js"
+    },
+    "./test": "./src/test.ts",
+    "./_generated/component.js": {
+      "types": "./dist/component/_generated/component.d.ts"
+    },
+    "./_generated/component": {
+      "types": "./dist/component/_generated/component.d.ts"
+    },
+    "./convex.config.js": {
+      "types": "./dist/component/convex.config.d.ts",
+      "default": "./dist/component/convex.config.js"
+    },
+    "./convex.config": {
+      "types": "./dist/component/convex.config.d.ts",
+      "default": "./dist/component/convex.config.js"
+    }
+  },
+  "peerDependencies": {
+    "convex": "^1.42.0"
+  },
+  "devDependencies": {
+    "@convex-dev/eslint-plugin": "^2.0.0",
+    "@edge-runtime/vm": "^5.0.0",
+    "@eslint/js": "10.0.1",
+    "@types/node": "^25.6.0",
+    "@vitest/coverage-v8": "^4.1.4",
+    "convex": "^1.42.3",
+    "convex-test": "0.0.47",
+    "eslint": "10.2.0",
+    "globals": "^17.5.0",
+    "prettier": "3.8.2",
+    "typescript": "6.0.2",
+    "typescript-eslint": "8.58.1",
+    "vitest": "4.1.4"
+  },
+  "types": "./dist/client/index.d.ts",
+  "module": "./dist/client/index.js",
+  "dependencies": {
+    "@convex-dev/crons": "^0.2.0",
+    "convex-helpers": "^0.1.116"
+  }
+}

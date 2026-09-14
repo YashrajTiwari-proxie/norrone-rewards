@@ -1,0 +1,19 @@
+.DS_Store
+.idea
+*.local
+*.log
+/.vscode/
+/docs/.vitepress/cache
+dist-ssr
+explorations
+node_modules
+.eslintcache
+
+# npm pack output
+*.tgz
+*.tsbuildinfo
+.claude/settings.local.json
+coverage/
+.vercel
+.remember
+.playwright-mcp

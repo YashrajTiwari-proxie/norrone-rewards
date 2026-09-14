@@ -1,0 +1,33 @@
+node_modules
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# dist/ used to be intentionally committed here (this package was
+# installed directly via a git+ssh URL, so its own repo had to carry
+# built output). As of the move into admin-panel-rooh-v2, it's consumed
+# as a workspace:* dependency instead, so dist/ goes back to being a
+# gitignored build artifact like any other workspace package's — see
+# the root .gitignore's comment on packages/authz-tenant-kit for the
+# same pattern. Run `bun run build` after any change to src/lib.
+/dist
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
