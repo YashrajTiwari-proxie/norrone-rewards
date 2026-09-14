@@ -1,5 +1,5 @@
 import { v, ConvexError } from "convex/values";
-import { orgStaffQuery, orgStaffMutation, assertShopInOrg, assertPositive } from "./lib/authz";
+import { orgStaffQuery, orgStaffMutation, assertShopInOrg, assertPositive, assertNonNegative } from "./lib/authz";
 
 const metricLabel: Record<string, string> = {
 	SPEND: "spend",
@@ -156,6 +156,7 @@ export const addCondition = orgStaffMutation("coupons:write")({
 	},
 	handler: async (ctx, args) => {
 		const { couponDefinitionId, ...fields } = args;
+		assertNonNegative(fields.value, "value");
 		const def = await ctx.db.get(couponDefinitionId);
 		if (!def || def.organizationId !== ctx.organizationId) {
 			throw new ConvexError({ code: "NOT_FOUND", message: "Coupon type not found in this organization" });

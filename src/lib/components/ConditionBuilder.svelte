@@ -76,7 +76,7 @@
 				<option value="LTE">is at most</option>
 				<option value="EQ">is exactly</option>
 			</select>
-			<input type="number" bind:value step="any" required class="input input-sm mono" placeholder="Value" />
+			<input type="number" bind:value step="any" required min="0" class="input input-sm mono" placeholder="Value" />
 			<select bind:value={period} class="input input-sm">
 				<option value="LIFETIME">All time</option>
 				<option value="MONTHLY">This month</option>

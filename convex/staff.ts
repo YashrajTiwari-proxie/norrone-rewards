@@ -4,17 +4,19 @@ import { internalMutation, internalQuery } from "./_generated/server";
 import { orgStaffQuery, orgStaffMutation, orgStaffAction } from "./lib/authz";
 import { authComponent, createAuth } from "./auth";
 import { authz, orgRoleValidator } from "./authzConfig";
-import { sendEmail } from "./lib/email";
 
 /**
  * Staff listing + invite for the org dashboard. `invite` is an action
  * (not a mutation) because creating a brand-new Better Auth account
  * (createAuth(ctx).api.signUpEmail — reuses Better Auth's own password
- * hashing rather than writing account.password by hand) and sending the
- * invite email both need action context. The actual DB writes (staff row
- * + authz role grant) live in the internal `attachRole` mutation below so
- * both the "existing account" and "brand-new account" paths share one
- * code path.
+ * hashing rather than writing account.password by hand) needs action
+ * context. The actual DB writes (staff row + authz role grant) live in
+ * the internal `attachRole` mutation below so both the "existing
+ * account" and "brand-new account" paths share one code path.
+ *
+ * For now the org owner types in the new staff member's email + password
+ * directly (no auto-generated password, no email sent) — email delivery
+ * is a deliberate follow-up, not wired in yet.
  */
 
 export const list = orgStaffQuery("staff:read")({
@@ -88,16 +90,8 @@ export const assertActorActiveStaff = internalQuery({
 	}
 });
 
-function generateTempPassword(): string {
-	// Not meant to be memorable — emailed straight to the invitee, who is
-	// expected to sign in once and (eventually) change it. 24 chars from
-	// crypto.randomUUID() comfortably clears Better Auth's default
-	// minPasswordLength.
-	return crypto.randomUUID().replace(/-/g, "").slice(0, 24);
-}
-
 export const invite = orgStaffAction("staff:invite")({
-	args: { email: v.string(), role: orgRoleValidator },
+	args: { email: v.string(), role: orgRoleValidator, password: v.string() },
 	handler: async (ctx, args) => {
 		await ctx.runQuery(internal.staff.assertActorActiveStaff, {
 			organizationId: ctx.organizationId,
@@ -121,9 +115,15 @@ export const invite = orgStaffAction("staff:invite")({
 			return { created: false as const };
 		}
 
-		const password = generateTempPassword();
+		if (args.password.length < 8) {
+			throw new ConvexError({
+				code: "PASSWORD_TOO_SHORT",
+				message: "Password must be at least 8 characters."
+			});
+		}
+
 		const signUpResult = await createAuth(ctx).api.signUpEmail({
-			body: { email, password, name: email.split("@")[0] }
+			body: { email, password: args.password, name: email.split("@")[0] }
 		});
 		const authUserId = signUpResult.user.id;
 
@@ -132,18 +132,6 @@ export const invite = orgStaffAction("staff:invite")({
 			authUserId,
 			role: args.role,
 			actorId: ctx.authUserId
-		});
-
-		await sendEmail({
-			to: email,
-			subject: "You've been added to Norrone Loyalty",
-			html: `
-				<p>You've been added as staff on Norrone Loyalty.</p>
-				<p><strong>Email:</strong> ${email}<br/>
-				<strong>Temporary password:</strong> ${password}</p>
-				<p>Sign in at <a href="${process.env.SITE_URL ?? "http://127.0.0.1:5173"}/login">${process.env.SITE_URL ?? "http://127.0.0.1:5173"}/login</a>.
-				We'd recommend changing your password after your first sign-in.</p>
-			`
 		});
 
 		return { created: true as const };

@@ -177,7 +177,7 @@
 			</label>
 			<label class="field">
 				<span class="field-label">Points per unit</span>
-				<input type="number" bind:value={pointsPerUnit} step="any" required class="input mono" />
+				<input type="number" bind:value={pointsPerUnit} step="any" required min="0" class="input mono" />
 			</label>
 			<label style="display:flex;align-items:center;gap:8px">
 				<input type="checkbox" bind:checked={memberOnly} />
@@ -215,7 +215,7 @@
 				</label>
 				<label class="field">
 					<span class="field-label">Points per unit</span>
-					<input type="number" bind:value={pointsPerUnit} step="any" required class="input mono" />
+					<input type="number" bind:value={pointsPerUnit} step="any" required min="0" class="input mono" />
 				</label>
 				<label style="display:flex;align-items:center;gap:8px">
 					<input type="checkbox" bind:checked={memberOnly} />

@@ -46,8 +46,8 @@
 	function openEdit(plan: NonNullable<typeof plans.data>[number]) {
 		editingPlanId = plan._id;
 		name = plan.name;
-		price = String(plan.price);
-		durationDays = String(plan.durationDays);
+		price = plan.price != null ? String(plan.price) : '';
+		durationDays = plan.durationDays != null ? String(plan.durationDays) : '';
 		pointMultiplier = String(plan.pointMultiplier);
 		shopId = plan.shopId ?? '';
 		errorMessage = null;
@@ -56,10 +56,8 @@
 
 	async function submitAdd(event: SubmitEvent) {
 		event.preventDefault();
-		const priceNum = Number(price);
-		const days = Number(durationDays);
-		if (!name.trim() || !Number.isFinite(priceNum) || !Number.isFinite(days)) {
-			errorMessage = 'Name, price, and duration are required.';
+		if (!name.trim()) {
+			errorMessage = 'Name is required.';
 			return;
 		}
 		addSaving = true;
@@ -68,8 +66,8 @@
 			await createPlan({
 				organizationId,
 				name: name.trim(),
-				price: priceNum,
-				durationDays: days,
+				price: price.trim() ? Number(price) : undefined,
+				durationDays: durationDays.trim() ? Number(durationDays) : undefined,
 				pointMultiplier: Number(pointMultiplier) || 1,
 				shopId: (shopId || undefined) as Id<'shops'> | undefined
 			});
@@ -84,10 +82,8 @@
 	async function submitUpdate(event: SubmitEvent) {
 		event.preventDefault();
 		if (!editingPlan) return;
-		const priceNum = Number(price);
-		const days = Number(durationDays);
-		if (!name.trim() || !Number.isFinite(priceNum) || !Number.isFinite(days)) {
-			errorMessage = 'Name, price, and duration are required.';
+		if (!name.trim()) {
+			errorMessage = 'Name is required.';
 			return;
 		}
 		editSaving = true;
@@ -97,8 +93,8 @@
 				organizationId,
 				planId: editingPlan._id,
 				name: name.trim(),
-				price: priceNum,
-				durationDays: days,
+				price: price.trim() ? Number(price) : undefined,
+				durationDays: durationDays.trim() ? Number(durationDays) : undefined,
 				pointMultiplier: Number(pointMultiplier) || 1,
 				shopId: (shopId || undefined) as Id<'shops'> | undefined
 			});
@@ -162,8 +158,8 @@
 									</div>
 								{/if}
 							</td>
-							<td class="right mono" style="font-weight:500;color:var(--ink)">₹{plan.price}</td>
-							<td class="right mono" style="color:var(--text-muted)">{plan.durationDays}d</td>
+							<td class="right mono" style="font-weight:500;color:var(--ink)">{plan.price != null ? `₹${plan.price}` : 'Free'}</td>
+							<td class="right mono" style="color:var(--text-muted)">{plan.durationDays != null ? `${plan.durationDays}d` : 'No expiry'}</td>
 							<td class="right mono" style="font-weight:500;color:var(--stamp-amber)">{plan.pointMultiplier}×</td>
 							<td style="color:var(--text-muted)">{plan.scopeName}</td>
 							<td class="right mono" style="font-weight:500;color:var(--ink)">{plan.activeMembers}</td>
@@ -183,16 +179,16 @@
 				<input type="text" bind:value={name} required class="input" placeholder="Gold Membership" />
 			</label>
 			<label class="field">
-				<span class="field-label">Price</span>
-				<input type="number" bind:value={price} step="any" required class="input mono" />
+				<span class="field-label">Price (optional — blank means free)</span>
+				<input type="number" bind:value={price} step="any" min="0" class="input mono" />
 			</label>
 			<label class="field">
-				<span class="field-label">Duration (days)</span>
-				<input type="number" bind:value={durationDays} required class="input mono" />
+				<span class="field-label">Duration in days (optional — blank means never expires)</span>
+				<input type="number" bind:value={durationDays} min="0" class="input mono" />
 			</label>
 			<label class="field">
 				<span class="field-label">Points multiplier</span>
-				<input type="number" bind:value={pointMultiplier} step="any" class="input mono" />
+				<input type="number" bind:value={pointMultiplier} step="any" min="0" class="input mono" />
 			</label>
 			<label class="field">
 				<span class="field-label">Applies to</span>
@@ -225,16 +221,16 @@
 					<input type="text" bind:value={name} required class="input" />
 				</label>
 				<label class="field">
-					<span class="field-label">Price</span>
-					<input type="number" bind:value={price} step="any" required class="input mono" />
+					<span class="field-label">Price (optional — blank means free)</span>
+					<input type="number" bind:value={price} step="any" min="0" class="input mono" />
 				</label>
 				<label class="field">
-					<span class="field-label">Duration (days)</span>
-					<input type="number" bind:value={durationDays} required class="input mono" />
+					<span class="field-label">Duration in days (optional — blank means never expires)</span>
+					<input type="number" bind:value={durationDays} min="0" class="input mono" />
 				</label>
 				<label class="field">
 					<span class="field-label">Points multiplier</span>
-					<input type="number" bind:value={pointMultiplier} step="any" class="input mono" />
+					<input type="number" bind:value={pointMultiplier} step="any" min="0" class="input mono" />
 				</label>
 				<label class="field">
 					<span class="field-label">Applies to</span>

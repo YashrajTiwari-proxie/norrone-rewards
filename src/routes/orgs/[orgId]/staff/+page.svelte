@@ -12,6 +12,7 @@
 	const invite = useAction(api.staff.invite);
 
 	let email = $state('');
+	let password = $state('');
 	let role = $state<'staff' | 'manager'>('staff');
 	let inviting = $state(false);
 	let errorMessage = $state<string | null>(null);
@@ -23,15 +24,25 @@
 			errorMessage = 'Email is required.';
 			return;
 		}
+		if (!password.trim()) {
+			errorMessage = 'Password is required.';
+			return;
+		}
 		inviting = true;
 		errorMessage = null;
 		successMessage = null;
 		try {
-			const result = await invite({ organizationId, email: email.trim(), role });
+			const result = await invite({
+				organizationId,
+				email: email.trim(),
+				role,
+				password: password.trim()
+			});
 			successMessage = result.created
-				? 'Account created and invite email sent.'
+				? 'Account created with that password — share it with them yourself for now.'
 				: 'Added to this organization.';
 			email = '';
+			password = '';
 		} catch (err) {
 			const data = err instanceof ConvexError ? (err.data as { code?: string; message?: string }) : null;
 			errorMessage = data?.message ?? 'Failed to add staff member.';
@@ -76,10 +87,21 @@
 	<div class="card" style="padding:22px 24px;max-width:560px">
 		<div style="font:600 15px/1 'IBM Plex Sans',sans-serif">Add someone</div>
 		<div style="margin-top:7px;font:400 13px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
-			If they don't have an account yet, we'll create one and email them a temporary password.
+			If they already have an account, the password below is ignored and they're just added.
+			Otherwise it becomes their password — share it with them yourself, invite emails aren't
+			wired up yet.
 		</div>
 		<form onsubmit={submitInvite} style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
 			<input bind:value={email} type="email" placeholder="name@restaurant.com" required class="input" style="flex:1;min-width:200px" />
+			<input
+				bind:value={password}
+				type="text"
+				placeholder="Password (8+ characters)"
+				required
+				minlength={8}
+				class="input mono"
+				style="flex:1;min-width:200px"
+			/>
 			<select bind:value={role} class="input" style="width:auto">
 				<option value="staff">Staff</option>
 				<option value="manager">Manager</option>

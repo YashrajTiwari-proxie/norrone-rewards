@@ -179,11 +179,11 @@
 			</label>
 			<label class="field">
 				<span class="field-label">Level</span>
-				<input type="number" bind:value={level} required class="input mono" />
+				<input type="number" bind:value={level} required min="0" class="input mono" />
 			</label>
 			<label class="field">
 				<span class="field-label">Points multiplier</span>
-				<input type="number" bind:value={pointMultiplier} step="any" class="input mono" />
+				<input type="number" bind:value={pointMultiplier} step="any" min="0" class="input mono" />
 			</label>
 			<label class="field">
 				<span class="field-label">Applies to</span>
@@ -217,11 +217,11 @@
 				</label>
 				<label class="field">
 					<span class="field-label">Level</span>
-					<input type="number" bind:value={level} required class="input mono" />
+					<input type="number" bind:value={level} required min="0" class="input mono" />
 				</label>
 				<label class="field">
 					<span class="field-label">Points multiplier</span>
-					<input type="number" bind:value={pointMultiplier} step="any" class="input mono" />
+					<input type="number" bind:value={pointMultiplier} step="any" min="0" class="input mono" />
 				</label>
 				<label class="field">
 					<span class="field-label">Applies to</span>

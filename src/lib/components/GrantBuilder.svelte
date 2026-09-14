@@ -58,7 +58,7 @@
 			<select class="input input-sm" disabled>
 				<option value="POINTS">Bonus points</option>
 			</select>
-			<input type="number" bind:value={pointsAmount} step="any" required class="input input-sm mono" placeholder="Amount" />
+			<input type="number" bind:value={pointsAmount} step="any" required min="0" class="input input-sm mono" placeholder="Amount" />
 			<button
 				type="submit"
 				disabled={adding}

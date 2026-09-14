@@ -290,7 +290,7 @@
 			<label class="field">
 				<span class="field-label">Discount</span>
 				<div style="display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden">
-					<input type="number" bind:value={discountValue} step="any" required class="mono" style="flex:1;height:38px;padding:0 11px;border:0;outline:none;font:500 14px 'IBM Plex Mono',monospace" />
+					<input type="number" bind:value={discountValue} step="any" required min="0" class="mono" style="flex:1;height:38px;padding:0 11px;border:0;outline:none;font:500 14px 'IBM Plex Mono',monospace" />
 					<select bind:value={discountType} style="height:38px;border:0;border-left:1px solid var(--line);background:var(--surface-soft);font:500 12px 'IBM Plex Sans',sans-serif;padding:0 9px">
 						<option value="PERCENTAGE">%</option>
 						<option value="FIXED">₹</option>
@@ -299,7 +299,7 @@
 			</label>
 			<label class="field">
 				<span class="field-label">Validity (days)</span>
-				<input type="number" bind:value={validityDays} required class="input mono" />
+				<input type="number" bind:value={validityDays} required min="0" class="input mono" />
 			</label>
 			<label style="display:flex;align-items:center;gap:8px">
 				<input type="checkbox" bind:checked={memberOnly} />
@@ -338,7 +338,7 @@
 				<label class="field">
 					<span class="field-label">Discount</span>
 					<div style="display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden">
-						<input type="number" bind:value={discountValue} step="any" required class="mono" style="flex:1;height:38px;padding:0 11px;border:0;outline:none;font:500 14px 'IBM Plex Mono',monospace" />
+						<input type="number" bind:value={discountValue} step="any" required min="0" class="mono" style="flex:1;height:38px;padding:0 11px;border:0;outline:none;font:500 14px 'IBM Plex Mono',monospace" />
 						<select bind:value={discountType} style="height:38px;border:0;border-left:1px solid var(--line);background:var(--surface-soft);font:500 12px 'IBM Plex Sans',sans-serif;padding:0 9px">
 							<option value="PERCENTAGE">%</option>
 							<option value="FIXED">₹</option>
@@ -347,7 +347,7 @@
 				</label>
 				<label class="field">
 					<span class="field-label">Validity (days)</span>
-					<input type="number" bind:value={validityDays} required class="input mono" />
+					<input type="number" bind:value={validityDays} required min="0" class="input mono" />
 				</label>
 				<label style="display:flex;align-items:center;gap:8px">
 					<input type="checkbox" bind:checked={memberOnly} />

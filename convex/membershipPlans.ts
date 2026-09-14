@@ -37,17 +37,21 @@ export const list = orgStaffQuery("membershipPlans:read")({
 
 const planFields = {
 	name: v.string(),
-	price: v.number(),
-	durationDays: v.number(),
+	price: v.optional(v.number()), // absent = free
+	durationDays: v.optional(v.number()), // absent = never expires
 	pointMultiplier: v.number(),
 	shopId: v.optional(v.id("shops"))
 };
 
+function assertValidPlanFields(fields: { price?: number; durationDays?: number }) {
+	if (fields.price !== undefined) assertPositive(fields.price, "price");
+	if (fields.durationDays !== undefined) assertPositive(fields.durationDays, "durationDays");
+}
+
 export const create = orgStaffMutation("membershipPlans:write")({
 	args: planFields,
 	handler: async (ctx, args) => {
-		assertPositive(args.price, "price");
-		assertPositive(args.durationDays, "durationDays");
+		assertValidPlanFields(args);
 		await assertShopInOrg(ctx, args.shopId, ctx.organizationId);
 		await ctx.db.insert("membershipPlans", { organizationId: ctx.organizationId, ...args });
 	}
@@ -57,8 +61,7 @@ export const update = orgStaffMutation("membershipPlans:write")({
 	args: { planId: v.id("membershipPlans"), ...planFields },
 	handler: async (ctx, args) => {
 		const { planId, ...fields } = args;
-		assertPositive(fields.price, "price");
-		assertPositive(fields.durationDays, "durationDays");
+		assertValidPlanFields(fields);
 		const plan = await ctx.db.get(planId);
 		if (!plan || plan.organizationId !== ctx.organizationId) {
 			throw new ConvexError({ code: "NOT_FOUND", message: "Membership plan not found in this organization" });
@@ -82,6 +85,7 @@ export const remove = orgStaffMutation("membershipPlans:write")({
 export const addBenefit = orgStaffMutation("membershipPlans:write")({
 	args: { planId: v.id("membershipPlans"), benefitType: v.literal("POINTS"), pointsAmount: v.number() },
 	handler: async (ctx, args) => {
+		assertPositive(args.pointsAmount, "pointsAmount");
 		const plan = await ctx.db.get(args.planId);
 		if (!plan || plan.organizationId !== ctx.organizationId) {
 			throw new ConvexError({ code: "NOT_FOUND", message: "Membership plan not found in this organization" });

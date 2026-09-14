@@ -1,7 +1,13 @@
+"use node";
+
 // Minimal from-scratch PNG encoder (no image library needed) — used only
 // to generate the flat-color default icon/logo for Apple Wallet passes
 // until real per-org branding assets exist. Truecolor (RGB, no alpha),
 // 8-bit depth, single IDAT chunk, filter type 0 (none) per scanline.
+//
+// Only ever imported from convex/walletNode.ts (also "use node") — Convex's
+// bundler requires the directive on every file that directly imports a
+// Node builtin, not just the action's own entry file.
 import { deflateSync } from "node:zlib";
 
 const CRC_TABLE = (() => {

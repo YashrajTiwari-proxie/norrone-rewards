@@ -1,5 +1,5 @@
 import { v, ConvexError } from "convex/values";
-import { orgStaffQuery, orgStaffMutation, assertShopInOrg, assertNonNegative } from "./lib/authz";
+import { orgStaffQuery, orgStaffMutation, assertShopInOrg, assertNonNegative, assertPositive } from "./lib/authz";
 
 const metricLabel: Record<string, string> = {
 	SPEND: "spend",
@@ -114,6 +114,7 @@ export const addCondition = orgStaffMutation("tiers:write")({
 	},
 	handler: async (ctx, args) => {
 		const { tierId, ...fields } = args;
+		assertNonNegative(fields.value, "value");
 		const tier = await ctx.db.get(tierId);
 		if (!tier || tier.organizationId !== ctx.organizationId) {
 			throw new ConvexError({ code: "NOT_FOUND", message: "Tier not found in this organization" });
@@ -141,6 +142,7 @@ export const removeCondition = orgStaffMutation("tiers:write")({
 export const addBenefit = orgStaffMutation("tiers:write")({
 	args: { tierId: v.id("tiers"), benefitType: v.literal("POINTS"), pointsAmount: v.number() },
 	handler: async (ctx, args) => {
+		assertPositive(args.pointsAmount, "pointsAmount");
 		const tier = await ctx.db.get(args.tierId);
 		if (!tier || tier.organizationId !== ctx.organizationId) {
 			throw new ConvexError({ code: "NOT_FOUND", message: "Tier not found in this organization" });

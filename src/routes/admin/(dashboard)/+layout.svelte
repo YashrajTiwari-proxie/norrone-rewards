@@ -32,7 +32,9 @@
 	</div>
 {:else}
 	<div style="display:flex;min-height:100vh;background:var(--paper);font-family:'IBM Plex Sans',sans-serif;color:var(--text)">
-		<div style="width:248px;flex:0 0 248px;background:var(--ink);display:flex;flex-direction:column;min-height:100vh">
+		<div
+			style="width:248px;flex:0 0 248px;background:var(--ink);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;align-self:flex-start"
+		>
 			<div style="padding:22px 18px 18px">
 				<div style="display:flex;align-items:center;gap:9px">
 					<div style="width:22px;height:22px;background:var(--paper);border-radius:3px"></div>

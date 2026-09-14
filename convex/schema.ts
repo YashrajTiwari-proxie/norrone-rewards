@@ -133,8 +133,8 @@ export default defineSchema({
 		organizationId: v.id("organizations"),
 		shopId: v.optional(v.id("shops")), // null = org-wide template
 		name: v.string(),
-		price: v.number(),
-		durationDays: v.number(),
+		price: v.optional(v.number()), // absent = free
+		durationDays: v.optional(v.number()), // absent = never expires (see loyaltyEngine.ts's NO_EXPIRY_MS)
 		pointMultiplier: v.number()
 	}).index("by_organization", ["organizationId"]),
 

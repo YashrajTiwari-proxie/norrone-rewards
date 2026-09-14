@@ -22,6 +22,14 @@ type ReadCtx = QueryCtx | MutationCtx;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+// Sentinel expiryDate for a membership plan with no durationDays set (i.e.
+// never expires) — customerMemberships.expiryDate is a required number, so
+// "no expiry" is represented as a timestamp far enough out that every
+// `expiryDate > now` active-membership check still passes, rather than
+// adding a second nullable column. Number.MAX_SAFE_INTEGER ms is ~285,616
+// years out, comfortably "forever" and still a valid finite float64.
+const NO_EXPIRY_MS = Number.MAX_SAFE_INTEGER;
+
 function randomCouponCode(): string {
 	const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	let code = "";
@@ -475,7 +483,7 @@ export async function enrollMembership(
 		planId: args.planId,
 		status: "ACTIVE",
 		startDate: Date.now(),
-		expiryDate: Date.now() + plan.durationDays * DAY_MS
+		expiryDate: plan.durationDays !== undefined ? Date.now() + plan.durationDays * DAY_MS : NO_EXPIRY_MS
 	});
 
 	await applyGrantedBenefits(ctx, args.customerId, "MEMBERSHIP_PLAN", args.planId);

@@ -184,7 +184,11 @@
 				<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
 					{#if data.membershipPlan}
 						<Chip tone="green" text="Member · {data.membershipPlan.name}" />
-						<Chip tone="amber" mono text="Renews {new Date(data.membershipExpiry!).toLocaleDateString()}" />
+						{#if data.membershipExpiry! > Date.now() + 100 * 365 * 24 * 60 * 60 * 1000}
+							<Chip tone="amber" text="No expiry" />
+						{:else}
+							<Chip tone="amber" mono text="Renews {new Date(data.membershipExpiry!).toLocaleDateString()}" />
+						{/if}
 					{:else}
 						<Chip tone="grey" text="Not a member" />
 					{/if}
@@ -425,7 +429,7 @@
 					<select bind:value={selectedPlanId} required class="input">
 						<option value="" disabled selected>Choose a plan</option>
 						{#each data.availablePlans as plan (plan.id)}
-							<option value={plan.id}>{plan.name} — ₹{plan.price}</option>
+							<option value={plan.id}>{plan.name} — {plan.price != null ? `₹${plan.price}` : 'Free'}</option>
 						{/each}
 					</select>
 				</label>
