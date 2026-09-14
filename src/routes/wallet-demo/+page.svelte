@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { PUBLIC_CONVEX_SITE_URL } from '$env/static/public';
 
 	// Example integration for docs/API.md's wallet endpoints — this page
@@ -7,10 +8,14 @@
 	// intentionally a plain fetch() against PUBLIC_CONVEX_SITE_URL, not a
 	// dashboard feature — nothing here talks to Better Auth or any
 	// session-authenticated Convex function.
+	//
+	// Optionally pre-filled via ?key=&shop=&customer= query params, so a
+	// single link can hand someone a ready-to-click demo instead of three
+	// values to copy-paste in by hand.
 
-	let apiKey = $state('');
-	let shopId = $state('');
-	let externalId = $state('');
+	let apiKey = $state(page.url.searchParams.get('key') ?? '');
+	let shopId = $state(page.url.searchParams.get('shop') ?? '');
+	let externalId = $state(page.url.searchParams.get('customer') ?? '');
 
 	let appleBusy = $state(false);
 	let googleBusy = $state(false);
@@ -134,7 +139,9 @@
 		<div style="font:400 12px/1.6 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
 			This page only ever talks to <code class="mono">{PUBLIC_CONVEX_SITE_URL}/v1/...</code> — the same
 			public API any external integration uses. It has no access to your dashboard session, and nothing
-			you type here is stored anywhere.
+			you type here is stored anywhere. Tip: the fields above can be pre-filled via
+			<code class="mono">?key=&amp;shop=&amp;customer=</code> query params, so you can share one link
+			that's ready to click instead of three values to paste in.
 		</div>
 	</div>
 </div>

@@ -9,7 +9,9 @@ program headlessly — it is **not** the same authentication system as the staff
 dashboard (that's a Better Auth session; this is an API key). There is no end-customer
 login of any kind.
 
-A runnable example client is at [`examples/api-client.ts`](../examples/api-client.ts).
+A runnable example client is at [`examples/api-client.ts`](../examples/api-client.ts). An
+interactive browser version covering every endpoint below is live at `/api-demo` on the
+dashboard's own domain (accepts `?key=&shop=&customer=` query params to pre-fill).
 
 ## Authentication
 

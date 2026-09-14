@@ -73,6 +73,19 @@ export const getOrgName = internalQuery({
 	}
 });
 
+/** The org's currently-saved logo, for `save` to fall back to when this particular call isn't uploading a new one. */
+export const getExistingLogoStorageId = internalQuery({
+	args: { organizationId: v.id("organizations") },
+	handler: async (ctx, args) => {
+		const template = await ctx.db
+			.query("passTemplates")
+			.withIndex("by_organization", (q) => q.eq("organizationId", args.organizationId))
+			.filter((q) => q.eq(q.field("shopId"), undefined))
+			.first();
+		return template?.logoStorageId ?? null;
+	}
+});
+
 /**
  * Step 2 of the logo upload flow (and the plain "save colors/name" path
  * too) — an action because syncing Google's LoyaltyClass needs network
@@ -87,7 +100,15 @@ export const save = orgStaffAction("passTemplates:write")({
 		organizationDisplayName: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
-		const logoUrl = args.logoStorageId ? await ctx.storage.getUrl(args.logoStorageId) : null;
+		// A save that isn't uploading a new logo (the common case — editing
+		// just colors/name after the logo is already set) must still use the
+		// EXISTING logo for the Google class sync below, not silently fall
+		// back to the platform default — that was reverting a real uploaded
+		// logo to the generic one on every subsequent save.
+		const logoStorageId = args.logoStorageId ?? (await ctx.runQuery(internal.passTemplates.getExistingLogoStorageId, {
+			organizationId: ctx.organizationId
+		}));
+		const logoUrl = logoStorageId ? await ctx.storage.getUrl(logoStorageId) : null;
 		const orgName = await ctx.runQuery(internal.passTemplates.getOrgName, {
 			organizationId: ctx.organizationId
 		});

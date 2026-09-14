@@ -97,10 +97,12 @@ function loyaltyObjectFor(passData: PassData, classId: string, issuerId: string)
 		loyaltyPoints: { label: "Points", balance: { string: String(passData.pointBalance) } },
 		textModulesData: loyaltyTextModules(passData),
 		hexBackgroundColor: passData.backgroundColor,
-		// The QR carries the same customer id used everywhere else in this
-		// codebase to identify a customer — same value Apple's barcode
-		// encodes, so a POS scanning either pass looks up the same record.
-		barcode: { type: "QR_CODE", value: passData.customerId }
+		// Carries the same customer id used everywhere else in this codebase
+		// to identify a customer — same value Apple's barcode encodes, so a
+		// POS scanning either pass looks up the same record. PDF417 (a
+		// linear barcode), not QR, to match typical POS scanner expectations
+		// for a loyalty/membership card.
+		barcode: { type: "PDF_417", value: passData.customerId }
 	};
 }
 
@@ -176,7 +178,11 @@ export async function ensureLoyaltyClass(input: {
 
 	const classBody = {
 		id: classId,
-		issuerName: "Norrone Loyalty",
+		// issuerName renders as a small, always-visible line near the top
+		// of the card (unlike textModulesData, which is tucked into an
+		// expandable details section) — this is the one prominent, no-tap
+		// spot to put "Powered by Norrone" on Google's side.
+		issuerName: "Powered by Norrone",
 		programName: input.organizationName,
 		reviewStatus: "UNDER_REVIEW",
 		hexBackgroundColor: input.backgroundColor,

@@ -128,12 +128,26 @@ export const buildApplePassBase64 = internalAction({
 			description: `${passData.organizationName} Loyalty Card`,
 			backgroundColor: hexToRgbCss(passData.backgroundColor),
 			foregroundColor: hexToRgbCss(passData.foregroundColor),
+			// logoText is the text shown next to the logo image on the front
+			// of the card — a separate field from organizationName (which
+			// isn't rendered on the card itself, only in notifications/list
+			// view). Without this, the org's name only ever showed up when
+			// there was no logo image to fill that visual slot — adding a
+			// real logo silently pushed it out. Always set explicitly now.
+			logoText: passData.organizationName,
 			storeCard: {
 				primaryFields: [{ key: "points", label: "Points", value: passData.pointBalance }],
 				secondaryFields: passData.tierName
 					? [{ key: "tier", label: "Tier", value: passData.tierName }]
 					: [],
 				auxiliaryFields: [{ key: "member", label: "Member", value: passData.customerName }],
+				// headerFields render top-right on the FRONT of the card,
+				// unlike backFields (hidden until the ⓘ flip) — this is the
+				// one visible-by-default slot besides logoText, so it's
+				// where "Powered by Norrone" actually needs to live to be
+				// seen without extra taps. Kept short — header fields have
+				// very little room.
+				headerFields: [{ key: "poweredBy", label: "", value: "Norrone" }],
 				backFields: [
 					{
 						key: "about",
@@ -143,7 +157,7 @@ export const buildApplePassBase64 = internalAction({
 					{ key: "poweredBy", label: "", value: "Powered by Norrone" }
 				]
 			},
-			barcodes: [{ format: "PKBarcodeFormatQR", message: barcodeMessage, messageEncoding: "iso-8859-1" }]
+			barcodes: [{ format: "PKBarcodeFormatPDF417", message: barcodeMessage, messageEncoding: "iso-8859-1" }]
 		};
 
 		// Auto-update: if CONVEX_SITE_URL is set, wire up Apple's PassKit Web
@@ -160,8 +174,9 @@ export const buildApplePassBase64 = internalAction({
 		// pixel-perfect but is a real logo instead of a flat square. Falls
 		// back to a generated flat-color square in the foreground color
 		// when the org hasn't uploaded one. The small icon slots always
-		// show the Norrone mark — every pass is visibly "Powered by
-		// Norrone" via the icon plus the back-of-pass text field above.
+		// show the Norrone mark — combined with the front-visible
+		// headerField above, every pass is visibly "Powered by Norrone"
+		// without needing to flip the card.
 		const logo = passData.logoUrl
 			? await (async () => {
 					const logoRes = await fetch(passData.logoUrl!);
