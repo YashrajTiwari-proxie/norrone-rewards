@@ -1,9 +1,15 @@
 import { v, ConvexError } from "convex/values";
 import { mutation, type MutationCtx } from "./_generated/server";
+import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { requireAuthUserId } from "./lib/authz";
 import { authz } from "./authzConfig";
 import { evaluateAndGrant, applyGrantedBenefits, generateCouponCode, enrollMembership as enrollMembershipEngine } from "./lib/loyaltyEngine";
+
+/** Fire-and-forget — a customer with no saved wallet pass on either platform is the common case, not an error. See walletNode.ts's pushWalletUpdates. */
+function schedulePassUpdate(ctx: MutationCtx, customerId: Id<"customers">) {
+	ctx.scheduler.runAfter(0, internal.walletNode.pushWalletUpdates, { customerId });
+}
 
 /**
  * Staff-facing manual grant actions for the customer detail page
@@ -46,7 +52,9 @@ export const manualAdjustPoints = mutation({
 
 		// A manual adjustment can cross a POINTS-based eligibility threshold,
 		// so re-run the same auto-grant check the API path triggers.
-		return await evaluateAndGrant(ctx, args.customerId);
+		const result = await evaluateAndGrant(ctx, args.customerId);
+		schedulePassUpdate(ctx, args.customerId);
+		return result;
 	}
 });
 
@@ -71,6 +79,7 @@ export const manualGrantTier = mutation({
 			await ctx.db.insert("customerTier", { customerId: args.customerId, tierId: args.tierId, source: "MANUAL" });
 			// Match what an auto-grant would do: apply the tier's own benefits too.
 			await applyGrantedBenefits(ctx, args.customerId, "TIER", args.tierId);
+			schedulePassUpdate(ctx, args.customerId);
 		}
 	}
 });
@@ -133,7 +142,9 @@ export const enrollMembership = mutation({
 			throw new ConvexError({ code: "NOT_FOUND", message: "Membership plan not found in this organization" });
 		}
 
-		return await enrollMembershipEngine(ctx, { customerId: args.customerId, planId: args.planId });
+		const result = await enrollMembershipEngine(ctx, { customerId: args.customerId, planId: args.planId });
+		schedulePassUpdate(ctx, args.customerId);
+		return result;
 	}
 });
 
@@ -144,6 +155,8 @@ export const reevaluateGrants = mutation({
 		const customer = await ctx.db.get(args.customerId);
 		if (!customer) throw new ConvexError({ code: "NOT_FOUND", message: "Customer not found" });
 		await assertOrgStaffCanGrant(ctx, customer.organizationId);
-		return await evaluateAndGrant(ctx, args.customerId);
+		const result = await evaluateAndGrant(ctx, args.customerId);
+		schedulePassUpdate(ctx, args.customerId);
+		return result;
 	}
 });

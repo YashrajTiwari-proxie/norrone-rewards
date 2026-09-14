@@ -54,3 +54,24 @@ export async function verifyWalletToken(token: string): Promise<{ customerId: st
 
 	return { customerId };
 }
+
+/**
+ * Apple's PassKit Web Service protocol needs a per-pass `authenticationToken`
+ * that stays valid for as long as the pass exists — not a short-lived link
+ * like signWalletToken above. Deterministic HMAC (no timestamp, no
+ * expiry) means we never have to store it: any caller can recompute it
+ * from the customer id and compare, exactly like the pass itself does
+ * when Apple sends it back in the `Authorization: ApplePass <token>` header.
+ */
+export async function signPassAuthToken(customerId: string): Promise<string> {
+	const secret = process.env.WALLET_SIGNING_SECRET;
+	if (!secret) throw new Error("WALLET_SIGNING_SECRET is not configured");
+	return hmacSign(secret, `pass-auth.${customerId}`);
+}
+
+export async function verifyPassAuthToken(customerId: string, token: string): Promise<boolean> {
+	const secret = process.env.WALLET_SIGNING_SECRET;
+	if (!secret) return false;
+	const expected = await hmacSign(secret, `pass-auth.${customerId}`);
+	return timingSafeEqual(token, expected);
+}

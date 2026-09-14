@@ -24,6 +24,10 @@ import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { solidColorPng } from "./lib/wallet/simplePng";
 import { WALLET_NOT_CONFIGURED } from "./lib/wallet/errors";
+import { ICON_PNG_BASE64, ICON_2X_PNG_BASE64, ICON_3X_PNG_BASE64 } from "./lib/wallet/norroneIcon";
+import { signPassAuthToken } from "./lib/walletSigning";
+import { patchLoyaltyObject } from "./lib/wallet/googlePass";
+import { sendApplePushNotification } from "./lib/wallet/apns";
 
 // A plain `Error` subclass doesn't reliably survive the ctx.runAction
 // boundary back to the calling httpAction (convex/httpWallet.ts) — only
@@ -44,13 +48,32 @@ function requiredAppleEnv() {
 				"Apple Wallet is not configured — missing Pass Type ID / Team ID / certificate / private key / WWDR certificate."
 		});
 	}
-	return { passTypeId, teamId, certPem, keyPem, wwdrPem, passphrase: process.env.APPLE_PASS_KEY_PASSPHRASE };
+	return {
+		passTypeId,
+		teamId,
+		certPem,
+		keyPem,
+		wwdrPem,
+		passphrase: process.env.APPLE_PASS_KEY_PASSPHRASE,
+		// Optional — auto-update (webServiceURL + APNs push) is a bonus on
+		// top of a working pass, not a requirement, so this alone being
+		// unset doesn't throw WALLET_NOT_CONFIGURED like the fields above.
+		convexSiteUrl: process.env.CONVEX_SITE_URL
+	};
 }
 
-function rgbFromCss(color: string): [number, number, number] {
-	const match = color.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
+// passData colors are stored as hex (single source of truth shared with
+// Google, which wants hex natively) — Apple's pass.json instead requires
+// the CSS rgb(r, g, b) string form, so this is the one place that format
+// gets translated.
+function hexToRgbTriple(hex: string): [number, number, number] {
+	const match = hex.match(/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
 	if (!match) return [27, 36, 48];
-	return [Number(match[1]), Number(match[2]), Number(match[3])];
+	return [parseInt(match[1], 16), parseInt(match[2], 16), parseInt(match[3], 16)];
+}
+function hexToRgbCss(hex: string): string {
+	const [r, g, b] = hexToRgbTriple(hex);
+	return `rgb(${r}, ${g}, ${b})`;
 }
 
 function sha1Hex(buf: Buffer): string {
@@ -91,17 +114,20 @@ export const buildApplePassBase64 = internalAction({
 
 		const passData = await ctx.runQuery(internal.wallet.getPassData, { customerId: args.customerId });
 
-		const barcodeMessage = args.customerId; // plain customer id is enough here — not a redeemable coupon code, just an identifier the POS can look up
+		// Barcode carries the plain customer id — same value Google's pass
+		// encodes — so a POS scanning either platform's pass looks up the
+		// same record. Linked to the customer, not a one-time code.
+		const barcodeMessage = args.customerId;
 
-		const passJson = {
+		const passJson: Record<string, unknown> = {
 			formatVersion: 1,
 			passTypeIdentifier: env.passTypeId,
 			teamIdentifier: env.teamId,
 			serialNumber: passData.customerId,
 			organizationName: passData.organizationName,
 			description: `${passData.organizationName} Loyalty Card`,
-			backgroundColor: passData.backgroundColor,
-			foregroundColor: passData.foregroundColor,
+			backgroundColor: hexToRgbCss(passData.backgroundColor),
+			foregroundColor: hexToRgbCss(passData.foregroundColor),
 			storeCard: {
 				primaryFields: [{ key: "points", label: "Points", value: passData.pointBalance }],
 				secondaryFields: passData.tierName
@@ -113,21 +139,42 @@ export const buildApplePassBase64 = internalAction({
 						key: "about",
 						label: "About",
 						value: "Show this card at checkout to earn and redeem rewards."
-					}
+					},
+					{ key: "poweredBy", label: "", value: "Powered by Norrone" }
 				]
 			},
 			barcodes: [{ format: "PKBarcodeFormatQR", message: barcodeMessage, messageEncoding: "iso-8859-1" }]
 		};
 
-		const rgb = rgbFromCss(passData.foregroundColor);
-		const icon = solidColorPng(29, rgb);
-		const icon2x = solidColorPng(58, rgb);
-		const logo = solidColorPng(160, rgb);
+		// Auto-update: if CONVEX_SITE_URL is set, wire up Apple's PassKit Web
+		// Service protocol (convex/httpPassService.ts) so Wallet registers
+		// this pass for push updates on install. Omitted entirely otherwise
+		// — the pass still works, it just won't auto-refresh.
+		if (env.convexSiteUrl) {
+			passJson.webServiceURL = `${env.convexSiteUrl}/v1`;
+			passJson.authenticationToken = await signPassAuthToken(passData.customerId);
+		}
+
+		// The org's uploaded logo (passTemplates) is used as-is for the logo
+		// slot — Apple scales/letterboxes to fit the frame, so this isn't
+		// pixel-perfect but is a real logo instead of a flat square. Falls
+		// back to a generated flat-color square in the foreground color
+		// when the org hasn't uploaded one. The small icon slots always
+		// show the Norrone mark — every pass is visibly "Powered by
+		// Norrone" via the icon plus the back-of-pass text field above.
+		const logo = passData.logoUrl
+			? await (async () => {
+					const logoRes = await fetch(passData.logoUrl!);
+					if (!logoRes.ok) throw new Error(`Failed to fetch org logo: ${logoRes.status}`);
+					return Buffer.from(await logoRes.arrayBuffer());
+				})()
+			: solidColorPng(160, hexToRgbTriple(passData.foregroundColor));
 
 		const files: Record<string, Buffer> = {
 			"pass.json": Buffer.from(JSON.stringify(passJson)),
-			"icon.png": icon,
-			"icon@2x.png": icon2x,
+			"icon.png": Buffer.from(ICON_PNG_BASE64, "base64"),
+			"icon@2x.png": Buffer.from(ICON_2X_PNG_BASE64, "base64"),
+			"icon@3x.png": Buffer.from(ICON_3X_PNG_BASE64, "base64"),
 			"logo.png": logo
 		};
 
@@ -142,5 +189,50 @@ export const buildApplePassBase64 = internalAction({
 
 		const zipped = zipSync(zipInput, { level: 0 }); // STORE only — pkpass files are typically uncompressed
 		return Buffer.from(zipped).toString("base64");
+	}
+});
+
+/**
+ * Fires after any mutation that changes a customer's points/tier/
+ * membership (see the ctx.scheduler.runAfter(0, ...) calls in
+ * customerGrants.ts and engine.ts) — pushes the update to whichever
+ * platforms are configured and actually have a saved/registered pass for
+ * this customer. Best-effort throughout: a customer who never added
+ * either wallet pass is the common case, not an error.
+ */
+export const pushWalletUpdates = internalAction({
+	args: { customerId: v.id("customers") },
+	handler: async (ctx, args) => {
+		const passData = await ctx.runQuery(internal.wallet.getPassData, { customerId: args.customerId });
+
+		try {
+			await patchLoyaltyObject(passData);
+		} catch (err) {
+			if (!(err instanceof ConvexError)) console.error("Google Wallet push update failed", err);
+			// WALLET_NOT_CONFIGURED is the routine case (Google not set up) — ignore silently.
+		}
+
+		let appleEnv: ReturnType<typeof requiredAppleEnv>;
+		try {
+			appleEnv = requiredAppleEnv();
+		} catch {
+			return; // Apple not configured — nothing to push.
+		}
+
+		const registrations = await ctx.runQuery(internal.passRegistrations.listBySerial, {
+			serialNumber: args.customerId
+		});
+		for (const reg of registrations) {
+			const result = await sendApplePushNotification({
+				pushToken: reg.pushToken,
+				passTypeIdentifier: appleEnv.passTypeId,
+				certPem: appleEnv.certPem,
+				keyPem: appleEnv.keyPem,
+				passphrase: appleEnv.passphrase
+			});
+			if (result.shouldRemoveRegistration) {
+				await ctx.runMutation(internal.passRegistrations.removeById, { id: reg._id });
+			}
+		}
 	}
 });

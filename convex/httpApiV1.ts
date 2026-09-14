@@ -1,9 +1,12 @@
 import { httpAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
+import { ConvexError } from "convex/values";
 import { hashApiKey } from "./lib/apiKeys";
 import { resolveRedeemCode } from "./lib/couponSigning";
 import { rateLimiter } from "./lib/rateLimit";
+import { buildGoogleSaveUrl } from "./lib/wallet/googlePass";
+import { WALLET_NOT_CONFIGURED } from "./lib/wallet/errors";
 import type { ActionCtx } from "./_generated/server";
 
 /**
@@ -17,9 +20,11 @@ import type { ActionCtx } from "./_generated/server";
  * gets ONE route registered under pathPrefix "/v1/" here, and this file
  * does the /shops/:shopId/... segment matching by hand.
  *
- * Wallet-pass endpoints (.../wallet/apple, .../wallet/google) are NOT
- * ported — wallet passes are paused until real Apple/Google credentials
- * exist, per the migration plan.
+ * Wallet-pass endpoints live at .../customers/:externalId/wallet/{apple,google}
+ * below — API-key authenticated, distinct from the signed-token dashboard
+ * flow in convex/httpWallet.ts (which is meant for a browser tab, not a
+ * machine caller). Both 503 with WALLET_NOT_CONFIGURED until real
+ * Apple/Google credentials are set.
  *
  * CORS: the API Keys dashboard page explicitly markets a "Publishable —
  * read-only, safe client-side" key type, meaning a storefront's own
@@ -45,6 +50,10 @@ function json(body: unknown, status = 200): Response {
 
 function errorResponse(status: number, message: string): Response {
 	return json({ error: message }, status);
+}
+
+function isWalletNotConfigured(err: unknown): err is ConvexError<{ code: string; message: string }> {
+	return err instanceof ConvexError && (err.data as { code?: string } | undefined)?.code === WALLET_NOT_CONFIGURED;
 }
 
 type ApiKeyContext = {
@@ -165,6 +174,49 @@ export const handleV1Get = httpAction(async (ctx, request) => {
 			if (!customer) return errorResponse(404, "Customer not found.");
 			const offers = await ctx.runQuery(internal.apiInternal.getPersonalizedOffers, { customerId: customer._id });
 			return json(offers);
+		}
+
+		// GET /v1/shops/:shopId/customers/:externalId/wallet/apple — returns the
+		// signed .pkpass binary directly, so the org's own backend/website can
+		// download it and forward/host it however it wants (email attachment,
+		// re-serve from their own domain, etc.) rather than going through the
+		// dashboard's signed-link flow.
+		if (shopsMatch.rest.length === 4 && shopsMatch.rest[2] === "wallet" && shopsMatch.rest[3] === "apple") {
+			const customer = await ctx.runQuery(internal.apiInternal.getCustomerByExternalId, { shopId, externalId });
+			if (!customer) return errorResponse(404, "Customer not found.");
+			try {
+				const base64 = await ctx.runAction(internal.walletNode.buildApplePassBase64, {
+					customerId: customer._id
+				});
+				const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+				return new Response(bytes, {
+					status: 200,
+					headers: {
+						"content-type": "application/vnd.apple.pkpass",
+						"content-disposition": "attachment; filename=loyalty.pkpass",
+						...CORS_HEADERS
+					}
+				});
+			} catch (err) {
+				if (isWalletNotConfigured(err)) return errorResponse(503, err.data.message);
+				throw err;
+			}
+		}
+
+		// GET /v1/shops/:shopId/customers/:externalId/wallet/google — returns
+		// the save-to-Google-Wallet URL as JSON (not a redirect) so an API
+		// caller can use it however it wants — render a button, email it, etc.
+		if (shopsMatch.rest.length === 4 && shopsMatch.rest[2] === "wallet" && shopsMatch.rest[3] === "google") {
+			const customer = await ctx.runQuery(internal.apiInternal.getCustomerByExternalId, { shopId, externalId });
+			if (!customer) return errorResponse(404, "Customer not found.");
+			try {
+				const passData = await ctx.runQuery(internal.wallet.getPassData, { customerId: customer._id });
+				const saveUrl = await buildGoogleSaveUrl(passData);
+				return json({ saveUrl });
+			} catch (err) {
+				if (isWalletNotConfigured(err)) return errorResponse(503, err.data.message);
+				throw err;
+			}
 		}
 
 		if (shopsMatch.rest.length === 2) {

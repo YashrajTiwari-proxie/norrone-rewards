@@ -1,11 +1,19 @@
 import { internalMutation } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
+import type { MutationCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import {
 	evaluateAndGrant,
 	updateCustomerStats,
 	enrollMembership,
 	redeemCoupon
 } from "./lib/loyaltyEngine";
+
+/** See customerGrants.ts's identical helper — this is the public-API-triggered path (real POS activity), the most important one for auto-updating passes. */
+function schedulePassUpdate(ctx: MutationCtx, customerId: Id<"customers">) {
+	ctx.scheduler.runAfter(0, internal.walletNode.pushWalletUpdates, { customerId });
+}
 
 /**
  * internalMutation wrappers around convex/lib/loyaltyEngine.ts — the port
@@ -24,7 +32,11 @@ import {
 
 export const evaluateAndGrantAction = internalMutation({
 	args: { customerId: v.id("customers") },
-	handler: async (ctx, args) => evaluateAndGrant(ctx, args.customerId)
+	handler: async (ctx, args) => {
+		const result = await evaluateAndGrant(ctx, args.customerId);
+		schedulePassUpdate(ctx, args.customerId);
+		return result;
+	}
 });
 
 export const updateCustomerStatsAction = internalMutation({
@@ -35,7 +47,11 @@ export const updateCustomerStatsAction = internalMutation({
 		action: v.optional(v.string()),
 		idempotencyKey: v.optional(v.string())
 	},
-	handler: async (ctx, args) => updateCustomerStats(ctx, args)
+	handler: async (ctx, args) => {
+		const result = await updateCustomerStats(ctx, args);
+		schedulePassUpdate(ctx, args.customerId);
+		return result;
+	}
 });
 
 export const enrollMembershipAction = internalMutation({
@@ -44,7 +60,11 @@ export const enrollMembershipAction = internalMutation({
 		planId: v.id("membershipPlans"),
 		idempotencyKey: v.optional(v.string())
 	},
-	handler: async (ctx, args) => enrollMembership(ctx, args)
+	handler: async (ctx, args) => {
+		const result = await enrollMembership(ctx, args);
+		schedulePassUpdate(ctx, args.customerId);
+		return result;
+	}
 });
 
 export const redeemCouponAction = internalMutation({

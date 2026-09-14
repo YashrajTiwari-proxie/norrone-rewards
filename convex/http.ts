@@ -3,6 +3,7 @@ import { httpAction } from "./_generated/server";
 import { authComponent, createAuth } from "./auth";
 import { handleV1Get, handleV1Post, handleV1Put } from "./httpApiV1";
 import { handleAppleWallet, handleGoogleWallet } from "./httpWallet";
+import { registerDevice, unregisterDevice, listUpdatablePasses, getLatestPass, logErrors } from "./httpPassService";
 
 const http = httpRouter();
 
@@ -15,6 +16,16 @@ authComponent.registerRoutes(http, createAuth);
 // opened directly on a customer's phone.
 http.route({ pathPrefix: "/v1/wallet/apple/", method: "GET", handler: handleAppleWallet });
 http.route({ pathPrefix: "/v1/wallet/google/", method: "GET", handler: handleGoogleWallet });
+
+// Apple's PassKit Web Service protocol (convex/httpPassService.ts) — called
+// directly by the Wallet app on a customer's phone, not by our own
+// frontend. Distinct auth scheme (Apple's own ApplePass token), hence
+// its own routes rather than folding into httpApiV1.ts.
+http.route({ pathPrefix: "/v1/devices/", method: "POST", handler: registerDevice });
+http.route({ pathPrefix: "/v1/devices/", method: "DELETE", handler: unregisterDevice });
+http.route({ pathPrefix: "/v1/devices/", method: "GET", handler: listUpdatablePasses });
+http.route({ pathPrefix: "/v1/passes/", method: "GET", handler: getLatestPass });
+http.route({ path: "/v1/log", method: "POST", handler: logErrors });
 
 // Public /v1/... loyalty API (see httpApiV1.ts) — API-key authenticated,
 // not a Better Auth session.

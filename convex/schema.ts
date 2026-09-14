@@ -267,11 +267,16 @@ export default defineSchema({
 	passTemplates: defineTable({
 		organizationId: v.id("organizations"),
 		shopId: v.optional(v.id("shops")), // null = org default, shop overrides branding
-		logoUrl: v.optional(v.string()),
-		iconUrl: v.optional(v.string()),
-		backgroundColor: v.optional(v.string()),
-		foregroundColor: v.optional(v.string()),
-		organizationDisplayName: v.optional(v.string())
+		logoStorageId: v.optional(v.id("_storage")), // uploaded via passTemplates.generateUploadUrl
+		backgroundColor: v.optional(v.string()), // hex, e.g. "#1b2430" — converted to rgb()/hex per platform at pass-build time
+		foregroundColor: v.optional(v.string()), // hex
+		organizationDisplayName: v.optional(v.string()),
+		// Google's branding (logo/name) lives on the LoyaltyClass, not the
+		// per-customer object, so a custom template needs its own class —
+		// this is that class's id once we've created/updated it via the
+		// Wallet API (see lib/wallet/googlePass.ts's ensureLoyaltyClass).
+		// Absent = this org still uses the shared default class.
+		googleClassId: v.optional(v.string())
 	}).index("by_organization", ["organizationId"]),
 
 	// One row per (device, pass) a customer has added to Apple Wallet —

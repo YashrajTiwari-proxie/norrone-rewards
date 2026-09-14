@@ -177,6 +177,30 @@ marketing page. Works with either key type.
 `null` — this endpoint never reveals visit-count or points-based conditions, only the
 spend framing appropriate for public marketing copy.
 
+## `GET /v1/shops/:shopId/customers/:externalId/wallet/apple`
+
+Returns a signed `.pkpass` file for this customer — download it and forward/host it
+however you want (email attachment, re-serve from your own domain, embed a link on your
+own site, etc.). Works with either key type. `503` with `{ "error": "WALLET_NOT_CONFIGURED",
+"message": "..." }` if the platform's Apple Wallet credentials aren't set up yet.
+
+**Response** `200`, `Content-Type: application/vnd.apple.pkpass` — the raw pass binary.
+
+## `GET /v1/shops/:shopId/customers/:externalId/wallet/google`
+
+Returns a "Save to Google Wallet" URL for this customer — safe to render as a link or
+button, or redirect to directly. Works with either key type. Same `503` shape as the
+Apple endpoint above if Google Wallet isn't configured.
+
+**Response** `200`
+
+```json
+{ "saveUrl": "https://pay.google.com/gp/v/save/<jwt>" }
+```
+
+An interactive example using both endpoints (paste your API key, shop ID, and a
+customer's external ID) is live at `/wallet-demo` on the dashboard's own domain.
+
 ## `POST /v1/coupons/:code/redeem`
 
 Redeems a coupon code at the point of sale. **Requires a secret key.** No `:shopId` in

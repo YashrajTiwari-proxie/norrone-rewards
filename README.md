@@ -309,11 +309,20 @@ editable afterward per shop) via the Shops page in the org dashboard.
   `convex/lib/wallet/googlePass.ts` (Google save-link JWT), `convex/httpWallet.ts` (the
   `/v1/wallet/apple/:token` and `/v1/wallet/google/:token` endpoints) — but every request
   503s with `WALLET_NOT_CONFIGURED` until the Apple/Google env vars below are set. See
-  "Setting up real Wallet credentials" below for the actual steps. Every pass uses one
-  default (non-per-org-customizable) design for now — no template-editing UI yet, though
-  `passTemplates` already has the schema for it. No auto-updating passes yet either
-  (Apple's device-registration/push protocol, backed by the already-existing
-  `passRegistrations` table) — passes regenerate fresh on every request instead.
+  "Setting up real Wallet credentials" below for the actual steps.
+  Per-org branding (logo, colors, display name) is editable on the org dashboard's
+  Wallet page, with a live preview — `convex/passTemplates.ts`. Every pass also always
+  carries "Powered by Norrone" (a back-of-pass text field on Apple, a text module on
+  Google) plus the Norrone mark as Apple's small icon (`convex/lib/wallet/norroneIcon.ts`,
+  embedded as base64 so it never depends on Vercel being live).
+  **Passes auto-update**: any points/tier/membership change (manual dashboard grants in
+  `customerGrants.ts`, or the public-API-triggered paths in `engine.ts`) schedules
+  `walletNode.pushWalletUpdates`, which patches the customer's Google Wallet object
+  in place and sends an Apple Push Notification (via `node:http2` mutual TLS using the
+  same Pass Type ID cert — no separate push cert needed) to every device registered
+  through Apple's PassKit Web Service protocol (`convex/httpPassService.ts`, backed by
+  the `passRegistrations` table). A customer who hasn't saved either pass yet is the
+  common case, not an error — both paths are best-effort and silently no-op.
 - **No rollback if self-serve signup's second step fails.** `/signup` creates the
   Better Auth account first, then calls `organizations.createSelfServe` — if that
   mutation fails after the account exists, the user is left with a login but no

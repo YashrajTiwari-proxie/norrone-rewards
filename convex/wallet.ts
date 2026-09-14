@@ -14,8 +14,8 @@ import { signWalletToken } from "./lib/walletSigning";
  */
 
 const DEFAULT_PASS_DESIGN = {
-	backgroundColor: "rgb(27,36,48)", // --ink
-	foregroundColor: "rgb(255,255,255)"
+	backgroundColor: "#1b2430", // --ink
+	foregroundColor: "#ffffff"
 };
 
 /** Everything a pass (Apple or Google) needs to render — shared by both builders. */
@@ -47,16 +47,19 @@ export const getPassData = internalQuery({
 			.filter((q) => q.eq(q.field("shopId"), undefined))
 			.first();
 
+		const logoUrl = template?.logoStorageId ? await ctx.storage.getUrl(template.logoStorageId) : null;
+
 		return {
 			customerId: customer._id as string,
+			organizationId: organization._id as string,
 			customerName: customer.name ?? customer.externalId,
 			organizationName: template?.organizationDisplayName ?? organization.name,
 			pointBalance,
 			tierName: tierDoc?.name ?? null,
 			backgroundColor: template?.backgroundColor ?? DEFAULT_PASS_DESIGN.backgroundColor,
 			foregroundColor: template?.foregroundColor ?? DEFAULT_PASS_DESIGN.foregroundColor,
-			logoUrl: template?.logoUrl ?? null,
-			iconUrl: template?.iconUrl ?? null
+			logoUrl,
+			googleClassId: template?.googleClassId ?? null
 		};
 	}
 });
@@ -72,6 +75,10 @@ export const configStatus = orgStaffQuery("passTemplates:read")({
 				process.env.APPLE_PASS_KEY_PEM &&
 				process.env.APPLE_WWDR_CERT_PEM
 		),
+		// Apple passes work without this — auto-update (push notifications
+		// when points/tier change) is the one piece that needs it, since
+		// pass.json's webServiceURL has to point somewhere real.
+		appleAutoUpdate: Boolean(process.env.CONVEX_SITE_URL),
 		google: Boolean(process.env.GOOGLE_WALLET_ISSUER_ID && process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_JSON)
 	})
 });

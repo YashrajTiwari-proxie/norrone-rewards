@@ -15,6 +15,7 @@ packages/*/*.tsbuildinfo
 .wrangler
 /.svelte-kit
 /build
+/Certs
 coverage
 
 # OS
