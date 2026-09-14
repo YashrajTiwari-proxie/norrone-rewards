@@ -63,6 +63,7 @@ codes:
 | `404` | Not found — a shop, customer, membership plan, or coupon that doesn't exist *for your organization* (see Tenant isolation above) |
 | `409` | Conflict — duplicate `externalId` on customer create, or a coupon that's already been redeemed |
 | `410` | Coupon has expired |
+| `429` | Rate limited — see [Rate limits](#rate-limits). Check the `Retry-After` header. |
 | `500` | Unexpected server error |
 
 ---
@@ -231,6 +232,13 @@ only and/or to one shop. When `PUT .../customers/:externalId` is called with an
 
 ## Rate limits
 
-None currently enforced by the API itself — Convex's own platform-level limits apply.
-Don't build a client that hammers this in a tight loop; use `idempotencyKey` on
-retries instead of re-sending blindly.
+Each API key gets its own budget: **120 requests/minute sustained, burst capacity
+200** (a token bucket, not a fixed window — a legitimate burst of activity is fine as
+long as the sustained rate settles back down). Exceeding it returns `429` with a
+`Retry-After` header (seconds until you can safely retry). One organization's key
+being rate-limited never affects another organization's key or another key on the
+same organization.
+
+Build clients that back off on `429` (honor `Retry-After`) rather than retrying
+immediately in a loop, and use `idempotencyKey` on retries instead of re-sending
+blindly — see [Idempotency](#idempotency) above.

@@ -1,12 +1,16 @@
 import { createClient, type GenericCtx } from "@convex-dev/better-auth";
 import { convex } from "@convex-dev/better-auth/plugins";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
+import { createAuthMiddleware, APIError } from "better-auth/api";
+import type { GenericActionCtx } from "convex/server";
+import { isRateLimitError } from "@convex-dev/rate-limiter";
 import { components, internal } from "./_generated/api";
 import type { DataModel } from "./_generated/dataModel";
 import authConfig from "./auth.config";
 import authSchema from "./betterAuth/schema";
 import { trustedAuthz, PLATFORM_TENANT_ID } from "./authzConfig";
 import { trustedOrigins } from "./lib/trustedOrigins";
+import { rateLimiter } from "./lib/rateLimit";
 
 const siteUrl = process.env.SITE_URL ?? "http://127.0.0.1:5173";
 
@@ -63,6 +67,54 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>): BetterAuthOptions
 	baseURL: siteUrl,
 	secret: process.env.BETTER_AUTH_SECRET ?? "dev-secret-not-for-production",
 	trustedOrigins,
+	// Better Auth ships its own IP+path-keyed rate limiter (a hardcoded
+	// 3-attempts/10s rule on /sign-in/*, /sign-up/*, /change-password,
+	// /change-email even before this config exists), but it defaults to
+	// in-memory storage — which is a no-op across Convex's serverless
+	// function invocations, since there's no shared process to hold state
+	// in. `storage: "database"` is what actually makes it work here; this
+	// was simply never turned on before a security-safety follow-up caught
+	// it (see docs/AUDIT.md). window/max below are the *general* bucket
+	// every other Better Auth route falls back to (get-session, sign-out,
+	// ...) — generous on purpose, since none of those are credential-
+	// guessing surfaces.
+	rateLimit: {
+		enabled: true,
+		storage: "database",
+		window: 10,
+		max: 100
+	},
+	// Complements the IP-based limiter above with an account-keyed check
+	// (convex/lib/rateLimit.ts's accountSignInAttempt bucket): the IP rule
+	// alone can't catch a distributed attacker rotating source IPs against
+	// one known email. Only runs on the actual sign-in path — every other
+	// request returns immediately.
+	hooks: {
+		before: createAuthMiddleware(async (hookCtx) => {
+			if (hookCtx.path !== "/sign-in/email") return;
+			const email = (hookCtx.body as { email?: string } | undefined)?.email?.toLowerCase();
+			if (!email) return;
+			try {
+				await rateLimiter.limit(ctx as GenericActionCtx<DataModel>, "accountSignInAttempt", {
+					key: email,
+					throws: true
+				});
+			} catch (err) {
+				if (isRateLimitError(err)) {
+					throw new APIError("TOO_MANY_REQUESTS", {
+						code: "ACCOUNT_LOCKED",
+						message: "Too many sign-in attempts for this account — please wait and try again."
+					});
+				}
+				// Any other error here is the limiter's own (e.g. an OCC
+				// conflict on its counter document under concurrent
+				// sign-ins — see rateLimit.ts's `shards` comment); fail
+				// open rather than blocking a legitimate sign-in because
+				// of a rate-limiter-internal hiccup.
+				console.error("Sign-in rate limiter error — failing open", err);
+			}
+		})
+	},
 	advanced: {
 		useSecureCookies: siteUrl.startsWith("https://"),
 		ipAddress: {

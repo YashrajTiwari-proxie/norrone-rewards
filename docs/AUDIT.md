@@ -1,4 +1,4 @@
-# Security & Correctness Audit — 2026-09-11
+# Security & Correctness Audit — 2026-09-11 (updated 2026-09-14: rate limiting)
 
 Performed after the full Supabase → Convex migration, covering every `convex/*.ts`
 file: tenant isolation, the public API's auth boundary, permission coverage, input
@@ -70,6 +70,60 @@ non-positive `durationDays` membership plan.
 **Fix**: added `assertPositive`/`assertNonNegative` helpers to `convex/lib/authz.ts`,
 applied to `coupons.ts`, `membershipPlans.ts`, `pointRules.ts`, and `tiers.ts`'s
 `create`/`update` mutations.
+
+### 🟠 Medium — fixed (2026-09-14 follow-up)
+
+**No rate limiting anywhere.** Neither the public `/v1/...` API nor Better Auth
+sign-in had any throttling at all — `docs/API.md` said so explicitly, and
+`convex/auth.ts` never set a `rateLimit` block, so Better Auth's own built-in
+brute-force limiter (a hardcoded 3-attempts/10s rule on `/sign-in/*` etc.) was never
+actually turned on — it defaults to in-memory storage, which is a no-op across
+Convex's serverless invocations.
+
+**Fix**: added `@convex-dev/rate-limiter` (`convex/lib/rateLimit.ts`) with two token
+buckets — `apiRequest` (120/min, burst 200, keyed per API key hash) enforced in
+`httpApiV1.ts`'s `requireApiKey`, and `accountSignInAttempt` (5 per 5 min, keyed per
+email) enforced in `auth.ts`'s `hooks.before` for `/sign-in/email`, complementing
+Better Auth's own now-enabled IP-based limiter (`rateLimit: { enabled: true, storage:
+"database", window: 10, max: 100 }` — `storage: "database"` is what makes it actually
+work in Convex, vs. the silently-broken in-memory default).
+
+**Bug found while implementing this, fixed same session**: under genuine concurrency
+on one key (verified live — 40 truly parallel requests against the same API key), the
+rate limiter's own counter document hit a write conflict that crashed the request
+with an uncaught `500` instead of a clean `429`. Root cause: a `ctx.runMutation` call
+made from *inside* an `httpAction` is not automatically retried by Convex the way a
+top-level mutation invocation is — so a conflict there propagates as an error instead
+of transparently retrying. Fixed two ways: (1) `shards: 10` on the `apiRequest` bucket
+(and `shards: 3` on `accountSignInAttempt`) spreads one key's counter across multiple
+documents, making a same-millisecond conflict rare for real traffic; (2) both call
+sites now fail *open* (log and let the request through) if the limiter itself throws
+an unexpected error, rather than the limiter becoming a way to take the API/login
+down. Re-verified live: 40-way true concurrency on one key → all `200`, zero crashes;
+a 250-request burst against the 200-capacity bucket → 210 succeeded (some tokens
+refilled mid-burst at the 120/min sustained rate) and 40 correctly got `429`, still
+zero crashes.
+
+**Second bug found while shipping this, fixed same session**: enabling Better Auth's
+own built-in rate limiter with `storage: "database"` requires a `rateLimit` table to
+exist in the Better Auth component's own schema (`convex/betterAuth/generatedSchema.ts`)
+— that schema had been generated once, before this option was ever added, and was never
+regenerated afterward. The mismatch didn't surface at deploy time or in
+`bun run check` (the schema file itself was still perfectly valid, just missing one
+table) — it only broke at request time, with every sign-in attempt failing with
+`ArgumentValidationError: ... Path: .model, Value: "rateLimit"`, i.e. **login itself
+was broken** for the entire time between enabling the option and this fix. Caught
+immediately by testing the actual login flow live rather than trusting the type-check
+and unit-test suite alone — neither one could have caught this, since the mismatch is
+between a runtime config value and a component's generated schema, not something
+either kind of check inspects. **Fix**: re-ran
+`npx @better-auth/cli generate --config convex/betterAuth/auth.ts --output convex/betterAuth/generatedSchema.ts -y`,
+which added the missing `rateLimit` table; re-verified by actually logging in through
+the browser afterward, not just re-running the test suite. **Takeaway for next time**:
+any change to Better Auth options that affects its own storage requirements (this
+rate limiter, but the same class of issue would apply to e.g. adding a plugin that
+needs its own table) needs a schema regeneration in the same change, and a live
+login attempt is the only check that actually proves it.
 
 ### 🟡 Low — accepted, not changed
 

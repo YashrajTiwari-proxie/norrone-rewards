@@ -3,6 +3,7 @@ import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { hashApiKey } from "./lib/apiKeys";
 import { resolveRedeemCode } from "./lib/couponSigning";
+import { rateLimiter } from "./lib/rateLimit";
 import type { ActionCtx } from "./_generated/server";
 
 /**
@@ -71,6 +72,36 @@ async function requireApiKey(
 	}
 
 	const hashedKey = await hashApiKey(match[1]);
+
+	// Keyed by the presented key's own hash — whether or not it turns out
+	// to resolve to a real row — so repeatedly hammering one guessed value
+	// is throttled the same as abusing a real key. Coarser than a true
+	// per-caller-IP limit (an attacker rotating through many different
+	// guessed keys gets a fresh bucket each time — see this file's own
+	// rationale for why a stable caller identity isn't always available),
+	// but real API keys are 32-char high-entropy strings, so brute-forcing
+	// one was already infeasible; this is about capping sustained abuse of
+	// a single known/guessed value, not the primary defense against
+	// guessing.
+	//
+	// Fails OPEN on the limiter's own error (rather than turning it into a
+	// 500): under heavy concurrency on one key, the shared counter
+	// document can hit an OCC conflict that isn't auto-retried this deep
+	// (see rateLimit.ts's own comment on `shards`) — a rate limiter must
+	// never itself become a way to take the API down. This only ever
+	// swallows the limiter's *own* internal errors, not a legitimate `ok:
+	// false` result (handled separately, below).
+	try {
+		const rateLimitResult = await rateLimiter.limit(ctx, "apiRequest", { key: hashedKey });
+		if (!rateLimitResult.ok) {
+			const response = errorResponse(429, "Too many requests. Please slow down and try again shortly.");
+			response.headers.set("Retry-After", String(Math.ceil(rateLimitResult.retryAfter / 1000)));
+			return response;
+		}
+	} catch (err) {
+		console.error("Rate limiter error — failing open", err);
+	}
+
 	const key = await ctx.runQuery(internal.apiInternal.resolveApiKey, { hashedKey });
 
 	if (!key || key.revoked) {

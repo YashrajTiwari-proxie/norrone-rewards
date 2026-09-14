@@ -34,6 +34,9 @@ Security/correctness audit: [`docs/AUDIT.md`](./docs/AUDIT.md).
   since the component has no native cross-tenant concept.
 - The public headless API is authenticated separately, by API key (`convex/apiKeys.ts`,
   hashed at rest) — not by a Better Auth session. See `docs/API.md`.
+- Rate limiting via `@convex-dev/rate-limiter` (`convex/lib/rateLimit.ts`): a per-API-key
+  token bucket on the public API, a per-account bucket on sign-in complementing Better
+  Auth's own IP-based limiter. See `docs/API.md`'s "Rate limits" and `docs/AUDIT.md`.
 
 ### Why Convex (and what changed from the original Supabase build)
 
@@ -93,6 +96,19 @@ is a **Convex environment variable** (set with `npx convex env set NAME value`, 
 `.env` (the SvelteKit-side file) only needs `PUBLIC_CONVEX_URL`/`PUBLIC_CONVEX_SITE_URL`
 if you're not letting `.env.local` provide them — in practice you usually don't touch
 `.env` at all for local dev.
+
+## Test accounts (this dev deployment only)
+
+Seeded for local development/demo purposes — not real credentials, don't reuse this
+pattern anywhere near production:
+
+| Login | URL | Email | Password |
+| --- | --- | --- | --- |
+| Platform admin | `/admin/login` | `admin@mail.com` | `Admin@123` |
+| Org owner | `/login` | `org@mail.com` | `Admin@123` |
+
+Create more of either kind yourself via `/signup` (org) + `platformAdmins:seedFirstAdmin`
+or the in-app "add admin" flow (platform admin) — see below.
 
 ## Bootstrapping a platform admin
 
@@ -217,6 +233,7 @@ convex/
                               update_customer_stats, enroll_membership, redeem_coupon,
                               apply_granted_benefits — see its own header comment
   lib/apiKeys.ts, lib/couponSigning.ts   Web-Crypto ports of the old node:crypto helpers
+  lib/rateLimit.ts           Rate-limit buckets: public API (per key) + sign-in (per account)
   apiInternal.ts, engine.ts, httpApiV1.ts   Public /v1 API: internal query/mutation
                               layer + HTTP Action route handlers (see docs/API.md)
   organizations.ts, shops.ts, customers.ts, tiers.ts, pointRules.ts, rewards.ts,

@@ -26,6 +26,7 @@ import type * as lib_apiKeys from "../lib/apiKeys.js";
 import type * as lib_authz from "../lib/authz.js";
 import type * as lib_couponSigning from "../lib/couponSigning.js";
 import type * as lib_loyaltyEngine from "../lib/loyaltyEngine.js";
+import type * as lib_rateLimit from "../lib/rateLimit.js";
 import type * as lib_trustedOrigins from "../lib/trustedOrigins.js";
 import type * as membershipPlans from "../membershipPlans.js";
 import type * as organizations from "../organizations.js";
@@ -62,6 +63,7 @@ declare const fullApi: ApiFromModules<{
   "lib/authz": typeof lib_authz;
   "lib/couponSigning": typeof lib_couponSigning;
   "lib/loyaltyEngine": typeof lib_loyaltyEngine;
+  "lib/rateLimit": typeof lib_rateLimit;
   "lib/trustedOrigins": typeof lib_trustedOrigins;
   membershipPlans: typeof membershipPlans;
   organizations: typeof organizations;
@@ -103,4 +105,5 @@ export declare const internal: FilterApi<
 export declare const components: {
   betterAuth: import("../betterAuth/_generated/component.js").ComponentApi<"betterAuth">;
   authz: import("@proxie-studio/authz-tenant-kit/_generated/component.js").ComponentApi<"authz">;
+  rateLimiter: import("@convex-dev/rate-limiter/_generated/component.js").ComponentApi<"rateLimiter">;
 };

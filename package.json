@@ -38,6 +38,7 @@
 	},
 	"dependencies": {
 		"@convex-dev/better-auth": "^0.12.5",
+		"@convex-dev/rate-limiter": "^0.3.2",
 		"@proxie-studio/authz-tenant-kit": "workspace:*",
 		"@proxie-studio/better-auth-tenant-kit": "workspace:*",
 		"@supabase/ssr": "^0.12.7",
