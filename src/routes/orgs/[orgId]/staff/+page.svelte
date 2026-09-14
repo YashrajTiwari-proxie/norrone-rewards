@@ -2,14 +2,14 @@
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Chip from '$lib/components/Chip.svelte';
 	import { page } from '$app/state';
-	import { useQuery, useMutation } from 'convex-svelte';
+	import { useQuery, useAction } from 'convex-svelte';
 	import { ConvexError } from 'convex/values';
 	import { api } from '../../../../../convex/_generated/api';
 	import type { Id } from '../../../../../convex/_generated/dataModel';
 
 	let organizationId = $derived(page.params.orgId as Id<'organizations'>);
 	const staff = useQuery(api.staff.list, () => ({ organizationId }));
-	const invite = useMutation(api.staff.invite);
+	const invite = useAction(api.staff.invite);
 
 	let email = $state('');
 	let role = $state<'staff' | 'manager'>('staff');
@@ -27,15 +27,14 @@
 		errorMessage = null;
 		successMessage = null;
 		try {
-			await invite({ organizationId, email: email.trim(), role });
-			successMessage = 'Added to this organization.';
+			const result = await invite({ organizationId, email: email.trim(), role });
+			successMessage = result.created
+				? 'Account created and invite email sent.'
+				: 'Added to this organization.';
 			email = '';
 		} catch (err) {
 			const data = err instanceof ConvexError ? (err.data as { code?: string; message?: string }) : null;
-			errorMessage =
-				data?.code === 'NO_ACCOUNT'
-					? data.message!
-					: 'Failed to add staff member.';
+			errorMessage = data?.message ?? 'Failed to add staff member.';
 		} finally {
 			inviting = false;
 		}
@@ -77,7 +76,7 @@
 	<div class="card" style="padding:22px 24px;max-width:560px">
 		<div style="font:600 15px/1 'IBM Plex Sans',sans-serif">Add someone</div>
 		<div style="margin-top:7px;font:400 13px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
-			They need an existing account — self-serve invite emails aren't set up yet.
+			If they don't have an account yet, we'll create one and email them a temporary password.
 		</div>
 		<form onsubmit={submitInvite} style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
 			<input bind:value={email} type="email" placeholder="name@restaurant.com" required class="input" style="flex:1;min-width:200px" />

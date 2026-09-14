@@ -5,7 +5,8 @@
 	import Chip from '$lib/components/Chip.svelte';
 	import Drawer from '$lib/components/Drawer.svelte';
 	import { tierColor } from '$lib/tierColor';
-	import { useQuery, useMutation } from 'convex-svelte';
+	import { useQuery, useMutation, useAction } from 'convex-svelte';
+	import { PUBLIC_CONVEX_SITE_URL } from '$env/static/public';
 	import { api } from '../../../../../../convex/_generated/api';
 	import type { Id } from '../../../../../../convex/_generated/dataModel';
 
@@ -13,12 +14,29 @@
 	let customerId = $derived(page.params.customerId as Id<'customers'>);
 
 	const detail = useQuery(api.customers.getDetail, () => ({ organizationId, customerId }));
+	const walletStatus = useQuery(api.wallet.configStatus, () => ({ organizationId }));
 
 	const adjustPoints = useMutation(api.customerGrants.manualAdjustPoints);
 	const grantTier = useMutation(api.customerGrants.manualGrantTier);
 	const grantReward = useMutation(api.customerGrants.manualGrantReward);
 	const grantCoupon = useMutation(api.customerGrants.manualGrantCoupon);
 	const enrollMembership = useMutation(api.customerGrants.enrollMembership);
+	const getPassLinkToken = useAction(api.wallet.getPassLinkToken);
+
+	let walletBusy = $state<'apple' | 'google' | null>(null);
+
+	async function openWalletLink(platform: 'apple' | 'google') {
+		walletBusy = platform;
+		errorMessage = null;
+		try {
+			const { token } = await getPassLinkToken({ organizationId, customerId });
+			window.open(`${PUBLIC_CONVEX_SITE_URL}/v1/wallet/${platform}/${token}`, '_blank');
+		} catch {
+			errorMessage = `Failed to generate ${platform === 'apple' ? 'Apple' : 'Google'} Wallet link.`;
+		} finally {
+			walletBusy = null;
+		}
+	}
 
 	let adjustOpen = $state(false);
 	let changeTierOpen = $state(false);
@@ -178,6 +196,22 @@
 				<button class="btn btn-outline" onclick={() => { errorMessage = null; grantRewardOpen = true; }}>Grant reward</button>
 				<button class="btn btn-outline" onclick={() => { errorMessage = null; issueCouponOpen = true; }}>Issue coupon</button>
 				<button class="btn btn-outline" onclick={() => { errorMessage = null; enrollOpen = true; }}>Enroll in membership</button>
+				<button
+					class="btn btn-ghost"
+					disabled={!walletStatus.data?.apple || walletBusy !== null}
+					title={walletStatus.data?.apple ? undefined : 'Apple Wallet is not configured yet'}
+					onclick={() => openWalletLink('apple')}
+				>
+					{#if walletBusy === 'apple'}<span class="spinner"></span>{/if}Add to Apple Wallet
+				</button>
+				<button
+					class="btn btn-ghost"
+					disabled={!walletStatus.data?.google || walletBusy !== null}
+					title={walletStatus.data?.google ? undefined : 'Google Wallet is not configured yet'}
+					onclick={() => openWalletLink('google')}
+				>
+					{#if walletBusy === 'google'}<span class="spinner"></span>{/if}Add to Google Wallet
+				</button>
 			</div>
 		</div>
 

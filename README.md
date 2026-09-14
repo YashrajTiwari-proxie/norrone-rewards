@@ -4,7 +4,7 @@ A multi-tenant customer loyalty platform. An **organization** (a restaurant chai
 one or more **shops**. Organization staff manage the program through a SvelteKit
 dashboard; the organization's own website/POS integrates headlessly via a public API
 (secret/publishable keys). There is no end-customer login of any kind — customers only
-ever interact through Apple/Google Wallet passes (paused, see below) and the
+ever interact through Apple/Google Wallet passes (built, pending real credentials — see below) and the
 organization's own site.
 
 Full functional spec: `CLAUDE_CODE_BUILD_SPEC_V2_SUPABASE.md`, kept locally alongside
@@ -88,14 +88,141 @@ is a **Convex environment variable** (set with `npx convex env set NAME value`, 
 
 | Variable | Set with | Used by |
 | --- | --- | --- |
-| `WALLET_SIGNING_SECRET` | `npx convex env set WALLET_SIGNING_SECRET <openssl rand -hex 32>` | HMAC-signs coupon QR/barcode payloads (`convex/lib/couponSigning.ts`) |
+| `WALLET_SIGNING_SECRET` | `npx convex env set WALLET_SIGNING_SECRET <openssl rand -hex 32>` | HMAC-signs coupon QR/barcode payloads (`convex/lib/couponSigning.ts`) and wallet-pass links (`convex/lib/walletSigning.ts`) |
 | `BETTER_AUTH_SECRET` | `npx convex env set BETTER_AUTH_SECRET <openssl rand -base64 32>` | Better Auth session signing (`convex/auth.ts`) — falls back to an insecure dev default if unset, **must** be set before any real deployment |
-| `SITE_URL` | `npx convex env set SITE_URL http://localhost:5173` (or your real origin) | Better Auth's own `baseURL` + cookie security flag |
+| `SITE_URL` | `npx convex env set SITE_URL http://localhost:5173` (or your real origin) | Better Auth's own `baseURL` + cookie security flag, and the login link in staff invite emails |
 | `TRUSTED_ORIGINS` | `npx convex env set TRUSTED_ORIGINS "https://your-dashboard.example"` | Comma-separated extra CORS/cookie origins beyond `localhost:5173` (`convex/lib/trustedOrigins.ts`) |
+| `RESEND_API_KEY` | `npx convex env set RESEND_API_KEY <key>` | Sends staff-invite emails (`convex/lib/email.ts`) — invites fail loudly until this is set |
+| `EMAIL_FROM` | `npx convex env set EMAIL_FROM "Norrone Loyalty <you@yourdomain.com>"` | Optional — defaults to Resend's unverified sandbox sender (`onboarding@resend.dev`), which only delivers to the Resend account owner's own inbox. Set a verified domain sender before relying on delivery to real invitees. |
+| `APPLE_PASS_TYPE_ID`, `APPLE_TEAM_ID`, `APPLE_PASS_CERT_PEM`, `APPLE_PASS_KEY_PEM`, `APPLE_PASS_KEY_PASSPHRASE` (optional), `APPLE_WWDR_CERT_PEM` | `npx convex env set <NAME> <value>` | Apple Wallet pass signing (`convex/walletNode.ts`) — unset by default, so Apple Wallet passes 503 until real Pass Type ID / WWDR credentials are added |
+| `GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_CLASS_ID`, `GOOGLE_WALLET_SERVICE_ACCOUNT_JSON` | `npx convex env set <NAME> <value>` | Google Wallet "Save to Google Wallet" link (`convex/lib/wallet/googlePass.ts`) — unset by default, so Google Wallet passes 503 until a real service account is added |
 
 `.env` (the SvelteKit-side file) only needs `PUBLIC_CONVEX_URL`/`PUBLIC_CONVEX_SITE_URL`
 if you're not letting `.env.local` provide them — in practice you usually don't touch
 `.env` at all for local dev.
+
+## Deploying
+
+The frontend (SvelteKit) and backend (Convex) deploy separately and independently.
+
+### Backend — Convex production deployment
+
+```sh
+npx convex deploy    # creates/pushes to a *separate* production deployment from your dev one
+```
+
+Convex dev and prod deployments have **independent environment variable stores** —
+every var in the table above must be set again against prod (`npx convex env set NAME
+value --prod`, or switch your CLI's active deployment first). In particular, set
+`SITE_URL` and `TRUSTED_ORIGINS` to your real production frontend URL (the Vercel domain
+below), not `localhost`, or Better Auth's cookies/CORS will reject production sign-ins.
+
+`npx convex deploy` prints the production `PUBLIC_CONVEX_URL`/`PUBLIC_CONVEX_SITE_URL` —
+you'll need both for the Vercel step.
+
+### Frontend — Vercel
+
+This app uses `@sveltejs/adapter-vercel` (`vite.config.ts`) — no `vercel.json` needed for
+a standard deploy. Vercel auto-detects Bun from `bun.lock`.
+
+1. Import the repo into a new Vercel project (framework preset: SvelteKit).
+2. Under Project Settings → Environment Variables, add (Production, and Preview if you
+   want preview deploys working against the same backend):
+   - `PUBLIC_CONVEX_URL` — from `npx convex deploy`'s output
+   - `PUBLIC_CONVEX_SITE_URL` — same
+   These are required at **build** time, not just runtime — `src/hooks.server.ts` reads
+   `PUBLIC_CONVEX_SITE_URL` via `$env/static/public`, which is inlined at build, so the
+   build fails without it set in Vercel first.
+3. Deploy. Nothing else needs to live in Vercel's env vars — every secret in the table
+   above (`RESEND_API_KEY`, `WALLET_SIGNING_SECRET`, the Apple/Google wallet vars, etc.)
+   is read only inside Convex functions, never by the SvelteKit app, so it only ever goes
+   through `npx convex env set --prod`.
+4. Once you have your Vercel domain (or custom domain), go back to Convex and update
+   `SITE_URL`/`TRUSTED_ORIGINS` (prod) to match it exactly, including `https://`.
+
+## Setting up real Wallet credentials
+
+The pass-building pipeline is fully implemented (see "Known gaps" above for which files)
+and only needs credentials — no code changes. Both platforms are entirely independent;
+set up one, both, or neither.
+
+### Apple Wallet
+
+Needs a paid Apple Developer Program membership ($99/year).
+
+1. **Pass Type ID**: [developer.apple.com](https://developer.apple.com) → Certificates,
+   Identifiers & Profiles → Identifiers → **+** → Pass Type IDs. Register an identifier
+   like `pass.com.yourcompany.loyalty`. This is `APPLE_PASS_TYPE_ID`.
+2. **Team ID**: shown on your Apple Developer account's Membership page. This is
+   `APPLE_TEAM_ID`.
+3. **Signing certificate**: open the Pass Type ID you just created → Create Certificate.
+   It'll walk you through generating a CSR with Keychain Access (macOS) — upload it,
+   download the resulting `.cer` file.
+4. **Export cert + private key as PEM**: double-click the downloaded `.cer` to import it
+   into Keychain (it pairs with the private key from your CSR), then in Keychain Access
+   find the certificate, expand it to select both the certificate and its private key,
+   right-click → Export 2 items → save as a `.p12`. Then convert to PEM:
+   ```sh
+   openssl pkcs12 -in Certificates.p12 -clcerts -nokeys -out cert.pem   # -legacy flag if openssl complains
+   openssl pkcs12 -in Certificates.p12 -nocerts -out key.pem            # will ask for a key passphrase
+   ```
+   `cert.pem` → `APPLE_PASS_CERT_PEM`, `key.pem` → `APPLE_PASS_KEY_PEM`, and whatever
+   passphrase you set → `APPLE_PASS_KEY_PASSPHRASE` (omit that var entirely if you export
+   with an empty passphrase).
+5. **WWDR certificate**: download Apple's current intermediate certificate from
+   [Apple PKI](https://www.apple.com/certificateauthority/) ("Worldwide Developer
+   Relations — G4" or whichever is current), convert similarly if it's not already PEM:
+   ```sh
+   openssl x509 -inform der -in AppleWWDRCAG4.cer -out wwdr.pem
+   ```
+   → `APPLE_WWDR_CERT_PEM`.
+6. Set them all (each PEM file's *contents*, not the file path):
+   ```sh
+   npx convex env set APPLE_PASS_TYPE_ID "pass.com.yourcompany.loyalty" --prod
+   npx convex env set APPLE_TEAM_ID "YOUR_TEAM_ID" --prod
+   npx convex env set APPLE_PASS_CERT_PEM --from-file cert.pem --prod
+   npx convex env set APPLE_PASS_KEY_PEM --from-file key.pem --prod
+   npx convex env set APPLE_PASS_KEY_PASSPHRASE "your-passphrase" --prod   # skip if empty
+   npx convex env set APPLE_WWDR_CERT_PEM --from-file wwdr.pem --prod
+   ```
+7. Verify: `/orgs/:orgId/wallet` in the dashboard should show Apple as "Configured", and
+   a customer's "Add to Apple Wallet" button should download a real `.pkpass`.
+
+### Google Wallet
+
+Needs a Google Cloud project and Google Wallet API access (apply via the
+[Google Wallet Business Console](https://pay.google.com/business/console/) — approval
+can take a day or two the first time).
+
+1. In the Wallet Business Console, create/note your **Issuer ID** — that's
+   `GOOGLE_WALLET_ISSUER_ID`.
+2. In Google Cloud Console, enable the **Google Wallet API** for your project, then
+   create a **Service Account** (IAM & Admin → Service Accounts), and grant it access in
+   the Wallet Business Console (Users → add the service account's email with at least
+   "Developer" access).
+3. Create a JSON key for that service account (Service Accounts → your account → Keys →
+   Add Key → JSON) and download it.
+4. Set the whole JSON file as one env var:
+   ```sh
+   npx convex env set GOOGLE_WALLET_ISSUER_ID "3388000000012345678" --prod
+   npx convex env set GOOGLE_WALLET_SERVICE_ACCOUNT_JSON --from-file service-account.json --prod
+   ```
+5. **Create a Loyalty Class** — unlike Apple, Google requires the class to exist via the
+   Wallet API *before* any object can reference it (this app only builds/signs the
+   `loyaltyObject`/save-JWT per customer — see `convex/lib/wallet/googlePass.ts` — it does
+   not create the class for you yet). Either use Google's
+   [Wallet API](https://developers.google.com/wallet/retail/loyalty-cards/resources/rest/v1/loyaltyclass)
+   directly (a one-time `POST` with your service account's OAuth token) or the Business
+   Console's UI if it offers class creation, then set the resulting class id:
+   ```sh
+   npx convex env set GOOGLE_WALLET_CLASS_ID "3388000000012345678.norrone_loyalty_default" --prod
+   ```
+   If you skip this, `GOOGLE_WALLET_CLASS_ID` defaults to `${GOOGLE_WALLET_ISSUER_ID}.norrone_loyalty_default` —
+   you still need to have created a class with that exact id for Google to accept the save request.
+6. Verify: `/orgs/:orgId/wallet` should show Google as "Configured", and "Add to Google
+   Wallet" should redirect to a real `pay.google.com/gp/v/save/...` link.
+
+Drop `--prod` from any command above while testing against your dev deployment instead.
 
 ## Test accounts (this dev deployment only)
 
@@ -141,8 +268,8 @@ roles you hold, not a separate credential system:
 | Public headless API | `/v1/...` (Convex `.site` domain) | API key holders (POS/website integrations) | See `docs/API.md` |
 
 Once signed in to the org dashboard: `/orgs/:orgId` (Overview) — sidebar covers
-Customers, Membership, Tiers, Points, Rewards, Coupons, Shops, API Keys, Wallet Pass
-(paused), Staff.
+Customers, Membership, Tiers, Points, Rewards, Coupons, Shops, API Keys, Wallet Pass,
+Staff.
 
 Once signed in to the admin panel: `/admin` (organizations list) — `/admin/orgs/:orgId`
 for a single org's detail/analytics/edit/delete, `/admin/regions` for the
@@ -170,16 +297,23 @@ editable afterward per shop) via the Shops page in the org dashboard.
 
 ### Known gaps
 
-- **No transactional email provider is wired up.** This affects three flows, all of
-  which degrade to an honest error message rather than silently failing:
-  `/forgot-password` (placeholder page), staff "Add someone" (`convex/staff.ts` —
-  only works if the invitee already has an account), and platform admin "add admin"
-  (same constraint). Wiring up Resend/Postmark/etc. is a separate, not-yet-scheduled
-  decision.
-- **Wallet passes (Apple/Google) are paused** pending real Apple/Google developer
-  credentials — the org dashboard's Wallet Pass page is an explicit placeholder, and no
-  wallet-pass Convex functions exist yet. The Supabase-era stub
-  (`src/lib/server/walletPass.ts`, no longer used) is preserved for reference only.
+- **Transactional email is wired up for staff invites only.** `convex/lib/email.ts`
+  sends via Resend (needs `RESEND_API_KEY`, see env var table) — staff "Add someone"
+  (`convex/staff.ts`) auto-creates a Better Auth account with a generated password and
+  emails it when the invitee doesn't already have one. `/forgot-password` and platform
+  admin "add admin" are not wired to this yet and still degrade to an honest error
+  message rather than silently failing.
+- **Wallet passes (Apple/Google) are built but need real credentials.** The full
+  pipeline exists — `convex/wallet.ts` (pass data + config status + signed-link
+  action), `convex/walletNode.ts` (Apple `.pkpass` build + PKCS#7 signing, `"use node"`),
+  `convex/lib/wallet/googlePass.ts` (Google save-link JWT), `convex/httpWallet.ts` (the
+  `/v1/wallet/apple/:token` and `/v1/wallet/google/:token` endpoints) — but every request
+  503s with `WALLET_NOT_CONFIGURED` until the Apple/Google env vars below are set. See
+  "Setting up real Wallet credentials" below for the actual steps. Every pass uses one
+  default (non-per-org-customizable) design for now — no template-editing UI yet, though
+  `passTemplates` already has the schema for it. No auto-updating passes yet either
+  (Apple's device-registration/push protocol, backed by the already-existing
+  `passRegistrations` table) — passes regenerate fresh on every request instead.
 - **No rollback if self-serve signup's second step fails.** `/signup` creates the
   Better Auth account first, then calls `organizations.createSelfServe` — if that
   mutation fails after the account exists, the user is left with a login but no

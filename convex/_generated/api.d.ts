@@ -22,12 +22,18 @@ import type * as devTools from "../devTools.js";
 import type * as engine from "../engine.js";
 import type * as http from "../http.js";
 import type * as httpApiV1 from "../httpApiV1.js";
+import type * as httpWallet from "../httpWallet.js";
 import type * as lib_apiKeys from "../lib/apiKeys.js";
 import type * as lib_authz from "../lib/authz.js";
 import type * as lib_couponSigning from "../lib/couponSigning.js";
+import type * as lib_email from "../lib/email.js";
 import type * as lib_loyaltyEngine from "../lib/loyaltyEngine.js";
 import type * as lib_rateLimit from "../lib/rateLimit.js";
 import type * as lib_trustedOrigins from "../lib/trustedOrigins.js";
+import type * as lib_wallet_errors from "../lib/wallet/errors.js";
+import type * as lib_wallet_googlePass from "../lib/wallet/googlePass.js";
+import type * as lib_wallet_simplePng from "../lib/wallet/simplePng.js";
+import type * as lib_walletSigning from "../lib/walletSigning.js";
 import type * as membershipPlans from "../membershipPlans.js";
 import type * as organizations from "../organizations.js";
 import type * as platformAdmins from "../platformAdmins.js";
@@ -37,6 +43,8 @@ import type * as rewards from "../rewards.js";
 import type * as shops from "../shops.js";
 import type * as staff from "../staff.js";
 import type * as tiers from "../tiers.js";
+import type * as wallet from "../wallet.js";
+import type * as walletNode from "../walletNode.js";
 
 import type {
   ApiFromModules,
@@ -59,12 +67,18 @@ declare const fullApi: ApiFromModules<{
   engine: typeof engine;
   http: typeof http;
   httpApiV1: typeof httpApiV1;
+  httpWallet: typeof httpWallet;
   "lib/apiKeys": typeof lib_apiKeys;
   "lib/authz": typeof lib_authz;
   "lib/couponSigning": typeof lib_couponSigning;
+  "lib/email": typeof lib_email;
   "lib/loyaltyEngine": typeof lib_loyaltyEngine;
   "lib/rateLimit": typeof lib_rateLimit;
   "lib/trustedOrigins": typeof lib_trustedOrigins;
+  "lib/wallet/errors": typeof lib_wallet_errors;
+  "lib/wallet/googlePass": typeof lib_wallet_googlePass;
+  "lib/wallet/simplePng": typeof lib_wallet_simplePng;
+  "lib/walletSigning": typeof lib_walletSigning;
   membershipPlans: typeof membershipPlans;
   organizations: typeof organizations;
   platformAdmins: typeof platformAdmins;
@@ -74,6 +88,8 @@ declare const fullApi: ApiFromModules<{
   shops: typeof shops;
   staff: typeof staff;
   tiers: typeof tiers;
+  wallet: typeof wallet;
+  walletNode: typeof walletNode;
 }>;
 
 /**

@@ -2,14 +2,22 @@ import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { authComponent, createAuth } from "./auth";
 import { handleV1Get, handleV1Post, handleV1Put } from "./httpApiV1";
+import { handleAppleWallet, handleGoogleWallet } from "./httpWallet";
 
 const http = httpRouter();
 
 authComponent.registerRoutes(http, createAuth);
 
+// Wallet-pass routes — registered as a more specific pathPrefix so Convex's
+// router picks these over the general /v1/ GET route below (longest-prefix
+// match wins). Token-authenticated (see lib/walletSigning.ts), not the
+// API-key scheme the rest of /v1/ uses — these links are meant to be
+// opened directly on a customer's phone.
+http.route({ pathPrefix: "/v1/wallet/apple/", method: "GET", handler: handleAppleWallet });
+http.route({ pathPrefix: "/v1/wallet/google/", method: "GET", handler: handleGoogleWallet });
+
 // Public /v1/... loyalty API (see httpApiV1.ts) — API-key authenticated,
-// not a Better Auth session. Wallet-pass sub-routes are not included;
-// wallet passes are paused until real Apple/Google credentials exist.
+// not a Better Auth session.
 http.route({ pathPrefix: "/v1/", method: "GET", handler: handleV1Get });
 http.route({ pathPrefix: "/v1/", method: "POST", handler: handleV1Post });
 http.route({ pathPrefix: "/v1/", method: "PUT", handler: handleV1Put });

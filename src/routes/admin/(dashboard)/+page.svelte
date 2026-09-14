@@ -26,6 +26,26 @@
 	let businessRegistrationNumber = $state('');
 	let taxId = $state('');
 
+	let search = $state('');
+
+	const badgeTones = [
+		{ bg: 'var(--stamp-green-bg)', fg: 'var(--stamp-green)' },
+		{ bg: 'var(--stamp-amber-bg)', fg: 'var(--stamp-amber)' },
+		{ bg: 'var(--stamp-rust-bg)', fg: 'var(--stamp-rust)' },
+		{ bg: 'var(--stamp-grey-bg)', fg: 'var(--text-muted)' }
+	];
+	function toneFor(orgName: string) {
+		let hash = 0;
+		for (let i = 0; i < orgName.length; i++) hash = (hash * 31 + orgName.charCodeAt(i)) | 0;
+		return badgeTones[Math.abs(hash) % badgeTones.length];
+	}
+	function initialsFor(orgName: string): string {
+		const parts = orgName.trim().split(/\s+/).filter(Boolean);
+		if (parts.length === 0) return '?';
+		if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+		return (parts[0][0] + parts[1][0]).toUpperCase();
+	}
+
 	function openAdd() {
 		name = '';
 		ownerEmail = '';
@@ -75,13 +95,25 @@
 	{/snippet}
 </PageHeader>
 
-<div style="padding:34px 40px 72px;max-width:1260px;display:flex;flex-direction:column;gap:38px">
+<div class="admin-orgs" style="padding:34px 40px 72px;max-width:1260px;display:flex;flex-direction:column;gap:38px">
 	{#if orgs.isLoading}
-		<p>Loading…</p>
+		<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px">
+			{#each Array(3) as _}
+				<div class="card skeleton" style="height:88px"></div>
+			{/each}
+		</div>
+		<div class="card" style="padding:6px 20px 14px;display:flex;flex-direction:column;gap:12px">
+			{#each Array(5) as _}
+				<div class="skeleton" style="height:44px;border-radius:8px"></div>
+			{/each}
+		</div>
 	{:else if orgs.error}
 		<p>Failed to load organizations: {orgs.error.message}</p>
 	{:else}
 		{@const data = orgs.data}
+		{@const filtered = data.organizations.filter((org) =>
+			org.name.toLowerCase().includes(search.trim().toLowerCase())
+		)}
 		<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px">
 			<StatTicket label="Organizations" value={data.platformStats.totalOrgs.toLocaleString()} />
 			<StatTicket label="Shops" value={data.platformStats.totalShops.toLocaleString()} />
@@ -95,33 +127,117 @@
 				{/snippet}
 			</EmptyState>
 		{:else}
-			<div class="card" style="padding:6px 20px 14px">
-				<table>
-					<thead>
-						<tr>
-							<th>Organization</th>
-							<th class="right">Shops</th>
-							<th class="right">Customers</th>
-							<th class="right">Staff</th>
-							<th class="right">Created</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each data.organizations as org (org._id)}
-							<tr onclick={() => (window.location.href = `/admin/orgs/${org._id}`)} style="cursor:pointer">
-								<td style="font:500 14px 'IBM Plex Sans',sans-serif;color:var(--ink)">{org.name}</td>
-								<td class="right mono" style="color:var(--ink)">{org.counts.shops}</td>
-								<td class="right mono" style="color:var(--ink)">{org.counts.customers}</td>
-								<td class="right mono" style="color:var(--ink)">{org.counts.staff}</td>
-								<td class="right mono" style="color:var(--text-muted)">{new Date(org._creationTime).toLocaleDateString()}</td>
+			<input
+				type="text"
+				bind:value={search}
+				placeholder="Search organizations…"
+				class="input"
+				style="max-width:320px"
+			/>
+
+			{#if filtered.length === 0}
+				<EmptyState title="No matches" body={`No organization name matches "${search}".`} />
+			{:else}
+				<div class="card org-table-card" style="padding:6px 20px 14px">
+					<table class="org-table">
+						<thead>
+							<tr>
+								<th>Organization</th>
+								<th class="right">Shops</th>
+								<th class="right">Customers</th>
+								<th class="right">Staff</th>
+								<th class="right">Created</th>
 							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
+						</thead>
+						<tbody>
+							{#each filtered as org (org._id)}
+								<tr
+									class="org-row"
+									onclick={() => (window.location.href = `/admin/orgs/${org._id}`)}
+									style="cursor:pointer"
+								>
+									<td>
+										<div style="display:flex;align-items:center;gap:12px">
+											<span
+											class="org-avatar"
+											style="background:{toneFor(org.name).bg};color:{toneFor(org.name).fg}"
+											>{initialsFor(org.name)}</span
+										>
+											<span style="font:500 14px 'IBM Plex Sans',sans-serif;color:var(--ink)">{org.name}</span>
+										</div>
+									</td>
+									<td class="right mono" data-label="Shops" style="color:var(--ink)">{org.counts.shops}</td>
+									<td class="right mono" data-label="Customers" style="color:var(--ink)">{org.counts.customers}</td>
+									<td class="right mono" data-label="Staff" style="color:var(--ink)">{org.counts.staff}</td>
+									<td class="right mono" data-label="Created" style="color:var(--text-muted)"
+										>{new Date(org._creationTime).toLocaleDateString()}</td
+									>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{/if}
 		{/if}
 	{/if}
 </div>
+
+<style>
+	.skeleton {
+		background: linear-gradient(90deg, var(--line-2) 25%, var(--surface-soft) 37%, var(--line-2) 63%);
+		background-size: 400% 100%;
+		animation: skeletonShine 1.4s ease infinite;
+	}
+	@keyframes skeletonShine {
+		0% {
+			background-position: 100% 50%;
+		}
+		100% {
+			background-position: 0 50%;
+		}
+	}
+
+	.org-avatar {
+		width: 30px;
+		height: 30px;
+		flex: 0 0 30px;
+		border-radius: 50%;
+		display: grid;
+		place-items: center;
+		font: 600 11px/1 'IBM Plex Sans', sans-serif;
+	}
+
+	.org-row:hover {
+		background: var(--surface-soft);
+	}
+
+	@media (max-width: 640px) {
+		.org-table thead {
+			display: none;
+		}
+		.org-table,
+		.org-table tbody,
+		.org-table tr,
+		.org-table td {
+			display: block;
+			width: 100%;
+		}
+		.org-table tr {
+			padding: 12px 0;
+			border-bottom: 1px solid var(--line-2);
+		}
+		.org-table td {
+			border: 0;
+			padding: 4px 0;
+			text-align: left !important;
+		}
+		.org-table td.right::before {
+			content: attr(data-label) ': ';
+			color: var(--text-muted);
+			font-family: 'IBM Plex Sans', sans-serif;
+		}
+	}
+</style>
 
 <Drawer bind:open={addOpen} title="Add an organization" note="Optionally add an owner (they must already have an account) to get them started right away.">
 	<form id="add-org-form" onsubmit={submitAdd}>
