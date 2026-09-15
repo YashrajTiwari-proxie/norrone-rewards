@@ -58,7 +58,16 @@ function requiredAppleEnv() {
 		// Optional — auto-update (webServiceURL + APNs push) is a bonus on
 		// top of a working pass, not a requirement, so this alone being
 		// unset doesn't throw WALLET_NOT_CONFIGURED like the fields above.
-		convexSiteUrl: process.env.CONVEX_SITE_URL
+		// Uses SITE_URL (the Vercel frontend, proxying /v1/... through to
+		// Convex — see src/routes/v1/[...path]/+server.ts) rather than
+		// CONVEX_SITE_URL directly: real-device testing showed Apple
+		// Wallet's background networking stack (passd) silently failing to
+		// complete HTTP/3 connections straight to Convex's `.site` domain
+		// (via Cloudflare) — zero requests ever reached Convex, even though
+		// curl against the same URL always worked (curl doesn't attempt
+		// HTTP/3 by default, so it never exercised the failure). Routing
+		// through Vercel's edge sidesteps that negotiation issue entirely.
+		convexSiteUrl: process.env.SITE_URL
 	};
 }
 
@@ -164,8 +173,16 @@ export const buildApplePassBase64 = internalAction({
 		// Service protocol (convex/httpPassService.ts) so Wallet registers
 		// this pass for push updates on install. Omitted entirely otherwise
 		// — the pass still works, it just won't auto-refresh.
+		//
+		// The trailing slash on webServiceURL is required, not cosmetic —
+		// Wallet builds the actual request paths via plain string
+		// concatenation (webServiceURL + "devices/..."), so without it the
+		// device silently forms a malformed URL (".../v1devices/..." instead
+		// of ".../v1/devices/...") and just never calls it — no error
+		// surfaces anywhere, on-device or in our logs, which is exactly
+		// what made this so hard to spot from a working curl test alone.
 		if (env.convexSiteUrl) {
-			passJson.webServiceURL = `${env.convexSiteUrl}/v1`;
+			passJson.webServiceURL = `${env.convexSiteUrl}/v1/`;
 			passJson.authenticationToken = await signPassAuthToken(passData.customerId);
 		}
 

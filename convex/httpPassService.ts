@@ -116,7 +116,8 @@ export const getLatestPass = httpAction(async (ctx, request) => {
 			status: 200,
 			headers: {
 				"content-type": "application/vnd.apple.pkpass",
-				"last-modified": new Date().toUTCString()
+				"last-modified": new Date().toUTCString(),
+				"cache-control": "no-store"
 			}
 		});
 	} catch (err) {

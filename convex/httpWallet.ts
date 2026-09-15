@@ -48,7 +48,8 @@ export const handleAppleWallet = httpAction(async (ctx, request) => {
 			status: 200,
 			headers: {
 				"content-type": "application/vnd.apple.pkpass",
-				"content-disposition": "attachment; filename=loyalty.pkpass"
+				"content-disposition": "attachment; filename=loyalty.pkpass",
+				"cache-control": "no-store"
 			}
 		});
 	} catch (err) {

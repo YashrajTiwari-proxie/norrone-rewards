@@ -194,6 +194,7 @@ export const handleV1Get = httpAction(async (ctx, request) => {
 					headers: {
 						"content-type": "application/vnd.apple.pkpass",
 						"content-disposition": "attachment; filename=loyalty.pkpass",
+						"cache-control": "no-store",
 						...CORS_HEADERS
 					}
 				});
