@@ -70,12 +70,21 @@ export const manualGrantTier = mutation({
 			throw new ConvexError({ code: "NOT_FOUND", message: "Tier not found in this organization" });
 		}
 
-		const existing = await ctx.db
+		// "Current tier" is always the most-recently-inserted row (see
+		// getDetail/getPassData) — so the no-op check must compare against
+		// that, not "has this tierId ever been assigned before". A customer
+		// who was auto-granted Gold, then promoted to Above Gold, then
+		// manually set back to Gold has a *stale* Gold row already sitting
+		// in the table; checking "any row with this tierId" found that old
+		// row and skipped the insert entirely, silently leaving Above Gold
+		// as the current tier — this was a real bug, not just a design
+		// choice, and is exactly why the dashboard action wasn't working.
+		const currentTierRow = await ctx.db
 			.query("customerTier")
 			.withIndex("by_customer", (q) => q.eq("customerId", args.customerId))
-			.filter((q) => q.eq(q.field("tierId"), args.tierId))
+			.order("desc")
 			.first();
-		if (!existing) {
+		if (currentTierRow?.tierId !== args.tierId) {
 			await ctx.db.insert("customerTier", { customerId: args.customerId, tierId: args.tierId, source: "MANUAL" });
 			// Match what an auto-grant would do: apply the tier's own benefits too.
 			await applyGrantedBenefits(ctx, args.customerId, "TIER", args.tierId);
