@@ -156,14 +156,14 @@ export const buildApplePassBase64 = internalAction({
 				// where "Powered by Norrone" actually needs to live to be
 				// seen without extra taps. Kept short — header fields have
 				// very little room.
-				headerFields: [{ key: "poweredBy", label: "", value: "Norrone" }],
+				headerFields: [{ key: "poweredByHeader", label: "", value: "Norrone" }],
 				backFields: [
 					{
 						key: "about",
 						label: "About",
 						value: "Show this card at checkout to earn and redeem rewards."
 					},
-					{ key: "poweredBy", label: "", value: "Powered by Norrone" }
+					{ key: "poweredByBack", label: "", value: "Powered by Norrone" }
 				]
 			},
 			barcodes: [{ format: "PKBarcodeFormatPDF417", message: barcodeMessage, messageEncoding: "iso-8859-1" }]
