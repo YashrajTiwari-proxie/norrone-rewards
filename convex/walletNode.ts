@@ -176,13 +176,16 @@ export const buildApplePassBase64 = internalAction({
 		//
 		// The trailing slash on webServiceURL is required, not cosmetic —
 		// Wallet builds the actual request paths via plain string
-		// concatenation (webServiceURL + "devices/..."), so without it the
-		// device silently forms a malformed URL (".../v1devices/..." instead
-		// of ".../v1/devices/...") and just never calls it — no error
-		// surfaces anywhere, on-device or in our logs, which is exactly
-		// what made this so hard to spot from a working curl test alone.
+		// concatenation. Real-device syslog + Vercel logs proved Wallet's own
+		// concatenation is `webServiceURL + "v1/devices/..."` — i.e. Wallet
+		// itself appends the "v1/" version segment on top of whatever
+		// webServiceURL already is. Setting webServiceURL to ".../v1/" (as
+		// this used to) therefore produced ".../v1/v1/devices/..." — a
+		// doubled prefix that our proxy dutifully forwarded and 404'd on.
+		// webServiceURL must be just the bare site root with a trailing
+		// slash; Wallet supplies "v1/..." itself.
 		if (env.convexSiteUrl) {
-			passJson.webServiceURL = `${env.convexSiteUrl}/v1/`;
+			passJson.webServiceURL = `${env.convexSiteUrl}/`;
 			passJson.authenticationToken = await signPassAuthToken(passData.customerId);
 		}
 
