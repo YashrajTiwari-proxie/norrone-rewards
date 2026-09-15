@@ -90,7 +90,7 @@ is a **Convex environment variable** (set with `npx convex env set NAME value`, 
 | --- | --- | --- |
 | `WALLET_SIGNING_SECRET` | `npx convex env set WALLET_SIGNING_SECRET <openssl rand -hex 32>` | HMAC-signs coupon QR/barcode payloads (`convex/lib/couponSigning.ts`) and wallet-pass links (`convex/lib/walletSigning.ts`) |
 | `BETTER_AUTH_SECRET` | `npx convex env set BETTER_AUTH_SECRET <openssl rand -base64 32>` | Better Auth session signing (`convex/auth.ts`) — falls back to an insecure dev default if unset, **must** be set before any real deployment |
-| `SITE_URL` | `npx convex env set SITE_URL http://localhost:5173` (or your real origin) | Better Auth's own `baseURL` + cookie security flag, and the login link in staff invite emails |
+| `SITE_URL` | `npx convex env set SITE_URL http://localhost:5173` (or your real origin) | Better Auth's own `baseURL` + cookie security flag, the login link in staff invite emails, **and** the Apple Wallet `webServiceURL` (see "Apple Wallet auto-update requires the Vercel proxy" below) — must be the frontend's own origin, not Convex's `.site` domain |
 | `TRUSTED_ORIGINS` | `npx convex env set TRUSTED_ORIGINS "https://your-dashboard.example"` | Comma-separated extra CORS/cookie origins beyond `localhost:5173` (`convex/lib/trustedOrigins.ts`) |
 | `RESEND_API_KEY` | `npx convex env set RESEND_API_KEY <key>` | Sends staff-invite emails (`convex/lib/email.ts`) — invites fail loudly until this is set |
 | `EMAIL_FROM` | `npx convex env set EMAIL_FROM "Norrone Loyalty <you@yourdomain.com>"` | Optional — defaults to Resend's unverified sandbox sender (`onboarding@resend.dev`), which only delivers to the Resend account owner's own inbox. Set a verified domain sender before relying on delivery to real invitees. |
@@ -187,6 +187,49 @@ Needs a paid Apple Developer Program membership ($99/year).
    ```
 7. Verify: `/orgs/:orgId/wallet` in the dashboard should show Apple as "Configured", and
    a customer's "Add to Apple Wallet" button should download a real `.pkpass`.
+
+#### Apple Wallet auto-update requires the Vercel proxy — and `SITE_URL` pointed at it
+
+A saved Apple Wallet pass calls back to `webServiceURL` (set from `SITE_URL`, see the
+env var table) both to register itself for push updates on install, and later to fetch
+the refreshed pass whenever we push. This app sets `webServiceURL` to the **frontend's**
+own origin (`src/routes/v1/[...path]/+server.ts`, a byte-for-byte reverse proxy onto
+Convex's `/v1/...` HTTP Actions) rather than Convex's `*.convex.site` domain directly.
+
+This is not cosmetic — real-device testing (iPhone syslog via `idevicesyslog`) showed
+Apple Wallet's background daemon (`passd`) silently trying and failing to negotiate
+HTTP/3 (QUIC) straight to Convex's site domain (fronted by Cloudflare), with **zero**
+requests ever reaching Convex and no error surfaced anywhere — `curl` never caught this
+because it doesn't attempt HTTP/3 by default. Routing through Vercel's edge (which
+Wallet negotiates against successfully) sidesteps the problem entirely.
+
+**What this means for any deployment, including self-hosting elsewhere:**
+- `SITE_URL` **must** be set to whatever public origin serves the SvelteKit app itself
+  (the one with `src/routes/v1/[...path]/+server.ts` deployed), never Convex's own URL
+  directly — even though every other `/v1/...` consumer (the public API, demo pages)
+  is free to hit Convex directly.
+- That frontend origin must be reachable over HTTPS with working HTTP/3/QUIC support
+  end-to-end (true of Vercel; verify this on any other host — e.g. behind a plain nginx
+  reverse proxy without QUIC support, expect the same silent failure Convex hit).
+- If the frontend is ever moved to a different domain, update `SITE_URL` there too —
+  every *already-installed* pass has its old `webServiceURL` baked in at generation
+  time, so existing customers' passes keep calling the old domain until they delete and
+  re-add the pass (there's no way to migrate an already-installed pass's callback URL).
+- `webServiceURL` must be the **bare origin with a trailing slash** (e.g.
+  `https://your-frontend.example/`) — Apple Wallet appends its own `v1/devices/...`
+  path segments on top at request time, so including `/v1/` in `SITE_URL` itself (or in
+  code) produces a doubled `/v1/v1/devices/...` path that 404s. `SITE_URL` should just
+  be the origin, with no path suffix.
+- Apple pass field keys (`primaryFields`/`secondaryFields`/`headerFields`/`backFields`
+  etc., in `convex/walletNode.ts`) must be **globally unique across the whole pass**,
+  not just unique within one field group — Apple's client-side validator logs a warning
+  (visible as an "Apple Wallet client log" line in Convex's function logs, reported via
+  `POST /v1/log`, handled in `convex/httpPassService.ts`'s `logErrors`) for a duplicate
+  key today, and has stated this becomes a hard error in a future release.
+
+If you skip the Vercel proxy and point `webServiceURL` at Convex directly, static pass
+issuance (download-and-add) still works fine — only the auto-update/push path silently
+never registers.
 
 ### Google Wallet
 
@@ -323,6 +366,9 @@ editable afterward per shop) via the Shops page in the org dashboard.
   through Apple's PassKit Web Service protocol (`convex/httpPassService.ts`, backed by
   the `passRegistrations` table). A customer who hasn't saved either pass yet is the
   common case, not an error — both paths are best-effort and silently no-op.
+  Apple's push path depends on `SITE_URL` pointing at the frontend's own domain (which
+  proxies `/v1/...` onto Convex via `src/routes/v1/[...path]/+server.ts`), not Convex
+  directly — see "Apple Wallet auto-update requires the Vercel proxy" above for why.
 - **No rollback if self-serve signup's second step fails.** `/signup` creates the
   Better Auth account first, then calls `organizations.createSelfServe` — if that
   mutation fails after the account exists, the user is left with a login but no
@@ -390,6 +436,12 @@ src/routes/
   login/, forgot-password/, signup/       Public, unauthenticated (Better Auth client-side)
   admin/login/, admin/(dashboard)/        Platform admin auth + panel (guarded layout)
   orgs/[orgId]/                           Org dashboard (guarded layout, Convex-reactive)
+  v1/[...path]/+server.ts                 Reverse proxy onto Convex's /v1/... HTTP Actions —
+                                           required for Apple Wallet auto-update, see
+                                           "Apple Wallet auto-update requires the Vercel proxy"
+  wallet-demo/, api-demo/                 Public, unauthenticated demo pages for the wallet
+                                           links and the rest of the /v1 API (query-param
+                                           pre-fillable: ?key=&shop=&customer=)
 
 src/lib/
   platformAuth.ts             Svelte context wiring for the Better Auth + Convex client

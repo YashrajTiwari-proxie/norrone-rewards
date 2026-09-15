@@ -14,6 +14,8 @@ type PassData = {
 	organizationName: string;
 	pointBalance: number;
 	tierName: string | null;
+	membershipPlanName: string | null;
+	membershipExpiryDate: number | null; // epoch ms
 	backgroundColor: string; // hex, e.g. "#1b2430"
 	googleClassId: string | null; // set once the org has its own branded class — see ensureLoyaltyClass
 };
@@ -83,8 +85,17 @@ async function getAccessToken(serviceAccount: ServiceAccount): Promise<string> {
 
 const POWERED_BY_MODULE = { header: "", body: "Powered by Norrone" };
 
-function loyaltyTextModules(passData: Pick<PassData, "tierName">) {
-	return passData.tierName ? [{ header: "Tier", body: passData.tierName }, POWERED_BY_MODULE] : [POWERED_BY_MODULE];
+function loyaltyTextModules(passData: Pick<PassData, "tierName" | "membershipPlanName" | "membershipExpiryDate">) {
+	const modules: { header: string; body: string }[] = [];
+	if (passData.tierName) modules.push({ header: "Tier", body: passData.tierName });
+	if (passData.membershipPlanName) {
+		const expiry = passData.membershipExpiryDate
+			? ` (expires ${new Date(passData.membershipExpiryDate).toLocaleDateString()})`
+			: "";
+		modules.push({ header: "Membership", body: `${passData.membershipPlanName}${expiry}` });
+	}
+	modules.push(POWERED_BY_MODULE);
+	return modules;
 }
 
 function loyaltyObjectFor(passData: PassData, classId: string, issuerId: string) {

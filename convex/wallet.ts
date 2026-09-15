@@ -41,6 +41,19 @@ export const getPassData = internalQuery({
 			.first();
 		const tierDoc = tierRow ? await ctx.db.get(tierRow.tierId) : null;
 
+		// Same "ACTIVE status AND unexpired" bar as loyaltyEngine.ts's
+		// isActiveMember — a customer with a lapsed/cancelled membership
+		// shouldn't show stale membership details on their pass.
+		const membershipRow = await ctx.db
+			.query("customerMemberships")
+			.withIndex("by_customer_and_status", (q) => q.eq("customerId", customer._id).eq("status", "ACTIVE"))
+			.order("desc")
+			.first();
+		const activeMembership =
+			membershipRow && membershipRow.expiryDate > Date.now()
+				? { plan: await ctx.db.get(membershipRow.planId), expiryDate: membershipRow.expiryDate }
+				: null;
+
 		const template = await ctx.db
 			.query("passTemplates")
 			.withIndex("by_organization", (q) => q.eq("organizationId", organization._id))
@@ -56,6 +69,8 @@ export const getPassData = internalQuery({
 			organizationName: template?.organizationDisplayName ?? organization.name,
 			pointBalance,
 			tierName: tierDoc?.name ?? null,
+			membershipPlanName: activeMembership?.plan?.name ?? null,
+			membershipExpiryDate: activeMembership?.expiryDate ?? null,
 			backgroundColor: template?.backgroundColor ?? DEFAULT_PASS_DESIGN.backgroundColor,
 			foregroundColor: template?.foregroundColor ?? DEFAULT_PASS_DESIGN.foregroundColor,
 			logoUrl,

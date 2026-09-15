@@ -146,9 +146,12 @@ export const buildApplePassBase64 = internalAction({
 			logoText: passData.organizationName,
 			storeCard: {
 				primaryFields: [{ key: "points", label: "Points", value: passData.pointBalance }],
-				secondaryFields: passData.tierName
-					? [{ key: "tier", label: "Tier", value: passData.tierName }]
-					: [],
+				secondaryFields: [
+					...(passData.tierName ? [{ key: "tier", label: "Tier", value: passData.tierName }] : []),
+					...(passData.membershipPlanName
+						? [{ key: "membership", label: "Membership", value: passData.membershipPlanName }]
+						: [])
+				],
 				auxiliaryFields: [{ key: "member", label: "Member", value: passData.customerName }],
 				// headerFields render top-right on the FRONT of the card,
 				// unlike backFields (hidden until the ⓘ flip) — this is the
@@ -163,6 +166,15 @@ export const buildApplePassBase64 = internalAction({
 						label: "About",
 						value: "Show this card at checkout to earn and redeem rewards."
 					},
+					...(passData.membershipExpiryDate
+						? [
+								{
+									key: "membershipExpiry",
+									label: "Membership expires",
+									value: new Date(passData.membershipExpiryDate).toLocaleDateString()
+								}
+							]
+						: []),
 					{ key: "poweredByBack", label: "", value: "Powered by Norrone" }
 				]
 			},
