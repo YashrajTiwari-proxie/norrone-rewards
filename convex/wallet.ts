@@ -14,14 +14,12 @@ import { deriveLabelColor } from "./lib/wallet/color";
  * configured.
  */
 
-// The redesigned default palette (docs/WALLET_PASS_REDESIGN_PLAN.md) —
-// exported so passTemplates.ts's save action can fall back to the same
+// Exported so passTemplates.ts's save action can fall back to the same
 // values when an org hasn't set its own colors yet, rather than
 // duplicating them.
 export const DEFAULT_PASS_DESIGN = {
 	backgroundColor: "#14211F",
-	foregroundColor: "#F2F0E9",
-	accentColor: "#C9A227"
+	foregroundColor: "#F2F0E9"
 };
 
 /** Everything a pass (Apple or Google) needs to render — shared by both builders. */
@@ -76,10 +74,18 @@ export const getPassData = internalQuery({
 			pointBalance,
 			tierName: tierDoc?.name ?? null,
 			membershipPlanName: activeMembership?.plan?.name ?? null,
-			membershipExpiryDate: activeMembership?.expiryDate ?? null,
+			// loyaltyEngine.ts's NO_EXPIRY_MS sentinel (Number.MAX_SAFE_INTEGER)
+			// is outside JS's valid Date range (±8.64e15ms from epoch) and
+			// produces "Invalid Date" if passed straight to `new Date(...)` —
+			// a never-expiring membership has no real expiry to show, so this
+			// collapses the sentinel to null here rather than making every
+			// downstream consumer (walletNode.ts, googlePass.ts) special-case it.
+			membershipExpiryDate:
+				activeMembership && activeMembership.expiryDate <= 8_640_000_000_000_000
+					? activeMembership.expiryDate
+					: null,
 			backgroundColor: template?.backgroundColor ?? DEFAULT_PASS_DESIGN.backgroundColor,
 			foregroundColor: template?.foregroundColor ?? DEFAULT_PASS_DESIGN.foregroundColor,
-			accentColor: template?.accentColor ?? DEFAULT_PASS_DESIGN.accentColor,
 			labelColor: deriveLabelColor(
 				template?.backgroundColor ?? DEFAULT_PASS_DESIGN.backgroundColor,
 				template?.foregroundColor ?? DEFAULT_PASS_DESIGN.foregroundColor

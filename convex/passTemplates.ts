@@ -22,7 +22,6 @@ export const get = orgStaffQuery("passTemplates:read")({
 			logoUrl,
 			backgroundColor: template.backgroundColor ?? null,
 			foregroundColor: template.foregroundColor ?? null,
-			accentColor: template.accentColor ?? null,
 			organizationDisplayName: template.organizationDisplayName ?? null
 		};
 	}
@@ -40,7 +39,6 @@ export const upsertRow = internalMutation({
 		logoStorageId: v.optional(v.id("_storage")),
 		backgroundColor: v.optional(v.string()),
 		foregroundColor: v.optional(v.string()),
-		accentColor: v.optional(v.string()),
 		organizationDisplayName: v.optional(v.string()),
 		googleClassId: v.optional(v.string())
 	},
@@ -101,13 +99,11 @@ export const save = orgStaffAction("passTemplates:write")({
 		logoStorageId: v.optional(v.id("_storage")),
 		backgroundColor: v.optional(v.string()),
 		foregroundColor: v.optional(v.string()),
-		accentColor: v.optional(v.string()),
 		organizationDisplayName: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
 		const backgroundColor = args.backgroundColor ?? DEFAULT_PASS_DESIGN.backgroundColor;
 		const foregroundColor = args.foregroundColor ?? DEFAULT_PASS_DESIGN.foregroundColor;
-		const accentColor = args.accentColor ?? DEFAULT_PASS_DESIGN.accentColor;
 
 		// Reject illegible palettes outright rather than silently saving a
 		// pass nobody can read — see docs/WALLET_PASS_REDESIGN_PLAN.md. Same
@@ -136,26 +132,11 @@ export const save = orgStaffAction("passTemplates:write")({
 
 		let googleClassId: string | undefined;
 		try {
-			// Same banded-strip artwork as Apple's strip.png, generated once
-			// here (class-level, not per-customer) rather than on every pass
-			// push — see walletNode.ts's generateHeroImageUrl for why this
-			// needs a separate "use node" action rather than living inline.
-			let heroImageUrl: string | null = null;
-			try {
-				heroImageUrl = await ctx.runAction(internal.walletNode.generateHeroImageUrl, {
-					backgroundColor,
-					accentColor
-				});
-			} catch (err) {
-				console.error("Hero image generation failed — syncing Google class without one", err);
-			}
-
 			googleClassId = await ensureLoyaltyClass({
 				organizationId: ctx.organizationId,
 				organizationName: args.organizationDisplayName ?? orgName,
 				logoUrl,
-				backgroundColor,
-				heroImageUrl
+				backgroundColor
 			});
 		} catch (err) {
 			// Google Wallet not configured (or a transient API error) shouldn't
@@ -169,7 +150,6 @@ export const save = orgStaffAction("passTemplates:write")({
 			logoStorageId: args.logoStorageId,
 			backgroundColor: args.backgroundColor,
 			foregroundColor: args.foregroundColor,
-			accentColor: args.accentColor,
 			organizationDisplayName: args.organizationDisplayName,
 			googleClassId
 		});

@@ -37,7 +37,6 @@ import type * as lib_wallet_errors from "../lib/wallet/errors.js";
 import type * as lib_wallet_googlePass from "../lib/wallet/googlePass.js";
 import type * as lib_wallet_norroneIcon from "../lib/wallet/norroneIcon.js";
 import type * as lib_wallet_simplePng from "../lib/wallet/simplePng.js";
-import type * as lib_wallet_stripPng from "../lib/wallet/stripPng.js";
 import type * as lib_walletSigning from "../lib/walletSigning.js";
 import type * as membershipPlans from "../membershipPlans.js";
 import type * as organizations from "../organizations.js";
@@ -89,7 +88,6 @@ declare const fullApi: ApiFromModules<{
   "lib/wallet/googlePass": typeof lib_wallet_googlePass;
   "lib/wallet/norroneIcon": typeof lib_wallet_norroneIcon;
   "lib/wallet/simplePng": typeof lib_wallet_simplePng;
-  "lib/wallet/stripPng": typeof lib_wallet_stripPng;
   "lib/walletSigning": typeof lib_walletSigning;
   membershipPlans: typeof membershipPlans;
   organizations: typeof organizations;

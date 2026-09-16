@@ -17,6 +17,7 @@ packages/*/*.tsbuildinfo
 /build
 /Certs
 /Logo and Apple directions
+/reference
 coverage
 
 # OS

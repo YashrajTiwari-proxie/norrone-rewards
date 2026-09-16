@@ -23,7 +23,6 @@ import { v, ConvexError } from "convex/values";
 import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { solidColorPng } from "./lib/wallet/simplePng";
-import { bandedStripPng } from "./lib/wallet/stripPng";
 import { WALLET_NOT_CONFIGURED } from "./lib/wallet/errors";
 import { ICON_PNG_BASE64, ICON_2X_PNG_BASE64, ICON_3X_PNG_BASE64 } from "./lib/wallet/norroneIcon";
 import { signPassAuthToken } from "./lib/walletSigning";
@@ -224,22 +223,12 @@ export const buildApplePassBase64 = internalAction({
 				})()
 			: solidColorPng(160, hexToRgb(passData.foregroundColor));
 
-		// Variant "1b — Banded": a procedurally generated flat-color strip,
-		// not uploaded artwork — see stripPng.ts's header comment and
-		// docs/WALLET_PASS_REDESIGN_PLAN.md. Renders above the primary
-		// field, full card width.
-		const backgroundRgb = hexToRgb(passData.backgroundColor);
-		const accentRgb = hexToRgb(passData.accentColor);
-
 		const files: Record<string, Buffer> = {
 			"pass.json": Buffer.from(JSON.stringify(passJson)),
 			"icon.png": Buffer.from(ICON_PNG_BASE64, "base64"),
 			"icon@2x.png": Buffer.from(ICON_2X_PNG_BASE64, "base64"),
 			"icon@3x.png": Buffer.from(ICON_3X_PNG_BASE64, "base64"),
-			"logo.png": logo,
-			"strip.png": bandedStripPng(320, 84, backgroundRgb, accentRgb),
-			"strip@2x.png": bandedStripPng(640, 168, backgroundRgb, accentRgb),
-			"strip@3x.png": bandedStripPng(960, 252, backgroundRgb, accentRgb)
+			"logo.png": logo
 		};
 
 		const manifest: Record<string, string> = {};
@@ -253,27 +242,6 @@ export const buildApplePassBase64 = internalAction({
 
 		const zipped = zipSync(zipInput, { level: 0 }); // STORE only — pkpass files are typically uncompressed
 		return Buffer.from(zipped).toString("base64");
-	}
-});
-
-/**
- * Generates the same banded-strip artwork as Apple's strip.png, at
- * Google's heroImage aspect ratio (1032x336), and hosts it via Convex
- * storage — unlike Apple's zip-embedded PNG, Google's LoyaltyClass wants
- * a URL, not inline bytes. Called from passTemplates.ts's `save` action
- * (which is NOT "use node" — it only does plain fetch calls — so the PNG
- * encoding, which needs node:zlib, has to happen over here instead).
- * Class-level, not per-customer: this runs once per template save, not
- * once per pass push.
- */
-export const generateHeroImageUrl = internalAction({
-	args: { backgroundColor: v.string(), accentColor: v.string() },
-	handler: async (ctx, args): Promise<string> => {
-		const png = bandedStripPng(1032, 336, hexToRgb(args.backgroundColor), hexToRgb(args.accentColor));
-		const storageId = await ctx.storage.store(new Blob([new Uint8Array(png)], { type: "image/png" }));
-		const url = await ctx.storage.getUrl(storageId);
-		if (!url) throw new Error("Failed to resolve URL for generated hero image");
-		return url;
 	}
 });
 

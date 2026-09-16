@@ -1,6 +1,20 @@
 # Wallet pass redesign — plan
 
-Not implemented yet. This captures the design review + decisions from the
+**Status: the strip/hero/accent-color portion below was implemented, tested
+in the dashboard, and reverted.** The procedurally-generated banded strip
+looked bad in practice — a flat geometric color block doesn't read as
+"branded" the way real artwork or a photo does (see two reference passes
+supplied afterward: `reference/WhatsApp Image *.jpeg`, both real Apple
+Wallet passes using either the org's own designed strip artwork or actual
+photography, never a generated shape). Per direct instruction ("go simple
+instead of this approach"), `accentColor`, the strip image, and the Google
+`heroImage` were all removed. What's still live from this plan: `labelColor`
+(derived, no picker), the contrast validation guard, `barcode.altText`, and
+the Apple auxiliary field's Customer/Member label switch. The sections
+below are kept for history — don't re-implement the strip/hero/accent
+pieces without a different approach to sourcing real artwork per org.
+
+Not implemented yet (superseded by the above). This captures the design review + decisions from the
 "Logo and Apple directions" design doc (`Norrone Wallet Pass.dc.html`) so
 implementation can start from an agreed spec rather than mid-conversation
 context.

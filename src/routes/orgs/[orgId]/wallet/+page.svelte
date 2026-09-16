@@ -15,13 +15,11 @@
 	const generateUploadUrl = useMutation(api.passTemplates.generateUploadUrl);
 	const saveTemplate = useAction(api.passTemplates.save);
 
-	// Matches convex/wallet.ts's DEFAULT_PASS_DESIGN — the redesigned
-	// palette (see docs/WALLET_PASS_REDESIGN_PLAN.md), not arbitrary
-	// placeholders. labelColor has no input here — it's always derived
-	// from background+foreground (deriveLabelColor), shown read-only below.
+	// Matches convex/wallet.ts's DEFAULT_PASS_DESIGN. labelColor has no
+	// input here — it's always derived from background+foreground
+	// (deriveLabelColor), shown read-only in the preview below.
 	let backgroundColor = $state('#14211F');
 	let foregroundColor = $state('#F2F0E9');
-	let accentColor = $state('#C9A227');
 	let organizationDisplayName = $state('');
 	let logoFile = $state<File | null>(null);
 	let saving = $state(false);
@@ -38,7 +36,6 @@
 		if (template.data) {
 			backgroundColor = template.data.backgroundColor ?? '#14211F';
 			foregroundColor = template.data.foregroundColor ?? '#F2F0E9';
-			accentColor = template.data.accentColor ?? '#C9A227';
 			organizationDisplayName = template.data.organizationDisplayName ?? '';
 		}
 	});
@@ -101,7 +98,6 @@
 				logoStorageId,
 				backgroundColor,
 				foregroundColor,
-				accentColor,
 				organizationDisplayName: organizationDisplayName.trim() || undefined
 			});
 			saveMessage = result.googleSynced
@@ -187,7 +183,7 @@
 					<div
 						style="width:280px;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;background:{backgroundColor};color:{foregroundColor};box-shadow:0 8px 24px rgba(27,36,48,.16)"
 					>
-						<div style="padding:16px 18px 0;display:flex;align-items:center;justify-content:space-between;gap:10px">
+						<div style="padding:18px 18px 0;display:flex;align-items:center;justify-content:space-between;gap:10px">
 							<div style="display:flex;align-items:center;gap:10px">
 								{#if logoPreviewUrl}
 									<img src={logoPreviewUrl} alt="Logo" style="width:28px;height:28px;object-fit:contain;border-radius:6px;background:#fff" />
@@ -201,15 +197,7 @@
 							</div>
 						</div>
 
-						<!-- Variant 1b "Banded" strip — procedurally generated from
-							background+accent, not uploaded artwork (see
-							docs/WALLET_PASS_REDESIGN_PLAN.md). This preview approximates
-							it with CSS; the real pass renders an actual generated PNG. -->
-						<div style="margin-top:14px;height:60px;position:relative;background:{backgroundColor}">
-							<div style="position:absolute;left:0;bottom:0;width:62%;height:34%;background:{accentColor}"></div>
-						</div>
-
-						<div style="padding:16px 18px 0">
+						<div style="padding:22px 18px 0">
 							<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
 								Points
 							</div>
@@ -273,10 +261,6 @@
 						<label class="field" style="flex:1">
 							<span class="field-label">Text color</span>
 							<input type="color" bind:value={foregroundColor} class="input" style="height:38px;padding:2px" />
-						</label>
-						<label class="field" style="flex:1">
-							<span class="field-label">Accent color</span>
-							<input type="color" bind:value={accentColor} class="input" style="height:38px;padding:2px" />
 						</label>
 					</div>
 					{#if lowContrast}

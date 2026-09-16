@@ -177,10 +177,6 @@ export async function ensureLoyaltyClass(input: {
 	organizationName: string;
 	logoUrl: string | null;
 	backgroundColor: string;
-	// Pre-generated (see walletNode.ts's generateHeroImageUrl) — this file
-	// has no Node runtime access to build the PNG itself, only to host a
-	// URL Google can fetch from.
-	heroImageUrl: string | null;
 }): Promise<string> {
 	const env = requiredGoogleEnv();
 	const classId = `${env.issuerId}.org_${input.organizationId}`;
@@ -202,11 +198,7 @@ export async function ensureLoyaltyClass(input: {
 		reviewStatus: "UNDER_REVIEW",
 		hexBackgroundColor: input.backgroundColor,
 		programLogo: { sourceUri: { uri: logoUrl } },
-		homepageUri: { uri: "https://norrone-rewards-better-auth-tenant.vercel.app", description: "Powered by Norrone" },
-		// Google's one real design surface beyond flat color + logo — see
-		// docs/WALLET_PASS_REDESIGN_PLAN.md. Omitted entirely (rather than
-		// pointing at a broken URL) if generation failed upstream.
-		...(input.heroImageUrl ? { heroImage: { sourceUri: { uri: input.heroImageUrl } } } : {})
+		homepageUri: { uri: "https://norrone-rewards-better-auth-tenant.vercel.app", description: "Powered by Norrone" }
 	};
 
 	// Try update first (most calls after the first are updates); fall back
