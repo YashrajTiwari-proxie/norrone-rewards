@@ -301,6 +301,31 @@ export const repairMissingAuthzGrants = internalMutation({
 	}
 });
 
+/**
+ * One-off repair for customerMemberships rows left dangling by
+ * membershipPlans.remove before it cascaded (fixed in that mutation now)
+ * — cancels any row whose planId no longer resolves to a real plan, same
+ * treatment the fixed `remove` mutation itself applies going forward.
+ */
+export const repairOrphanedMemberships = internalMutation({
+	args: {},
+	handler: async (ctx) => {
+		const memberships = await ctx.db
+			.query("customerMemberships")
+			.filter((q) => q.eq(q.field("status"), "ACTIVE"))
+			.collect();
+		let cancelled = 0;
+		for (const membership of memberships) {
+			const plan = await ctx.db.get(membership.planId);
+			if (!plan) {
+				await ctx.db.patch(membership._id, { status: "CANCELLED" });
+				cancelled++;
+			}
+		}
+		return { cancelled };
+	}
+});
+
 /** Dev convenience: lists the email each platformAdmins row belongs to — never a password, Better Auth only stores those hashed. */
 export const listAdminEmails = internalQuery({
 	args: {},

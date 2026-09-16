@@ -1,5 +1,6 @@
 import { v, ConvexError } from "convex/values";
 import { orgStaffQuery, orgStaffMutation, assertShopInOrg, assertPositive } from "./lib/authz";
+import { internal } from "./_generated/api";
 
 export const list = orgStaffQuery("membershipPlans:read")({
 	args: {},
@@ -78,6 +79,30 @@ export const remove = orgStaffMutation("membershipPlans:write")({
 		if (!plan || plan.organizationId !== ctx.organizationId) {
 			throw new ConvexError({ code: "NOT_FOUND", message: "Membership plan not found in this organization" });
 		}
+
+		// Deleting the plan must not leave customerMemberships rows dangling
+		// on a planId that no longer exists — those stayed "ACTIVE" forever
+		// otherwise, a real bug: customers kept showing as members (on the
+		// dashboard, and on their wallet pass's Status field) of a plan that
+		// had already been deleted. Cancel rather than hard-delete — keeps
+		// the historical fact that this customer once held this membership,
+		// it just no longer counts as active anywhere (loyaltyEngine.ts's
+		// isActiveMember, wallet.ts's getPassData, and the customer detail
+		// page all filter on status === "ACTIVE").
+		const affectedMemberships = await ctx.db
+			.query("customerMemberships")
+			.filter((q) => q.and(q.eq(q.field("planId"), args.planId), q.eq(q.field("status"), "ACTIVE")))
+			.collect();
+		for (const membership of affectedMemberships) {
+			await ctx.db.patch(membership._id, { status: "CANCELLED" });
+			// So the affected customer's wallet pass drops "Member"/the plan
+			// name on its own, without waiting for some unrelated future
+			// data change to trigger a push.
+			await ctx.scheduler.runAfter(0, internal.walletNode.pushWalletUpdates, {
+				customerId: membership.customerId
+			});
+		}
+
 		await ctx.db.delete(args.planId);
 	}
 });
