@@ -210,13 +210,24 @@ export async function ensureLoyaltyClass(input: {
 		// like the member's name or their Member/Customer status (that's
 		// accountName, set per-object in loyaltyObjectFor below, already
 		// correct — the actual per-customer "name" line Google gives us).
-		// Both title slots carry the shop's own name rather than a generic
-		// filler label.
+		// Both fields are hard-required and rejected outright if empty
+		// (verified directly against the live API — Google returns
+		// "issuer name cannot be empty" / "cannot be created without a
+		// program name"), so there's no way to show the shop's name in only
+		// one of the two title slots. Kept textually distinct rather than
+		// literally identical.
 		issuerName: input.organizationName,
-		programName: input.organizationName,
+		programName: `${input.organizationName} Rewards`,
 		reviewStatus: "UNDER_REVIEW",
 		hexBackgroundColor: input.backgroundColor,
 		programLogo: { sourceUri: { uri: logoUrl } },
+		// Explicitly nulled, not omitted — PATCH only merges fields it's
+		// given, it never clears one just because a later request leaves it
+		// out. An org's class created under an earlier version of this code
+		// still has "Powered by Norrone" saved in homepageUri.description
+		// forever unless a request explicitly nulls it out (verified
+		// directly against the live API).
+		homepageUri: null,
 		// Only set when the org uploaded a real banner image — omitted
 		// entirely otherwise, never a generated placeholder.
 		...(input.heroImageUrl ? { heroImage: { sourceUri: { uri: input.heroImageUrl } } } : {})
