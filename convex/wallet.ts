@@ -3,6 +3,7 @@ import { internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { orgStaffAction, orgStaffQuery } from "./lib/authz";
 import { signWalletToken } from "./lib/walletSigning";
+import { deriveLabelColor } from "./lib/wallet/color";
 
 /**
  * Wallet-pass data + config-status surface for the org dashboard. Actual
@@ -13,9 +14,14 @@ import { signWalletToken } from "./lib/walletSigning";
  * configured.
  */
 
-const DEFAULT_PASS_DESIGN = {
-	backgroundColor: "#1b2430", // --ink
-	foregroundColor: "#ffffff"
+// The redesigned default palette (docs/WALLET_PASS_REDESIGN_PLAN.md) —
+// exported so passTemplates.ts's save action can fall back to the same
+// values when an org hasn't set its own colors yet, rather than
+// duplicating them.
+export const DEFAULT_PASS_DESIGN = {
+	backgroundColor: "#14211F",
+	foregroundColor: "#F2F0E9",
+	accentColor: "#C9A227"
 };
 
 /** Everything a pass (Apple or Google) needs to render — shared by both builders. */
@@ -73,6 +79,11 @@ export const getPassData = internalQuery({
 			membershipExpiryDate: activeMembership?.expiryDate ?? null,
 			backgroundColor: template?.backgroundColor ?? DEFAULT_PASS_DESIGN.backgroundColor,
 			foregroundColor: template?.foregroundColor ?? DEFAULT_PASS_DESIGN.foregroundColor,
+			accentColor: template?.accentColor ?? DEFAULT_PASS_DESIGN.accentColor,
+			labelColor: deriveLabelColor(
+				template?.backgroundColor ?? DEFAULT_PASS_DESIGN.backgroundColor,
+				template?.foregroundColor ?? DEFAULT_PASS_DESIGN.foregroundColor
+			),
 			logoUrl,
 			googleClassId: template?.googleClassId ?? null
 		};

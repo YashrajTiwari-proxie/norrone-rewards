@@ -37,23 +37,34 @@ function chunk(type: string, data: Buffer): Buffer {
 
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
-/** A flat-color square PNG, `size`x`size`, RGB [r,g,b] each 0-255. */
-export function solidColorPng(size: number, [r, g, b]: [number, number, number]): Buffer {
+/**
+ * General-purpose truecolor PNG encoder — `pixelAt` is called once per
+ * pixel and returns its RGB. Shared by solidColorPng below (a flat fill)
+ * and stripPng.ts's banded strip (a couple of flat-filled rectangles) —
+ * same encoder, different pixel functions, so the PNG plumbing (IHDR/
+ * IDAT/IEND, zlib deflate) only exists once.
+ */
+export function rgbPngFromPixels(
+	width: number,
+	height: number,
+	pixelAt: (x: number, y: number) => [number, number, number]
+): Buffer {
 	const ihdr = Buffer.alloc(13);
-	ihdr.writeUInt32BE(size, 0);
-	ihdr.writeUInt32BE(size, 4);
+	ihdr.writeUInt32BE(width, 0);
+	ihdr.writeUInt32BE(height, 4);
 	ihdr[8] = 8; // bit depth
 	ihdr[9] = 2; // color type: truecolor (RGB)
 	ihdr[10] = 0; // compression
 	ihdr[11] = 0; // filter
 	ihdr[12] = 0; // interlace
 
-	const rowLength = 1 + size * 3; // filter byte + RGB per pixel
-	const raw = Buffer.alloc(rowLength * size);
-	for (let y = 0; y < size; y++) {
+	const rowLength = 1 + width * 3; // filter byte + RGB per pixel
+	const raw = Buffer.alloc(rowLength * height);
+	for (let y = 0; y < height; y++) {
 		const rowStart = y * rowLength;
 		raw[rowStart] = 0; // filter type: none
-		for (let x = 0; x < size; x++) {
+		for (let x = 0; x < width; x++) {
+			const [r, g, b] = pixelAt(x, y);
 			const px = rowStart + 1 + x * 3;
 			raw[px] = r;
 			raw[px + 1] = g;
@@ -63,4 +74,9 @@ export function solidColorPng(size: number, [r, g, b]: [number, number, number])
 	const idat = deflateSync(raw);
 
 	return Buffer.concat([PNG_SIGNATURE, chunk("IHDR", ihdr), chunk("IDAT", idat), chunk("IEND", Buffer.alloc(0))]);
+}
+
+/** A flat-color square PNG, `size`x`size`, RGB [r,g,b] each 0-255. */
+export function solidColorPng(size: number, [r, g, b]: [number, number, number]): Buffer {
+	return rgbPngFromPixels(size, size, () => [r, g, b]);
 }

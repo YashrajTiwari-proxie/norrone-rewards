@@ -270,6 +270,13 @@ export default defineSchema({
 		logoStorageId: v.optional(v.id("_storage")), // uploaded via passTemplates.generateUploadUrl
 		backgroundColor: v.optional(v.string()), // hex, e.g. "#1b2430" — converted to rgb()/hex per platform at pass-build time
 		foregroundColor: v.optional(v.string()), // hex
+		// A distinct accent hue (not a lightness variant of background/
+		// foreground) used only for the procedurally-generated strip
+		// (Apple)/hero (Google) banner — see lib/wallet/stripPng.ts.
+		// labelColor is deliberately NOT stored here — it's always derived
+		// from background+foreground (lib/wallet/color.ts's
+		// deriveLabelColor) rather than a fourth org-set color.
+		accentColor: v.optional(v.string()), // hex
 		organizationDisplayName: v.optional(v.string()),
 		// Google's branding (logo/name) lives on the LoyaltyClass, not the
 		// per-customer object, so a custom template needs its own class —

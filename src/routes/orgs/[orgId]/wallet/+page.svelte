@@ -6,6 +6,7 @@
 	import QRCode from 'qrcode';
 	import { api } from '../../../../../convex/_generated/api';
 	import type { Id } from '../../../../../convex/_generated/dataModel';
+	import { contrastRatio, deriveLabelColor, MIN_CONTRAST_RATIO } from '../../../../../convex/lib/wallet/color';
 
 	let organizationId = $derived(page.params.orgId as Id<'organizations'>);
 	const status = useQuery(api.wallet.configStatus, () => ({ organizationId }));
@@ -14,8 +15,13 @@
 	const generateUploadUrl = useMutation(api.passTemplates.generateUploadUrl);
 	const saveTemplate = useAction(api.passTemplates.save);
 
-	let backgroundColor = $state('#1b2430');
-	let foregroundColor = $state('#ffffff');
+	// Matches convex/wallet.ts's DEFAULT_PASS_DESIGN — the redesigned
+	// palette (see docs/WALLET_PASS_REDESIGN_PLAN.md), not arbitrary
+	// placeholders. labelColor has no input here — it's always derived
+	// from background+foreground (deriveLabelColor), shown read-only below.
+	let backgroundColor = $state('#14211F');
+	let foregroundColor = $state('#F2F0E9');
+	let accentColor = $state('#C9A227');
 	let organizationDisplayName = $state('');
 	let logoFile = $state<File | null>(null);
 	let saving = $state(false);
@@ -30,8 +36,9 @@
 		if (initialized || template.isLoading) return;
 		initialized = true;
 		if (template.data) {
-			backgroundColor = template.data.backgroundColor ?? '#1b2430';
-			foregroundColor = template.data.foregroundColor ?? '#ffffff';
+			backgroundColor = template.data.backgroundColor ?? '#14211F';
+			foregroundColor = template.data.foregroundColor ?? '#F2F0E9';
+			accentColor = template.data.accentColor ?? '#C9A227';
 			organizationDisplayName = template.data.organizationDisplayName ?? '';
 		}
 	});
@@ -55,6 +62,13 @@
 		}
 		logoPreviewUrl = template.data?.logoUrl ?? null;
 	});
+
+	// Same threshold + formula the server enforces on save (passTemplates.ts)
+	// — surfaced here so a bad color choice is flagged before submit, not
+	// just as a save-time error.
+	let labelColor = $derived(deriveLabelColor(backgroundColor, foregroundColor));
+	let contrast = $derived(contrastRatio(foregroundColor, backgroundColor));
+	let lowContrast = $derived(contrast < MIN_CONTRAST_RATIO);
 
 	let qrDataUrl = $state<string | null>(null);
 	$effect(() => {
@@ -87,6 +101,7 @@
 				logoStorageId,
 				backgroundColor,
 				foregroundColor,
+				accentColor,
 				organizationDisplayName: organizationDisplayName.trim() || undefined
 			});
 			saveMessage = result.googleSynced
@@ -170,37 +185,68 @@
 						Preview
 					</div>
 					<div
-						style="width:280px;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;background:{backgroundColor};color:{foregroundColor};box-shadow:0 8px 24px rgba(27,36,48,.16)"
+						style="width:280px;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;background:{backgroundColor};color:{foregroundColor};box-shadow:0 8px 24px rgba(27,36,48,.16)"
 					>
-						<div style="display:flex;align-items:center;gap:10px">
-							{#if logoPreviewUrl}
-								<img src={logoPreviewUrl} alt="Logo" style="width:32px;height:32px;object-fit:contain;border-radius:6px;background:#fff" />
-							{/if}
-							<div style="font:600 13px/1.2 'IBM Plex Sans',sans-serif">
-								{organizationDisplayName.trim() || 'Norrone Rewards'}
+						<div style="padding:16px 18px 0;display:flex;align-items:center;justify-content:space-between;gap:10px">
+							<div style="display:flex;align-items:center;gap:10px">
+								{#if logoPreviewUrl}
+									<img src={logoPreviewUrl} alt="Logo" style="width:28px;height:28px;object-fit:contain;border-radius:6px;background:#fff" />
+								{/if}
+								<div style="font:600 13px/1.2 'IBM Plex Sans',sans-serif">
+									{organizationDisplayName.trim() || 'Norrone Rewards'}
+								</div>
+							</div>
+							<div style="font:600 9px/1 'IBM Plex Sans',sans-serif;letter-spacing:.06em;opacity:.75;white-space:nowrap">
+								NORRONE
 							</div>
 						</div>
-						<div>
-							<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;opacity:.75;text-transform:uppercase;letter-spacing:.06em">Points</div>
-							<div class="mono" style="margin-top:4px;font:600 26px/1 'IBM Plex Mono',monospace">128</div>
+
+						<!-- Variant 1b "Banded" strip — procedurally generated from
+							background+accent, not uploaded artwork (see
+							docs/WALLET_PASS_REDESIGN_PLAN.md). This preview approximates
+							it with CSS; the real pass renders an actual generated PNG. -->
+						<div style="margin-top:14px;height:60px;position:relative;background:{backgroundColor}">
+							<div style="position:absolute;left:0;bottom:0;width:62%;height:34%;background:{accentColor}"></div>
 						</div>
-						<div style="display:flex;justify-content:space-between;align-items:flex-end">
+
+						<div style="padding:16px 18px 0">
+							<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
+								Points
+							</div>
+							<div class="mono" style="margin-top:4px;font:600 30px/1 'IBM Plex Mono',monospace">128</div>
+						</div>
+						<div style="padding:14px 18px 0;display:flex;gap:20px">
 							<div>
-								<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;opacity:.75;text-transform:uppercase;letter-spacing:.06em">Tier</div>
+								<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
+									Tier
+								</div>
 								<div style="margin-top:4px;font:500 13px/1 'IBM Plex Sans',sans-serif">Gold</div>
 							</div>
-							{#if qrDataUrl}
-								<img src={qrDataUrl} alt="Sample barcode" style="width:56px;height:56px;border-radius:4px;background:#fff;padding:4px" />
-							{/if}
+							<div>
+								<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
+									Membership
+								</div>
+								<div style="margin-top:4px;font:500 13px/1 'IBM Plex Sans',sans-serif">Omakase Club</div>
+							</div>
 						</div>
-						<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;opacity:.6;text-align:center;border-top:1px solid rgba(255,255,255,.2);padding-top:10px">
-							Powered by Norrone
+						<div style="padding:14px 18px 0">
+							<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
+								Member
+							</div>
+							<div style="margin-top:4px;font:500 13px/1 'IBM Plex Sans',sans-serif">Sample Customer</div>
+						</div>
+						<div style="padding:18px;display:flex;justify-content:center">
+							{#if qrDataUrl}
+								<img src={qrDataUrl} alt="Sample barcode" style="width:64px;height:64px;border-radius:4px;background:#fff;padding:4px" />
+							{/if}
 						</div>
 					</div>
 					<div style="margin-top:8px;font:400 12px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
-						Approximate mockup, not a pixel-exact render of Apple/Google's own UI. "128" / "Gold" are
-						sample values — a real customer's pass shows their actual points/tier, and its QR code
-						encodes that specific customer's id (used to look them up at the POS).
+						Approximate mockup, not a pixel-exact render of Apple/Google's own UI. "128" / "Gold" /
+						"Omakase Club" are sample values — a real customer's pass shows their actual points/tier/
+						membership (only shown when they have one), and its barcode encodes that specific
+						customer's id. The "Member" label above the name only appears when the customer has an
+						active membership — otherwise it reads "Customer".
 					</div>
 				</div>
 
@@ -228,7 +274,18 @@
 							<span class="field-label">Text color</span>
 							<input type="color" bind:value={foregroundColor} class="input" style="height:38px;padding:2px" />
 						</label>
+						<label class="field" style="flex:1">
+							<span class="field-label">Accent color</span>
+							<input type="color" bind:value={accentColor} class="input" style="height:38px;padding:2px" />
+						</label>
 					</div>
+					{#if lowContrast}
+						<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-rust)">
+							Text color doesn't contrast enough against the background ({contrast.toFixed(1)}:1, needs
+							at least {MIN_CONTRAST_RATIO}:1) — pick a lighter or darker text color, or saving will
+							be rejected.
+						</div>
+					{/if}
 					<label class="field">
 						<span class="field-label">Display name on pass (optional — defaults to your org name)</span>
 						<input type="text" bind:value={organizationDisplayName} class="input" placeholder="Norrone Rewards" />
@@ -241,7 +298,7 @@
 						<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-green)">{saveMessage}</div>
 					{/if}
 
-					<button type="submit" class="btn btn-primary" style="align-self:flex-start" disabled={saving}>
+					<button type="submit" class="btn btn-primary" style="align-self:flex-start" disabled={saving || lowContrast}>
 						{#if saving}<span class="spinner"></span>Saving…{:else}Save pass design{/if}
 					</button>
 				</form>

@@ -1,8 +1,10 @@
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { orgStaffQuery, orgStaffMutation, orgStaffAction } from "./lib/authz";
 import { ensureLoyaltyClass } from "./lib/wallet/googlePass";
+import { contrastRatio, MIN_CONTRAST_RATIO } from "./lib/wallet/color";
+import { DEFAULT_PASS_DESIGN } from "./wallet";
 
 /** Current org-wide pass design, for the Wallet dashboard page's edit form. */
 export const get = orgStaffQuery("passTemplates:read")({
@@ -20,6 +22,7 @@ export const get = orgStaffQuery("passTemplates:read")({
 			logoUrl,
 			backgroundColor: template.backgroundColor ?? null,
 			foregroundColor: template.foregroundColor ?? null,
+			accentColor: template.accentColor ?? null,
 			organizationDisplayName: template.organizationDisplayName ?? null
 		};
 	}
@@ -37,6 +40,7 @@ export const upsertRow = internalMutation({
 		logoStorageId: v.optional(v.id("_storage")),
 		backgroundColor: v.optional(v.string()),
 		foregroundColor: v.optional(v.string()),
+		accentColor: v.optional(v.string()),
 		organizationDisplayName: v.optional(v.string()),
 		googleClassId: v.optional(v.string())
 	},
@@ -97,9 +101,26 @@ export const save = orgStaffAction("passTemplates:write")({
 		logoStorageId: v.optional(v.id("_storage")),
 		backgroundColor: v.optional(v.string()),
 		foregroundColor: v.optional(v.string()),
+		accentColor: v.optional(v.string()),
 		organizationDisplayName: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
+		const backgroundColor = args.backgroundColor ?? DEFAULT_PASS_DESIGN.backgroundColor;
+		const foregroundColor = args.foregroundColor ?? DEFAULT_PASS_DESIGN.foregroundColor;
+		const accentColor = args.accentColor ?? DEFAULT_PASS_DESIGN.accentColor;
+
+		// Reject illegible palettes outright rather than silently saving a
+		// pass nobody can read — see docs/WALLET_PASS_REDESIGN_PLAN.md. Same
+		// bar the dashboard's own live warning uses, so a save never
+		// surprises with an error the UI didn't already flag.
+		const ratio = contrastRatio(foregroundColor, backgroundColor);
+		if (ratio < MIN_CONTRAST_RATIO) {
+			throw new ConvexError({
+				code: "LOW_CONTRAST",
+				message: `Text color doesn't contrast enough against the background (${ratio.toFixed(1)}:1, needs at least ${MIN_CONTRAST_RATIO}:1) — pick a lighter or darker text color.`
+			});
+		}
+
 		// A save that isn't uploading a new logo (the common case — editing
 		// just colors/name after the logo is already set) must still use the
 		// EXISTING logo for the Google class sync below, not silently fall
@@ -115,11 +136,26 @@ export const save = orgStaffAction("passTemplates:write")({
 
 		let googleClassId: string | undefined;
 		try {
+			// Same banded-strip artwork as Apple's strip.png, generated once
+			// here (class-level, not per-customer) rather than on every pass
+			// push — see walletNode.ts's generateHeroImageUrl for why this
+			// needs a separate "use node" action rather than living inline.
+			let heroImageUrl: string | null = null;
+			try {
+				heroImageUrl = await ctx.runAction(internal.walletNode.generateHeroImageUrl, {
+					backgroundColor,
+					accentColor
+				});
+			} catch (err) {
+				console.error("Hero image generation failed — syncing Google class without one", err);
+			}
+
 			googleClassId = await ensureLoyaltyClass({
 				organizationId: ctx.organizationId,
 				organizationName: args.organizationDisplayName ?? orgName,
 				logoUrl,
-				backgroundColor: args.backgroundColor ?? "#1b2430"
+				backgroundColor,
+				heroImageUrl
 			});
 		} catch (err) {
 			// Google Wallet not configured (or a transient API error) shouldn't
@@ -133,6 +169,7 @@ export const save = orgStaffAction("passTemplates:write")({
 			logoStorageId: args.logoStorageId,
 			backgroundColor: args.backgroundColor,
 			foregroundColor: args.foregroundColor,
+			accentColor: args.accentColor,
 			organizationDisplayName: args.organizationDisplayName,
 			googleClassId
 		});

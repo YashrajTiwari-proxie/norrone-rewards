@@ -23,11 +23,13 @@ import { v, ConvexError } from "convex/values";
 import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { solidColorPng } from "./lib/wallet/simplePng";
+import { bandedStripPng } from "./lib/wallet/stripPng";
 import { WALLET_NOT_CONFIGURED } from "./lib/wallet/errors";
 import { ICON_PNG_BASE64, ICON_2X_PNG_BASE64, ICON_3X_PNG_BASE64 } from "./lib/wallet/norroneIcon";
 import { signPassAuthToken } from "./lib/walletSigning";
 import { patchLoyaltyObject } from "./lib/wallet/googlePass";
 import { sendApplePushNotification } from "./lib/wallet/apns";
+import { hexToRgb, hexToRgbCss } from "./lib/wallet/color";
 
 // A plain `Error` subclass doesn't reliably survive the ctx.runAction
 // boundary back to the calling httpAction (convex/httpWallet.ts) — only
@@ -69,20 +71,6 @@ function requiredAppleEnv() {
 		// through Vercel's edge sidesteps that negotiation issue entirely.
 		convexSiteUrl: process.env.SITE_URL
 	};
-}
-
-// passData colors are stored as hex (single source of truth shared with
-// Google, which wants hex natively) — Apple's pass.json instead requires
-// the CSS rgb(r, g, b) string form, so this is the one place that format
-// gets translated.
-function hexToRgbTriple(hex: string): [number, number, number] {
-	const match = hex.match(/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
-	if (!match) return [27, 36, 48];
-	return [parseInt(match[1], 16), parseInt(match[2], 16), parseInt(match[3], 16)];
-}
-function hexToRgbCss(hex: string): string {
-	const [r, g, b] = hexToRgbTriple(hex);
-	return `rgb(${r}, ${g}, ${b})`;
 }
 
 function sha1Hex(buf: Buffer): string {
@@ -137,6 +125,7 @@ export const buildApplePassBase64 = internalAction({
 			description: `${passData.organizationName} Loyalty Card`,
 			backgroundColor: hexToRgbCss(passData.backgroundColor),
 			foregroundColor: hexToRgbCss(passData.foregroundColor),
+			labelColor: hexToRgbCss(passData.labelColor),
 			// logoText is the text shown next to the logo image on the front
 			// of the card — a separate field from organizationName (which
 			// isn't rendered on the card itself, only in notifications/list
@@ -152,7 +141,18 @@ export const buildApplePassBase64 = internalAction({
 						? [{ key: "membership", label: "Membership", value: passData.membershipPlanName }]
 						: [])
 				],
-				auxiliaryFields: [{ key: "member", label: "Member", value: passData.customerName }],
+				// "Member" only once there's an actual membership to speak of —
+				// otherwise this is just a customer, not a program member, and
+				// the label shouldn't imply otherwise. Google has no equivalent
+				// per-field label to swap (accountName's caption is fixed), so
+				// this distinction is Apple-only.
+				auxiliaryFields: [
+					{
+						key: "member",
+						label: passData.membershipPlanName ? "Member" : "Customer",
+						value: passData.customerName
+					}
+				],
 				// headerFields render top-right on the FRONT of the card,
 				// unlike backFields (hidden until the ⓘ flip) — this is the
 				// one visible-by-default slot besides logoText, so it's
@@ -178,7 +178,14 @@ export const buildApplePassBase64 = internalAction({
 					{ key: "poweredByBack", label: "", value: "Powered by Norrone" }
 				]
 			},
-			barcodes: [{ format: "PKBarcodeFormatPDF417", message: barcodeMessage, messageEncoding: "iso-8859-1" }]
+			barcodes: [
+				{
+					format: "PKBarcodeFormatPDF417",
+					message: barcodeMessage,
+					messageEncoding: "iso-8859-1",
+					altText: passData.customerId.slice(-8).toUpperCase()
+				}
+			]
 		};
 
 		// Auto-update: if CONVEX_SITE_URL is set, wire up Apple's PassKit Web
@@ -215,14 +222,24 @@ export const buildApplePassBase64 = internalAction({
 					if (!logoRes.ok) throw new Error(`Failed to fetch org logo: ${logoRes.status}`);
 					return Buffer.from(await logoRes.arrayBuffer());
 				})()
-			: solidColorPng(160, hexToRgbTriple(passData.foregroundColor));
+			: solidColorPng(160, hexToRgb(passData.foregroundColor));
+
+		// Variant "1b — Banded": a procedurally generated flat-color strip,
+		// not uploaded artwork — see stripPng.ts's header comment and
+		// docs/WALLET_PASS_REDESIGN_PLAN.md. Renders above the primary
+		// field, full card width.
+		const backgroundRgb = hexToRgb(passData.backgroundColor);
+		const accentRgb = hexToRgb(passData.accentColor);
 
 		const files: Record<string, Buffer> = {
 			"pass.json": Buffer.from(JSON.stringify(passJson)),
 			"icon.png": Buffer.from(ICON_PNG_BASE64, "base64"),
 			"icon@2x.png": Buffer.from(ICON_2X_PNG_BASE64, "base64"),
 			"icon@3x.png": Buffer.from(ICON_3X_PNG_BASE64, "base64"),
-			"logo.png": logo
+			"logo.png": logo,
+			"strip.png": bandedStripPng(320, 84, backgroundRgb, accentRgb),
+			"strip@2x.png": bandedStripPng(640, 168, backgroundRgb, accentRgb),
+			"strip@3x.png": bandedStripPng(960, 252, backgroundRgb, accentRgb)
 		};
 
 		const manifest: Record<string, string> = {};
@@ -236,6 +253,27 @@ export const buildApplePassBase64 = internalAction({
 
 		const zipped = zipSync(zipInput, { level: 0 }); // STORE only — pkpass files are typically uncompressed
 		return Buffer.from(zipped).toString("base64");
+	}
+});
+
+/**
+ * Generates the same banded-strip artwork as Apple's strip.png, at
+ * Google's heroImage aspect ratio (1032x336), and hosts it via Convex
+ * storage — unlike Apple's zip-embedded PNG, Google's LoyaltyClass wants
+ * a URL, not inline bytes. Called from passTemplates.ts's `save` action
+ * (which is NOT "use node" — it only does plain fetch calls — so the PNG
+ * encoding, which needs node:zlib, has to happen over here instead).
+ * Class-level, not per-customer: this runs once per template save, not
+ * once per pass push.
+ */
+export const generateHeroImageUrl = internalAction({
+	args: { backgroundColor: v.string(), accentColor: v.string() },
+	handler: async (ctx, args): Promise<string> => {
+		const png = bandedStripPng(1032, 336, hexToRgb(args.backgroundColor), hexToRgb(args.accentColor));
+		const storageId = await ctx.storage.store(new Blob([new Uint8Array(png)], { type: "image/png" }));
+		const url = await ctx.storage.getUrl(storageId);
+		if (!url) throw new Error("Failed to resolve URL for generated hero image");
+		return url;
 	}
 });
 

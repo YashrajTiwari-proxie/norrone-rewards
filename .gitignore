@@ -16,6 +16,7 @@ packages/*/*.tsbuildinfo
 /.svelte-kit
 /build
 /Certs
+/Logo and Apple directions
 coverage
 
 # OS
