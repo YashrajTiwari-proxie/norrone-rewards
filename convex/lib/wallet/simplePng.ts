@@ -80,3 +80,8 @@ export function rgbPngFromPixels(
 export function solidColorPng(size: number, [r, g, b]: [number, number, number]): Buffer {
 	return rgbPngFromPixels(size, size, () => [r, g, b]);
 }
+
+/** A flat-color rectangular PNG — the strip/hero box's fallback when an org hasn't uploaded a banner image. */
+export function solidColorRectPng(width: number, height: number, [r, g, b]: [number, number, number]): Buffer {
+	return rgbPngFromPixels(width, height, () => [r, g, b]);
+}

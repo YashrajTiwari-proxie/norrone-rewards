@@ -16,6 +16,8 @@ type PassData = {
 	tierName: string | null;
 	membershipPlanName: string | null;
 	membershipExpiryDate: number | null; // epoch ms
+	status: "Member" | "Customer";
+	sinceDate: number; // epoch ms
 	backgroundColor: string; // hex, e.g. "#1b2430"
 	googleClassId: string | null; // set once the org has its own branded class — see ensureLoyaltyClass
 };
@@ -85,8 +87,13 @@ async function getAccessToken(serviceAccount: ServiceAccount): Promise<string> {
 
 const POWERED_BY_MODULE = { header: "", body: "Powered by Norrone" };
 
-function loyaltyTextModules(passData: Pick<PassData, "tierName" | "membershipPlanName" | "membershipExpiryDate">) {
-	const modules: { header: string; body: string }[] = [];
+function loyaltyTextModules(
+	passData: Pick<PassData, "tierName" | "membershipPlanName" | "membershipExpiryDate" | "status" | "sinceDate">
+) {
+	const modules: { header: string; body: string }[] = [
+		{ header: "Status", body: passData.status },
+		{ header: `${passData.status} since`, body: new Date(passData.sinceDate).toLocaleDateString() }
+	];
 	if (passData.tierName) modules.push({ header: "Tier", body: passData.tierName });
 	if (passData.membershipPlanName) {
 		const expiry = passData.membershipExpiryDate
@@ -177,6 +184,10 @@ export async function ensureLoyaltyClass(input: {
 	organizationName: string;
 	logoUrl: string | null;
 	backgroundColor: string;
+	// The org's own uploaded banner image (passTemplates.bannerStorageId) —
+	// used exactly as uploaded, never generated art. Absent = no heroImage
+	// at all, not a placeholder.
+	heroImageUrl: string | null;
 }): Promise<string> {
 	const env = requiredGoogleEnv();
 	const classId = `${env.issuerId}.org_${input.organizationId}`;
@@ -198,7 +209,10 @@ export async function ensureLoyaltyClass(input: {
 		reviewStatus: "UNDER_REVIEW",
 		hexBackgroundColor: input.backgroundColor,
 		programLogo: { sourceUri: { uri: logoUrl } },
-		homepageUri: { uri: "https://norrone-rewards-better-auth-tenant.vercel.app", description: "Powered by Norrone" }
+		homepageUri: { uri: "https://norrone-rewards-better-auth-tenant.vercel.app", description: "Powered by Norrone" },
+		// Only set when the org uploaded a real banner image — omitted
+		// entirely otherwise, never a generated placeholder.
+		...(input.heroImageUrl ? { heroImage: { sourceUri: { uri: input.heroImageUrl } } } : {})
 	};
 
 	// Try update first (most calls after the first are updates); fall back

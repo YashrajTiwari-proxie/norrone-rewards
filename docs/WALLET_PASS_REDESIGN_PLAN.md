@@ -1,18 +1,32 @@
 # Wallet pass redesign — plan
 
-**Status: the strip/hero/accent-color portion below was implemented, tested
-in the dashboard, and reverted.** The procedurally-generated banded strip
-looked bad in practice — a flat geometric color block doesn't read as
-"branded" the way real artwork or a photo does (see two reference passes
-supplied afterward: `reference/WhatsApp Image *.jpeg`, both real Apple
-Wallet passes using either the org's own designed strip artwork or actual
-photography, never a generated shape). Per direct instruction ("go simple
-instead of this approach"), `accentColor`, the strip image, and the Google
-`heroImage` were all removed. What's still live from this plan: `labelColor`
-(derived, no picker), the contrast validation guard, `barcode.altText`, and
-the Apple auxiliary field's Customer/Member label switch. The sections
-below are kept for history — don't re-implement the strip/hero/accent
-pieces without a different approach to sourcing real artwork per org.
+**Status: superseded twice, now shipped in a third form.** Round 1 (below)
+added a procedurally-generated banded strip + `accentColor` — reverted
+after dashboard testing looked bad; a flat geometric color block doesn't
+read as "branded" like real artwork (see the two reference passes,
+`reference/WhatsApp Image *.jpeg`, both using real designed strip artwork
+or photography, never a generated shape). Round 2 stripped the box back to
+nothing (header/fields only, no box at all).
+
+**Round 3 (current, shipped):** the box is back, but as either the org's
+own real uploaded banner image (`passTemplates.bannerStorageId`, used
+as-is) or — absent one — a plain flat fill of their existing background
+color. No generated shapes, no baked-in text. Layout, front-to-back:
+native header (logo + org name) with **Points** as a `headerField` top
+right → the box → **Shop name** (primaryField, biggest text) → **Status**
+("Member"/"Customer") + **"Member/Customer since"** (secondaryFields) →
+**Name**, **Tier**, **Membership** (auxiliaryFields) → **"Powered by
+Norrone"** pinned as the last auxiliary field (closest Apple allows to a
+front-of-card footer without flipping) → barcode. Google mirrors this as
+closely as its rigid template allows: `loyaltyPoints` for points,
+`heroImage` set only when a banner was uploaded (otherwise omitted, never
+a placeholder), and Status/Since/Tier/Membership/Powered-by as
+`textModulesData` entries (behind Google's "Details" tap, same asymmetry
+noted throughout this doc). `status`/`sinceDate` are computed once in
+`wallet.ts`'s `getPassData` (member since their active membership's start,
+customer since their record was created) so every consumer agrees.
+`labelColor` (derived), contrast validation, and `barcode.altText` all
+carried forward from round 1 unchanged.
 
 Not implemented yet (superseded by the above). This captures the design review + decisions from the
 "Logo and Apple directions" design doc (`Norrone Wallet Pass.dc.html`) so

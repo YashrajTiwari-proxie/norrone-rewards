@@ -22,7 +22,7 @@ import { createHash } from "node:crypto";
 import { v, ConvexError } from "convex/values";
 import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { solidColorPng } from "./lib/wallet/simplePng";
+import { solidColorPng, solidColorRectPng } from "./lib/wallet/simplePng";
 import { WALLET_NOT_CONFIGURED } from "./lib/wallet/errors";
 import { ICON_PNG_BASE64, ICON_2X_PNG_BASE64, ICON_3X_PNG_BASE64 } from "./lib/wallet/norroneIcon";
 import { signPassAuthToken } from "./lib/walletSigning";
@@ -133,32 +133,33 @@ export const buildApplePassBase64 = internalAction({
 			// real logo silently pushed it out. Always set explicitly now.
 			logoText: passData.organizationName,
 			storeCard: {
-				primaryFields: [{ key: "points", label: "Points", value: passData.pointBalance }],
+				// headerFields render top-right on the FRONT of the card,
+				// next to the logo/org-name header — points live here so
+				// they're visible at a glance without scrolling past the box.
+				headerFields: [{ key: "points", label: "Points", value: passData.pointBalance }],
+				// primaryFields renders as the single biggest, boldest text on
+				// the card — used for the org's own name (again, larger than
+				// the small header logoText) directly below the strip box.
+				primaryFields: [{ key: "shopName", label: "", value: passData.organizationName }],
 				secondaryFields: [
+					{ key: "status", label: "Status", value: passData.status },
+					{
+						key: "since",
+						label: `${passData.status} since`,
+						value: new Date(passData.sinceDate).toLocaleDateString()
+					}
+				],
+				auxiliaryFields: [
+					{ key: "member", label: "Name", value: passData.customerName },
 					...(passData.tierName ? [{ key: "tier", label: "Tier", value: passData.tierName }] : []),
 					...(passData.membershipPlanName
 						? [{ key: "membership", label: "Membership", value: passData.membershipPlanName }]
-						: [])
+						: []),
+					// Last auxiliary field renders lowest in the visible field
+					// stack — the closest Apple's storeCard layout gets to a
+					// "bottom of the front card" slot without flipping.
+					{ key: "poweredByFront", label: "", value: "Powered by Norrone" }
 				],
-				// "Member" only once there's an actual membership to speak of —
-				// otherwise this is just a customer, not a program member, and
-				// the label shouldn't imply otherwise. Google has no equivalent
-				// per-field label to swap (accountName's caption is fixed), so
-				// this distinction is Apple-only.
-				auxiliaryFields: [
-					{
-						key: "member",
-						label: passData.membershipPlanName ? "Member" : "Customer",
-						value: passData.customerName
-					}
-				],
-				// headerFields render top-right on the FRONT of the card,
-				// unlike backFields (hidden until the ⓘ flip) — this is the
-				// one visible-by-default slot besides logoText, so it's
-				// where "Powered by Norrone" actually needs to live to be
-				// seen without extra taps. Kept short — header fields have
-				// very little room.
-				headerFields: [{ key: "poweredByHeader", label: "", value: "Norrone" }],
 				backFields: [
 					{
 						key: "about",
@@ -230,6 +231,23 @@ export const buildApplePassBase64 = internalAction({
 			"icon@3x.png": Buffer.from(ICON_3X_PNG_BASE64, "base64"),
 			"logo.png": logo
 		};
+
+		// The full-width box below the header: the org's own uploaded banner
+		// image, used exactly as-is (same single-file-no-@2x/@3x approach as
+		// the logo above, since it's real art, not something we're
+		// generating at multiple resolutions), or — when they haven't
+		// uploaded one — a plain flat fill of their background color at
+		// each real resolution. Never a generated shape or pattern.
+		if (passData.bannerUrl) {
+			const bannerRes = await fetch(passData.bannerUrl);
+			if (!bannerRes.ok) throw new Error(`Failed to fetch org banner: ${bannerRes.status}`);
+			files["strip.png"] = Buffer.from(await bannerRes.arrayBuffer());
+		} else {
+			const backgroundRgb = hexToRgb(passData.backgroundColor);
+			files["strip.png"] = solidColorRectPng(320, 84, backgroundRgb);
+			files["strip@2x.png"] = solidColorRectPng(640, 168, backgroundRgb);
+			files["strip@3x.png"] = solidColorRectPng(960, 252, backgroundRgb);
+		}
 
 		const manifest: Record<string, string> = {};
 		for (const [name, data] of Object.entries(files)) manifest[name] = sha1Hex(data);

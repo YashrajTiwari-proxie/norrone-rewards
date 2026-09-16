@@ -22,6 +22,7 @@
 	let foregroundColor = $state('#F2F0E9');
 	let organizationDisplayName = $state('');
 	let logoFile = $state<File | null>(null);
+	let bannerFile = $state<File | null>(null);
 	let saving = $state(false);
 	let saveError = $state<string | null>(null);
 	let saveMessage = $state<string | null>(null);
@@ -45,6 +46,11 @@
 		logoFile = input.files?.[0] ?? null;
 	}
 
+	function onBannerSelected(event: Event) {
+		const input = event.target as HTMLInputElement;
+		bannerFile = input.files?.[0] ?? null;
+	}
+
 	// Live preview — reflects unsaved edits immediately, not just the last
 	// saved template, so "what will this look like" is answered before you
 	// commit to it. The QR encodes a placeholder id (this page isn't
@@ -58,6 +64,16 @@
 			return () => URL.revokeObjectURL(url);
 		}
 		logoPreviewUrl = template.data?.logoUrl ?? null;
+	});
+
+	let bannerPreviewUrl = $state<string | null>(null);
+	$effect(() => {
+		if (bannerFile) {
+			const url = URL.createObjectURL(bannerFile);
+			bannerPreviewUrl = url;
+			return () => URL.revokeObjectURL(url);
+		}
+		bannerPreviewUrl = template.data?.bannerUrl ?? null;
 	});
 
 	// Same threshold + formula the server enforces on save (passTemplates.ts)
@@ -80,22 +96,25 @@
 		saveError = null;
 		saveMessage = null;
 		try {
-			let logoStorageId: Id<'_storage'> | undefined;
-			if (logoFile) {
+			async function upload(file: File): Promise<Id<'_storage'>> {
 				const uploadUrl = await generateUploadUrl({ organizationId });
 				const res = await fetch(uploadUrl, {
 					method: 'POST',
-					headers: { 'Content-Type': logoFile.type },
-					body: logoFile
+					headers: { 'Content-Type': file.type },
+					body: file
 				});
-				if (!res.ok) throw new Error('Logo upload failed');
+				if (!res.ok) throw new Error('Upload failed');
 				const body = await res.json();
-				logoStorageId = body.storageId as Id<'_storage'>;
+				return body.storageId as Id<'_storage'>;
 			}
+
+			const logoStorageId = logoFile ? await upload(logoFile) : undefined;
+			const bannerStorageId = bannerFile ? await upload(bannerFile) : undefined;
 
 			const result = await saveTemplate({
 				organizationId,
 				logoStorageId,
+				bannerStorageId,
 				backgroundColor,
 				foregroundColor,
 				organizationDisplayName: organizationDisplayName.trim() || undefined
@@ -104,6 +123,7 @@
 				? 'Saved — Apple and Google Wallet passes both updated.'
 				: 'Saved for Apple Wallet. Google Wallet sync failed (check that it’s configured) — see server logs.';
 			logoFile = null;
+			bannerFile = null;
 		} catch (err) {
 			saveError = err instanceof Error ? err.message : 'Failed to save pass design.';
 		} finally {
@@ -183,7 +203,7 @@
 					<div
 						style="width:280px;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;background:{backgroundColor};color:{foregroundColor};box-shadow:0 8px 24px rgba(27,36,48,.16)"
 					>
-						<div style="padding:18px 18px 0;display:flex;align-items:center;justify-content:space-between;gap:10px">
+						<div style="padding:18px 18px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px">
 							<div style="display:flex;align-items:center;gap:10px">
 								{#if logoPreviewUrl}
 									<img src={logoPreviewUrl} alt="Logo" style="width:28px;height:28px;object-fit:contain;border-radius:6px;background:#fff" />
@@ -192,36 +212,58 @@
 									{organizationDisplayName.trim() || 'Norrone Rewards'}
 								</div>
 							</div>
-							<div style="font:600 9px/1 'IBM Plex Sans',sans-serif;letter-spacing:.06em;opacity:.75;white-space:nowrap">
-								NORRONE
+							<div style="text-align:right">
+								<div style="font:400 9px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
+									Points
+								</div>
+								<div class="mono" style="margin-top:2px;font:600 15px/1 'IBM Plex Mono',monospace">128</div>
 							</div>
 						</div>
 
-						<div style="padding:22px 18px 0">
-							<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
-								Points
+						<!-- The full-width box: the org's own uploaded banner image, or
+							(when none is set) a plain flat fill of the background color
+							— never generated art. -->
+						{#if bannerPreviewUrl}
+							<img src={bannerPreviewUrl} alt="Banner" style="width:100%;height:80px;object-fit:cover;display:block" />
+						{:else}
+							<div style="height:80px;background:{backgroundColor}"></div>
+						{/if}
+
+						<div style="padding:18px 18px 0">
+							<div style="font:600 20px/1.1 'IBM Plex Sans',sans-serif">
+								{organizationDisplayName.trim() || 'Norrone Rewards'}
 							</div>
-							<div class="mono" style="margin-top:4px;font:600 30px/1 'IBM Plex Mono',monospace">128</div>
+						</div>
+						<div style="padding:12px 18px 0;display:flex;gap:20px">
+							<div>
+								<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
+									Status
+								</div>
+								<div style="margin-top:4px;font:500 13px/1 'IBM Plex Sans',sans-serif">Customer</div>
+							</div>
+							<div>
+								<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
+									Customer since
+								</div>
+								<div style="margin-top:4px;font:500 13px/1 'IBM Plex Sans',sans-serif">Jan 2026</div>
+							</div>
 						</div>
 						<div style="padding:14px 18px 0;display:flex;gap:20px">
+							<div>
+								<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
+									Name
+								</div>
+								<div style="margin-top:4px;font:500 13px/1 'IBM Plex Sans',sans-serif">Sample Customer</div>
+							</div>
 							<div>
 								<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
 									Tier
 								</div>
 								<div style="margin-top:4px;font:500 13px/1 'IBM Plex Sans',sans-serif">Gold</div>
 							</div>
-							<div>
-								<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
-									Membership
-								</div>
-								<div style="margin-top:4px;font:500 13px/1 'IBM Plex Sans',sans-serif">Omakase Club</div>
-							</div>
 						</div>
-						<div style="padding:14px 18px 0">
-							<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
-								Member
-							</div>
-							<div style="margin-top:4px;font:500 13px/1 'IBM Plex Sans',sans-serif">Sample Customer</div>
+						<div style="padding:14px 18px 0;font:400 10px/1 'IBM Plex Sans',sans-serif;opacity:.7">
+							Powered by Norrone
 						</div>
 						<div style="padding:18px;display:flex;justify-content:center">
 							{#if qrDataUrl}
@@ -230,11 +272,11 @@
 						</div>
 					</div>
 					<div style="margin-top:8px;font:400 12px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
-						Approximate mockup, not a pixel-exact render of Apple/Google's own UI. "128" / "Gold" /
-						"Omakase Club" are sample values — a real customer's pass shows their actual points/tier/
-						membership (only shown when they have one), and its barcode encodes that specific
-						customer's id. The "Member" label above the name only appears when the customer has an
-						active membership — otherwise it reads "Customer".
+						Approximate mockup, not a pixel-exact render of Apple/Google's own UI. Sample values shown
+						— a real customer's pass shows their actual points/status/tier/membership (only shown when
+						they have one), and its barcode encodes that specific customer's id. "Status" reads
+						"Member" once a customer has an active membership, "Customer" otherwise — same for
+						"Member since" vs "Customer since".
 					</div>
 				</div>
 
@@ -251,6 +293,24 @@
 						<input type="file" accept="image/png,image/jpeg" onchange={onLogoSelected} class="input" />
 						{#if logoFile}
 							<span style="font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">Selected: {logoFile.name}</span>
+						{/if}
+					</label>
+					<label class="field">
+						<span class="field-label">Banner image (optional — the full-width box below the header)</span>
+						{#if template.data?.bannerUrl && !bannerFile}
+							<img
+								src={template.data.bannerUrl}
+								alt="Current banner"
+								style="width:100%;max-width:280px;height:64px;object-fit:cover;border:1px solid var(--line);border-radius:8px;margin-bottom:8px"
+							/>
+						{/if}
+						<input type="file" accept="image/png,image/jpeg" onchange={onBannerSelected} class="input" />
+						{#if bannerFile}
+							<span style="font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">Selected: {bannerFile.name}</span>
+						{:else}
+							<span style="font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+								No banner uploaded — the box shows a plain fill of your background color instead.
+							</span>
 						{/if}
 					</label>
 					<div style="display:flex;gap:16px">

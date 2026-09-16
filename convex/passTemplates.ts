@@ -18,8 +18,10 @@ export const get = orgStaffQuery("passTemplates:read")({
 		if (!template) return null;
 
 		const logoUrl = template.logoStorageId ? await ctx.storage.getUrl(template.logoStorageId) : null;
+		const bannerUrl = template.bannerStorageId ? await ctx.storage.getUrl(template.bannerStorageId) : null;
 		return {
 			logoUrl,
+			bannerUrl,
 			backgroundColor: template.backgroundColor ?? null,
 			foregroundColor: template.foregroundColor ?? null,
 			organizationDisplayName: template.organizationDisplayName ?? null
@@ -37,6 +39,7 @@ export const upsertRow = internalMutation({
 	args: {
 		organizationId: v.id("organizations"),
 		logoStorageId: v.optional(v.id("_storage")),
+		bannerStorageId: v.optional(v.id("_storage")),
 		backgroundColor: v.optional(v.string()),
 		foregroundColor: v.optional(v.string()),
 		organizationDisplayName: v.optional(v.string()),
@@ -75,8 +78,8 @@ export const getOrgName = internalQuery({
 	}
 });
 
-/** The org's currently-saved logo, for `save` to fall back to when this particular call isn't uploading a new one. */
-export const getExistingLogoStorageId = internalQuery({
+/** The org's currently-saved logo/banner, for `save` to fall back to when this particular call isn't uploading new ones. */
+export const getExistingAssetIds = internalQuery({
 	args: { organizationId: v.id("organizations") },
 	handler: async (ctx, args) => {
 		const template = await ctx.db
@@ -84,7 +87,10 @@ export const getExistingLogoStorageId = internalQuery({
 			.withIndex("by_organization", (q) => q.eq("organizationId", args.organizationId))
 			.filter((q) => q.eq(q.field("shopId"), undefined))
 			.first();
-		return template?.logoStorageId ?? null;
+		return {
+			logoStorageId: template?.logoStorageId ?? null,
+			bannerStorageId: template?.bannerStorageId ?? null
+		};
 	}
 });
 
@@ -97,6 +103,7 @@ export const getExistingLogoStorageId = internalQuery({
 export const save = orgStaffAction("passTemplates:write")({
 	args: {
 		logoStorageId: v.optional(v.id("_storage")),
+		bannerStorageId: v.optional(v.id("_storage")),
 		backgroundColor: v.optional(v.string()),
 		foregroundColor: v.optional(v.string()),
 		organizationDisplayName: v.optional(v.string())
@@ -106,9 +113,9 @@ export const save = orgStaffAction("passTemplates:write")({
 		const foregroundColor = args.foregroundColor ?? DEFAULT_PASS_DESIGN.foregroundColor;
 
 		// Reject illegible palettes outright rather than silently saving a
-		// pass nobody can read — see docs/WALLET_PASS_REDESIGN_PLAN.md. Same
-		// bar the dashboard's own live warning uses, so a save never
-		// surprises with an error the UI didn't already flag.
+		// pass nobody can read. Same bar the dashboard's own live warning
+		// uses, so a save never surprises with an error the UI didn't
+		// already flag.
 		const ratio = contrastRatio(foregroundColor, backgroundColor);
 		if (ratio < MIN_CONTRAST_RATIO) {
 			throw new ConvexError({
@@ -117,15 +124,18 @@ export const save = orgStaffAction("passTemplates:write")({
 			});
 		}
 
-		// A save that isn't uploading a new logo (the common case — editing
-		// just colors/name after the logo is already set) must still use the
-		// EXISTING logo for the Google class sync below, not silently fall
-		// back to the platform default — that was reverting a real uploaded
-		// logo to the generic one on every subsequent save.
-		const logoStorageId = args.logoStorageId ?? (await ctx.runQuery(internal.passTemplates.getExistingLogoStorageId, {
+		// A save that isn't uploading a new logo/banner (the common case —
+		// editing just colors/name after they're already set) must still use
+		// the EXISTING assets for the Google class sync below, not silently
+		// fall back to nothing — that was reverting real uploaded artwork to
+		// the generic default on every subsequent save.
+		const existingAssets = await ctx.runQuery(internal.passTemplates.getExistingAssetIds, {
 			organizationId: ctx.organizationId
-		}));
+		});
+		const logoStorageId = args.logoStorageId ?? existingAssets.logoStorageId ?? undefined;
+		const bannerStorageId = args.bannerStorageId ?? existingAssets.bannerStorageId ?? undefined;
 		const logoUrl = logoStorageId ? await ctx.storage.getUrl(logoStorageId) : null;
+		const bannerUrl = bannerStorageId ? await ctx.storage.getUrl(bannerStorageId) : null;
 		const orgName = await ctx.runQuery(internal.passTemplates.getOrgName, {
 			organizationId: ctx.organizationId
 		});
@@ -136,7 +146,8 @@ export const save = orgStaffAction("passTemplates:write")({
 				organizationId: ctx.organizationId,
 				organizationName: args.organizationDisplayName ?? orgName,
 				logoUrl,
-				backgroundColor
+				backgroundColor,
+				heroImageUrl: bannerUrl
 			});
 		} catch (err) {
 			// Google Wallet not configured (or a transient API error) shouldn't
@@ -148,6 +159,7 @@ export const save = orgStaffAction("passTemplates:write")({
 		await ctx.runMutation(internal.passTemplates.upsertRow, {
 			organizationId: ctx.organizationId,
 			logoStorageId: args.logoStorageId,
+			bannerStorageId: args.bannerStorageId,
 			backgroundColor: args.backgroundColor,
 			foregroundColor: args.foregroundColor,
 			organizationDisplayName: args.organizationDisplayName,

@@ -65,6 +65,15 @@ export const getPassData = internalQuery({
 			.first();
 
 		const logoUrl = template?.logoStorageId ? await ctx.storage.getUrl(template.logoStorageId) : null;
+		const bannerUrl = template?.bannerStorageId ? await ctx.storage.getUrl(template.bannerStorageId) : null;
+
+		// "Member" once there's an actual membership to speak of, otherwise
+		// this is just a customer — and the "since" date follows the same
+		// split: when they became a member (the active membership's start),
+		// or when the customer record itself was created. Computed once
+		// here so both platforms and every field that needs it agree.
+		const status: "Member" | "Customer" = activeMembership ? "Member" : "Customer";
+		const sinceDate = activeMembership ? membershipRow!.startDate : customer._creationTime;
 
 		return {
 			customerId: customer._id as string,
@@ -84,6 +93,8 @@ export const getPassData = internalQuery({
 				activeMembership && activeMembership.expiryDate <= 8_640_000_000_000_000
 					? activeMembership.expiryDate
 					: null,
+			status,
+			sinceDate,
 			backgroundColor: template?.backgroundColor ?? DEFAULT_PASS_DESIGN.backgroundColor,
 			foregroundColor: template?.foregroundColor ?? DEFAULT_PASS_DESIGN.foregroundColor,
 			labelColor: deriveLabelColor(
@@ -91,6 +102,10 @@ export const getPassData = internalQuery({
 				template?.foregroundColor ?? DEFAULT_PASS_DESIGN.foregroundColor
 			),
 			logoUrl,
+			// The full-width box's own artwork — the org's real uploaded
+			// image if they have one, otherwise null (falls back to a plain
+			// backgroundColor fill, never a generated shape).
+			bannerUrl,
 			googleClassId: template?.googleClassId ?? null
 		};
 	}
