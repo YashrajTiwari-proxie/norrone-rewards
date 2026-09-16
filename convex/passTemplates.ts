@@ -18,9 +18,15 @@ export const get = orgStaffQuery("passTemplates:read")({
 
 		const logoUrl = template.logoStorageId ? await ctx.storage.getUrl(template.logoStorageId) : null;
 		const bannerUrl = template.bannerStorageId ? await ctx.storage.getUrl(template.bannerStorageId) : null;
+		const googleLogoUrl = template.googleLogoStorageId ? await ctx.storage.getUrl(template.googleLogoStorageId) : null;
+		const googleBannerUrl = template.googleBannerStorageId
+			? await ctx.storage.getUrl(template.googleBannerStorageId)
+			: null;
 		return {
 			logoUrl,
 			bannerUrl,
+			googleLogoUrl,
+			googleBannerUrl,
 			backgroundColor: template.backgroundColor ?? null,
 			foregroundColor: template.foregroundColor ?? null,
 			organizationDisplayName: template.organizationDisplayName ?? null
@@ -39,6 +45,8 @@ export const upsertRow = internalMutation({
 		organizationId: v.id("organizations"),
 		logoStorageId: v.optional(v.id("_storage")),
 		bannerStorageId: v.optional(v.id("_storage")),
+		googleLogoStorageId: v.optional(v.id("_storage")),
+		googleBannerStorageId: v.optional(v.id("_storage")),
 		backgroundColor: v.optional(v.string()),
 		foregroundColor: v.optional(v.string()),
 		organizationDisplayName: v.optional(v.string()),
@@ -88,7 +96,9 @@ export const getExistingAssetIds = internalQuery({
 			.first();
 		return {
 			logoStorageId: template?.logoStorageId ?? null,
-			bannerStorageId: template?.bannerStorageId ?? null
+			bannerStorageId: template?.bannerStorageId ?? null,
+			googleLogoStorageId: template?.googleLogoStorageId ?? null,
+			googleBannerStorageId: template?.googleBannerStorageId ?? null
 		};
 	}
 });
@@ -103,6 +113,8 @@ export const save = orgStaffAction("passTemplates:write")({
 	args: {
 		logoStorageId: v.optional(v.id("_storage")),
 		bannerStorageId: v.optional(v.id("_storage")),
+		googleLogoStorageId: v.optional(v.id("_storage")),
+		googleBannerStorageId: v.optional(v.id("_storage")),
 		backgroundColor: v.optional(v.string()),
 		foregroundColor: v.optional(v.string()),
 		organizationDisplayName: v.optional(v.string())
@@ -111,18 +123,25 @@ export const save = orgStaffAction("passTemplates:write")({
 		const backgroundColor = args.backgroundColor ?? DEFAULT_PASS_DESIGN.backgroundColor;
 		const foregroundColor = args.foregroundColor ?? DEFAULT_PASS_DESIGN.foregroundColor;
 
-		// A save that isn't uploading a new logo/banner (the common case —
-		// editing just colors/name after they're already set) must still use
-		// the EXISTING assets for the Google class sync below, not silently
-		// fall back to nothing — that was reverting real uploaded artwork to
-		// the generic default on every subsequent save.
+		// A save that isn't uploading new assets (the common case — editing
+		// just colors/name after they're already set) must still use the
+		// EXISTING assets for the Google class sync below, not silently fall
+		// back to nothing — that was reverting real uploaded artwork to the
+		// generic default on every subsequent save.
 		const existingAssets = await ctx.runQuery(internal.passTemplates.getExistingAssetIds, {
 			organizationId: ctx.organizationId
 		});
 		const logoStorageId = args.logoStorageId ?? existingAssets.logoStorageId ?? undefined;
 		const bannerStorageId = args.bannerStorageId ?? existingAssets.bannerStorageId ?? undefined;
+		const googleLogoStorageId = args.googleLogoStorageId ?? existingAssets.googleLogoStorageId ?? undefined;
+		const googleBannerStorageId = args.googleBannerStorageId ?? existingAssets.googleBannerStorageId ?? undefined;
 		const logoUrl = logoStorageId ? await ctx.storage.getUrl(logoStorageId) : null;
 		const bannerUrl = bannerStorageId ? await ctx.storage.getUrl(bannerStorageId) : null;
+		// Google-specific overrides fall back to the shared Apple assets
+		// when an org hasn't uploaded a distinct one — a Google-specific
+		// upload is optional, not mandatory.
+		const googleLogoUrl = googleLogoStorageId ? await ctx.storage.getUrl(googleLogoStorageId) : logoUrl;
+		const googleBannerUrl = googleBannerStorageId ? await ctx.storage.getUrl(googleBannerStorageId) : bannerUrl;
 		const orgName = await ctx.runQuery(internal.passTemplates.getOrgName, {
 			organizationId: ctx.organizationId
 		});
@@ -132,9 +151,9 @@ export const save = orgStaffAction("passTemplates:write")({
 			googleClassId = await ensureLoyaltyClass({
 				organizationId: ctx.organizationId,
 				organizationName: args.organizationDisplayName ?? orgName,
-				logoUrl,
+				logoUrl: googleLogoUrl,
 				backgroundColor,
-				heroImageUrl: bannerUrl
+				heroImageUrl: googleBannerUrl
 			});
 		} catch (err) {
 			// Google Wallet not configured (or a transient API error) shouldn't
@@ -147,6 +166,8 @@ export const save = orgStaffAction("passTemplates:write")({
 			organizationId: ctx.organizationId,
 			logoStorageId: args.logoStorageId,
 			bannerStorageId: args.bannerStorageId,
+			googleLogoStorageId: args.googleLogoStorageId,
+			googleBannerStorageId: args.googleBannerStorageId,
 			backgroundColor: args.backgroundColor,
 			foregroundColor: args.foregroundColor,
 			organizationDisplayName: args.organizationDisplayName,

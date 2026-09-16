@@ -272,6 +272,13 @@ export default defineSchema({
 		// heroImage) — the org's own real image, used as-is, never
 		// generated art. Absent = the box is just a flat backgroundColor fill.
 		bannerStorageId: v.optional(v.id("_storage")),
+		// Google-specific overrides — absent = Google just reuses the logo/
+		// banner above. Apple and Google render these so differently
+		// (circular logo mask, different banner aspect ratio and crop
+		// behavior) that some orgs want distinct artwork per platform
+		// rather than one image awkwardly serving both.
+		googleLogoStorageId: v.optional(v.id("_storage")),
+		googleBannerStorageId: v.optional(v.id("_storage")),
 		backgroundColor: v.optional(v.string()), // hex, e.g. "#1b2430" — converted to rgb()/hex per platform at pass-build time
 		foregroundColor: v.optional(v.string()), // hex
 		// labelColor is deliberately NOT stored here — it's always derived

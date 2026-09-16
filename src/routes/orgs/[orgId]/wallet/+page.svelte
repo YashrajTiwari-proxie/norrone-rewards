@@ -23,6 +23,12 @@
 	let organizationDisplayName = $state('');
 	let logoFile = $state<File | null>(null);
 	let bannerFile = $state<File | null>(null);
+	// Google-specific overrides — optional, fall back to the logo/banner
+	// above when not set (Apple and Google render these differently enough
+	// — circular logo mask, different banner crop — that some orgs want
+	// separate artwork per platform).
+	let googleLogoFile = $state<File | null>(null);
+	let googleBannerFile = $state<File | null>(null);
 	let saving = $state(false);
 	let saveError = $state<string | null>(null);
 	let saveMessage = $state<string | null>(null);
@@ -51,6 +57,16 @@
 		bannerFile = input.files?.[0] ?? null;
 	}
 
+	function onGoogleLogoSelected(event: Event) {
+		const input = event.target as HTMLInputElement;
+		googleLogoFile = input.files?.[0] ?? null;
+	}
+
+	function onGoogleBannerSelected(event: Event) {
+		const input = event.target as HTMLInputElement;
+		googleBannerFile = input.files?.[0] ?? null;
+	}
+
 	// Live preview — reflects unsaved edits immediately, not just the last
 	// saved template, so "what will this look like" is answered before you
 	// commit to it. The QR encodes a placeholder id (this page isn't
@@ -74,6 +90,28 @@
 			return () => URL.revokeObjectURL(url);
 		}
 		bannerPreviewUrl = template.data?.bannerUrl ?? null;
+	});
+
+	// Google preview falls back to the shared logo/banner above when no
+	// Google-specific override is set — matches the save action's fallback.
+	let googleLogoPreviewUrl = $state<string | null>(null);
+	$effect(() => {
+		if (googleLogoFile) {
+			const url = URL.createObjectURL(googleLogoFile);
+			googleLogoPreviewUrl = url;
+			return () => URL.revokeObjectURL(url);
+		}
+		googleLogoPreviewUrl = template.data?.googleLogoUrl ?? logoPreviewUrl;
+	});
+
+	let googleBannerPreviewUrl = $state<string | null>(null);
+	$effect(() => {
+		if (googleBannerFile) {
+			const url = URL.createObjectURL(googleBannerFile);
+			googleBannerPreviewUrl = url;
+			return () => URL.revokeObjectURL(url);
+		}
+		googleBannerPreviewUrl = template.data?.googleBannerUrl ?? bannerPreviewUrl;
 	});
 
 	// No contrast enforcement — orgs pick their own colors and see the
@@ -107,11 +145,15 @@
 
 			const logoStorageId = logoFile ? await upload(logoFile) : undefined;
 			const bannerStorageId = bannerFile ? await upload(bannerFile) : undefined;
+			const googleLogoStorageId = googleLogoFile ? await upload(googleLogoFile) : undefined;
+			const googleBannerStorageId = googleBannerFile ? await upload(googleBannerFile) : undefined;
 
 			const result = await saveTemplate({
 				organizationId,
 				logoStorageId,
 				bannerStorageId,
+				googleLogoStorageId,
+				googleBannerStorageId,
 				backgroundColor,
 				foregroundColor,
 				organizationDisplayName: organizationDisplayName.trim() || undefined
@@ -121,6 +163,8 @@
 				: 'Saved for Apple Wallet. Google Wallet sync failed (check that it’s configured) — see server logs.';
 			logoFile = null;
 			bannerFile = null;
+			googleLogoFile = null;
+			googleBannerFile = null;
 		} catch (err) {
 			saveError = err instanceof Error ? err.message : 'Failed to save pass design.';
 		} finally {
@@ -256,15 +300,15 @@
 								Google Wallet
 							</div>
 							<div style="width:260px;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 8px 24px rgba(27,36,48,.16)">
-								{#if bannerPreviewUrl}
-									<img src={bannerPreviewUrl} alt="Hero" style="width:100%;height:80px;object-fit:cover;display:block" />
+								{#if googleBannerPreviewUrl}
+									<img src={googleBannerPreviewUrl} alt="Hero" style="width:100%;height:80px;object-fit:cover;display:block" />
 								{:else}
 									<div style="height:80px;background:{backgroundColor}"></div>
 								{/if}
 								<div style="background:{backgroundColor};color:{foregroundColor};padding:12px 16px 16px;display:flex;flex-direction:column;gap:12px">
 									<div style="display:flex;align-items:center;gap:10px">
-										{#if logoPreviewUrl}
-											<img src={logoPreviewUrl} alt="Logo" style="width:36px;height:36px;object-fit:contain;border-radius:50%;background:#fff;flex:none" />
+										{#if googleLogoPreviewUrl}
+											<img src={googleLogoPreviewUrl} alt="Logo" style="width:36px;height:36px;object-fit:contain;border-radius:50%;background:#fff;flex:none" />
 										{/if}
 										<div style="min-width:0">
 											<div style="font:600 12px/1.2 'IBM Plex Sans',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
@@ -314,7 +358,7 @@
 
 				<form onsubmit={submitDesign} style="display:flex;flex-direction:column;gap:16px">
 					<label class="field">
-						<span class="field-label">Logo (PNG recommended)</span>
+						<span class="field-label">Logo (PNG recommended) — used by Apple, and by Google unless overridden below</span>
 						{#if template.data?.logoUrl && !logoFile}
 							<img
 								src={template.data.logoUrl}
@@ -328,7 +372,10 @@
 						{/if}
 					</label>
 					<label class="field">
-						<span class="field-label">Banner image (optional — the full-width box below the header)</span>
+						<span class="field-label">
+							Banner image (optional — the full-width box below the header; used by Apple, and by
+							Google unless overridden below)
+						</span>
 						{#if template.data?.bannerUrl && !bannerFile}
 							<img
 								src={template.data.bannerUrl}
@@ -345,6 +392,41 @@
 							</span>
 						{/if}
 					</label>
+
+					<div style="border-top:1px solid var(--line);padding-top:16px;display:flex;flex-direction:column;gap:16px">
+						<div style="font:500 11px/1 'IBM Plex Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)">
+							Google Wallet overrides (optional)
+						</div>
+						<label class="field">
+							<span class="field-label">Google logo — falls back to the logo above if not set</span>
+							{#if template.data?.googleLogoUrl && !googleLogoFile}
+								<img
+									src={template.data.googleLogoUrl}
+									alt="Current Google logo"
+									style="width:64px;height:64px;object-fit:contain;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;background:#fff"
+								/>
+							{/if}
+							<input type="file" accept="image/png,image/jpeg" onchange={onGoogleLogoSelected} class="input" />
+							{#if googleLogoFile}
+								<span style="font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">Selected: {googleLogoFile.name}</span>
+							{/if}
+						</label>
+						<label class="field">
+							<span class="field-label">Google banner (hero image) — falls back to the banner above if not set</span>
+							{#if template.data?.googleBannerUrl && !googleBannerFile}
+								<img
+									src={template.data.googleBannerUrl}
+									alt="Current Google banner"
+									style="width:100%;max-width:280px;height:64px;object-fit:cover;border:1px solid var(--line);border-radius:8px;margin-bottom:8px"
+								/>
+							{/if}
+							<input type="file" accept="image/png,image/jpeg" onchange={onGoogleBannerSelected} class="input" />
+							{#if googleBannerFile}
+								<span style="font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">Selected: {googleBannerFile.name}</span>
+							{/if}
+						</label>
+					</div>
+
 					<div style="display:flex;gap:16px">
 						<label class="field" style="flex:1">
 							<span class="field-label">Background color</span>
