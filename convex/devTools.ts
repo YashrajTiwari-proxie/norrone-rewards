@@ -1,6 +1,6 @@
 import { internalMutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
-import { components } from "./_generated/api";
+import { components, internal } from "./_generated/api";
 import { generateApiKey, hashApiKey } from "./lib/apiKeys";
 import { generateCouponCode } from "./lib/loyaltyEngine";
 import { trustedAuthz } from "./authzConfig";
@@ -319,6 +319,14 @@ export const repairOrphanedMemberships = internalMutation({
 			const plan = await ctx.db.get(membership.planId);
 			if (!plan) {
 				await ctx.db.patch(membership._id, { status: "CANCELLED" });
+				// A DB-only fix isn't enough — an already-installed pass never
+				// re-fetches on its own; without this an org could "fix" data
+				// here and still see the stale "Member" status on-device
+				// indefinitely, exactly what happened the first time this
+				// script ran without it.
+				await ctx.scheduler.runAfter(0, internal.walletNode.pushWalletUpdates, {
+					customerId: membership.customerId
+				});
 				cancelled++;
 			}
 		}
