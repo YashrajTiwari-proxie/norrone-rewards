@@ -353,11 +353,14 @@ editable afterward per shop) via the Shops page in the org dashboard.
   `/v1/wallet/apple/:token` and `/v1/wallet/google/:token` endpoints) — but every request
   503s with `WALLET_NOT_CONFIGURED` until the Apple/Google env vars below are set. See
   "Setting up real Wallet credentials" below for the actual steps.
-  Per-org branding (logo, colors, display name) is editable on the org dashboard's
-  Wallet page, with a live preview — `convex/passTemplates.ts`. Every pass also always
-  carries "Powered by Norrone" (a back-of-pass text field on Apple, a text module on
-  Google) plus the Norrone mark as Apple's small icon (`convex/lib/wallet/norroneIcon.ts`,
-  embedded as base64 so it never depends on Vercel being live).
+  Per-org branding (logo, banner image, colors, display name) is editable on the org
+  dashboard's Wallet page, with separate live previews for each platform (their real
+  structures differ enough that one shared mockup couldn't represent both accurately)
+  — `convex/passTemplates.ts`. No "Powered by Norrone" branding text on either
+  platform's pass — removed per product decision; the Norrone mark still ships as
+  Apple's small icon (`convex/lib/wallet/norroneIcon.ts`, embedded as base64 so it
+  never depends on Vercel being live), which is a notification/list-view graphic, not
+  card-face text.
   **Passes auto-update**: any points/tier/membership change (manual dashboard grants in
   `customerGrants.ts`, or the public-API-triggered paths in `engine.ts`) schedules
   `walletNode.pushWalletUpdates`, which patches the customer's Google Wallet object

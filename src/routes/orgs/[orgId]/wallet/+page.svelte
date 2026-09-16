@@ -198,8 +198,7 @@
 						Preview
 					</div>
 					<div style="display:flex;gap:28px;flex-wrap:wrap">
-						<!-- Apple: front-loaded — header, box, then two even field
-							rows and "Powered by Norrone" right above the barcode. -->
+						<!-- Apple: front-loaded — header, box, then one even field row. -->
 						<div>
 							<div style="font:500 11px/1 'IBM Plex Sans',sans-serif;color:var(--text-muted);margin-bottom:8px">
 								Apple Wallet
@@ -240,9 +239,6 @@
 										</div>
 										<div style="margin-top:4px;font:500 12px/1 'IBM Plex Sans',sans-serif">Customer</div>
 									</div>
-								</div>
-								<div style="padding:12px 16px 0;font:400 9px/1 'IBM Plex Sans',sans-serif;opacity:.7">
-									Powered by Norrone
 								</div>
 								<div style="padding:16px;display:flex;justify-content:center">
 									{#if qrDataUrl}
@@ -302,7 +298,7 @@
 								</div>
 								<div style="border-top:1px solid rgba(0,0,0,.08);padding:10px 16px;display:flex;justify-content:space-between;align-items:center">
 									<span style="font:500 11px 'IBM Plex Sans',sans-serif;color:#46514b">Details</span>
-									<span style="font:400 10px 'IBM Plex Mono',monospace;color:#6f7a74">Since · Tier · Powered by Norrone ▾</span>
+									<span style="font:400 10px 'IBM Plex Mono',monospace;color:#6f7a74">Since · Tier ▾</span>
 								</div>
 							</div>
 						</div>

@@ -148,20 +148,6 @@ export const buildApplePassBase64 = internalAction({
 					{ key: "member", label: "Name", value: passData.customerName },
 					{ key: "status", label: "Status", value: passData.status }
 				],
-				// Just "Powered by Norrone" here now — Tier/Membership were
-				// dropped per feedback, keeping the front to exactly Name +
-				// Status (secondaryFields above) plus this fixed last field,
-				// the closest Apple's storeCard layout gets to "just above
-				// the barcode" (the barcode itself always renders after
-				// every field group, nothing can go below it).
-				// Non-empty label deliberately — every field that's rendered
-				// reliably on a real device has had a real label; this field
-				// used an empty label (to avoid "Powered by Norrone: Powered
-				// by Norrone") across three different placements and never
-				// once showed up, which points at Apple Wallet's known quirk
-				// of silently dropping empty-label fields rather than a
-				// placement problem.
-				auxiliaryFields: [{ key: "poweredByFront", label: "Powered by", value: "Norrone" }],
 				backFields: [
 					{
 						key: "about",
@@ -176,8 +162,7 @@ export const buildApplePassBase64 = internalAction({
 									value: new Date(passData.membershipExpiryDate).toLocaleDateString()
 								}
 							]
-						: []),
-					{ key: "poweredByBack", label: "Powered by", value: "Norrone" }
+						: [])
 				]
 			},
 			barcodes: [
@@ -214,10 +199,7 @@ export const buildApplePassBase64 = internalAction({
 		// slot — Apple scales/letterboxes to fit the frame, so this isn't
 		// pixel-perfect but is a real logo instead of a flat square. Falls
 		// back to a generated flat-color square in the foreground color
-		// when the org hasn't uploaded one. The small icon slots always
-		// show the Norrone mark — combined with the front-visible
-		// headerField above, every pass is visibly "Powered by Norrone"
-		// without needing to flip the card.
+		// when the org hasn't uploaded one.
 		const logo = passData.logoUrl
 			? await (async () => {
 					const logoRes = await fetch(passData.logoUrl!);

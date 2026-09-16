@@ -85,8 +85,6 @@ async function getAccessToken(serviceAccount: ServiceAccount): Promise<string> {
 	return body.access_token as string;
 }
 
-const POWERED_BY_MODULE = { header: "", body: "Powered by Norrone" };
-
 function loyaltyTextModules(
 	passData: Pick<PassData, "tierName" | "membershipPlanName" | "membershipExpiryDate" | "status" | "sinceDate">
 ) {
@@ -103,7 +101,6 @@ function loyaltyTextModules(
 			: "";
 		modules.push({ header: "Membership", body: `${passData.membershipPlanName}${expiry}` });
 	}
-	modules.push(POWERED_BY_MODULE);
 	return modules;
 }
 
@@ -214,14 +211,12 @@ export async function ensureLoyaltyClass(input: {
 		// accountName, set per-object in loyaltyObjectFor below, already
 		// correct — the actual per-customer "name" line Google gives us).
 		// Both title slots carry the shop's own name rather than a generic
-		// filler label — "Powered by Norrone" lives in textModulesData
-		// (loyaltyTextModules' POWERED_BY_MODULE), one tap into Details.
+		// filler label.
 		issuerName: input.organizationName,
 		programName: input.organizationName,
 		reviewStatus: "UNDER_REVIEW",
 		hexBackgroundColor: input.backgroundColor,
 		programLogo: { sourceUri: { uri: logoUrl } },
-		homepageUri: { uri: "https://norrone-rewards-better-auth-tenant.vercel.app", description: "Powered by Norrone" },
 		// Only set when the org uploaded a real banner image — omitted
 		// entirely otherwise, never a generated placeholder.
 		...(input.heroImageUrl ? { heroImage: { sourceUri: { uri: input.heroImageUrl } } } : {})
