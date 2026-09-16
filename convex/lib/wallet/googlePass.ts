@@ -200,12 +200,17 @@ export async function ensureLoyaltyClass(input: {
 
 	const classBody = {
 		id: classId,
-		// issuerName renders as a small, always-visible line near the top
-		// of the card (unlike textModulesData, which is tucked into an
-		// expandable details section) — this is the one prominent, no-tap
-		// spot to put "Powered by Norrone" on Google's side.
-		issuerName: "Powered by Norrone",
-		programName: input.organizationName,
+		// issuerName/programName are both class-level — shared by every
+		// customer of this org, so neither can hold a per-customer value
+		// like the member's name (that's accountName, set per-object in
+		// loyaltyObjectFor below, already correct). issuerName is the
+		// small, always-visible top line — the shop's own name reads
+		// better there than "Powered by Norrone", which instead moves to
+		// textModulesData (loyaltyTextModules' POWERED_BY_MODULE) — still
+		// visible, just one tap into Details rather than occupying the
+		// card's most prominent line.
+		issuerName: input.organizationName,
+		programName: "Loyalty Rewards",
 		reviewStatus: "UNDER_REVIEW",
 		hexBackgroundColor: input.backgroundColor,
 		programLogo: { sourceUri: { uri: logoUrl } },

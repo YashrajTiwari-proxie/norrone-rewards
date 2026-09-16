@@ -134,31 +134,39 @@ export const buildApplePassBase64 = internalAction({
 			logoText: passData.organizationName,
 			storeCard: {
 				// headerFields render top-right on the FRONT of the card, next
-				// to the logo/org-name header — points and the "Powered by"
-				// tag both live here, the one slot on Apple's storeCard that's
-				// guaranteed visible without scrolling past the box or flipping
-				// the card. Kept short — header fields have very little room.
-				headerFields: [
-					{ key: "points", label: "Points", value: passData.pointBalance },
-					{ key: "poweredByHeader", label: "", value: "Norrone" }
-				],
+				// to the logo/org-name header — points live here so they're
+				// visible at a glance. Kept to one entry — a second header
+				// field left both cramped and truncated on a real device.
+				headerFields: [{ key: "points", label: "Points", value: passData.pointBalance }],
 				// No primaryFields — the org's name already appears via
 				// logoText in the header; repeating it again directly under
 				// the box read as redundant clutter, not a design element.
+				//
+				// Status/Since/Name are always present (unlike Tier/
+				// Membership, which depend on data every customer doesn't
+				// have), so they're grouped into one 3-across secondaryFields
+				// row — a consistently full row rather than a sparse 2-up
+				// row next to an unevenly-sized auxiliary row underneath.
 				secondaryFields: [
 					{ key: "status", label: "Status", value: passData.status },
 					{
 						key: "since",
 						label: `${passData.status} since`,
 						value: new Date(passData.sinceDate).toLocaleDateString()
-					}
+					},
+					{ key: "member", label: "Name", value: passData.customerName }
 				],
+				// Only the genuinely optional data lives here, plus "Powered
+				// by Norrone" fixed as the LAST field — the closest Apple's
+				// storeCard layout gets to "just above the barcode", since
+				// the barcode itself always renders after every field group
+				// with no way to place anything below it.
 				auxiliaryFields: [
-					{ key: "member", label: "Name", value: passData.customerName },
 					...(passData.tierName ? [{ key: "tier", label: "Tier", value: passData.tierName }] : []),
 					...(passData.membershipPlanName
 						? [{ key: "membership", label: "Membership", value: passData.membershipPlanName }]
-						: [])
+						: []),
+					{ key: "poweredByFront", label: "", value: "Powered by Norrone" }
 				],
 				backFields: [
 					{
