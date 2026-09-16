@@ -272,19 +272,23 @@ export default defineSchema({
 		// heroImage) — the org's own real image, used as-is, never
 		// generated art. Absent = the box is just a flat backgroundColor fill.
 		bannerStorageId: v.optional(v.id("_storage")),
-		// Google-specific overrides — absent = Google just reuses the logo/
-		// banner above. Apple and Google render these so differently
-		// (circular logo mask, different banner aspect ratio and crop
-		// behavior) that some orgs want distinct artwork per platform
-		// rather than one image awkwardly serving both.
-		googleLogoStorageId: v.optional(v.id("_storage")),
-		googleBannerStorageId: v.optional(v.id("_storage")),
-		backgroundColor: v.optional(v.string()), // hex, e.g. "#1b2430" — converted to rgb()/hex per platform at pass-build time
-		foregroundColor: v.optional(v.string()), // hex
+		backgroundColor: v.optional(v.string()), // Apple only, hex — converted to rgb() at pass-build time
+		foregroundColor: v.optional(v.string()), // Apple only, hex
 		// labelColor is deliberately NOT stored here — it's always derived
 		// from background+foreground (lib/wallet/color.ts's
 		// deriveLabelColor) rather than a separate org-set color.
-		organizationDisplayName: v.optional(v.string()),
+		organizationDisplayName: v.optional(v.string()), // Apple only
+		// Google's entire design is fully independent from Apple's above —
+		// its own logo, banner, colors, and display name, with no fallback
+		// between the two. They're edited on separate tabs in the dashboard
+		// (src/routes/orgs/[orgId]/wallet/+page.svelte) precisely because
+		// orgs wanted them decoupled, not sharing one config that happens to
+		// serve both platforms.
+		googleLogoStorageId: v.optional(v.id("_storage")),
+		googleBannerStorageId: v.optional(v.id("_storage")),
+		googleBackgroundColor: v.optional(v.string()),
+		googleForegroundColor: v.optional(v.string()),
+		googleDisplayName: v.optional(v.string()),
 		// Google's branding (logo/name) lives on the LoyaltyClass, not the
 		// per-customer object, so a custom template needs its own class —
 		// this is that class's id once we've created/updated it via the
