@@ -18,26 +18,6 @@ export function hexToRgbCss(hex: string): string {
 	return `rgb(${r}, ${g}, ${b})`;
 }
 
-function relativeLuminance([r, g, b]: [number, number, number]): number {
-	const toLinear = (c: number) => {
-		const s = c / 255;
-		return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
-	};
-	const [rl, gl, bl] = [toLinear(r), toLinear(g), toLinear(b)];
-	return 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
-}
-
-/** WCAG contrast ratio between two hex colors — 1 (identical) to 21 (black/white). */
-export function contrastRatio(hexA: string, hexB: string): number {
-	const la = relativeLuminance(hexToRgb(hexA));
-	const lb = relativeLuminance(hexToRgb(hexB));
-	const [lighter, darker] = la > lb ? [la, lb] : [lb, la];
-	return (lighter + 0.05) / (darker + 0.05);
-}
-
-/** The minimum bar a pass's own text must clear against its background — same threshold WCAG AA uses for normal text. */
-export const MIN_CONTRAST_RATIO = 4.5;
-
 /**
  * Apple's labelColor (the small caption above each field's value, e.g.
  * "POINTS" above the number) is deliberately not an org-set color — it's

@@ -1,9 +1,8 @@
-import { v, ConvexError } from "convex/values";
+import { v } from "convex/values";
 import { internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { orgStaffQuery, orgStaffMutation, orgStaffAction } from "./lib/authz";
 import { ensureLoyaltyClass } from "./lib/wallet/googlePass";
-import { contrastRatio, MIN_CONTRAST_RATIO } from "./lib/wallet/color";
 import { DEFAULT_PASS_DESIGN } from "./wallet";
 
 /** Current org-wide pass design, for the Wallet dashboard page's edit form. */
@@ -111,18 +110,6 @@ export const save = orgStaffAction("passTemplates:write")({
 	handler: async (ctx, args) => {
 		const backgroundColor = args.backgroundColor ?? DEFAULT_PASS_DESIGN.backgroundColor;
 		const foregroundColor = args.foregroundColor ?? DEFAULT_PASS_DESIGN.foregroundColor;
-
-		// Reject illegible palettes outright rather than silently saving a
-		// pass nobody can read. Same bar the dashboard's own live warning
-		// uses, so a save never surprises with an error the UI didn't
-		// already flag.
-		const ratio = contrastRatio(foregroundColor, backgroundColor);
-		if (ratio < MIN_CONTRAST_RATIO) {
-			throw new ConvexError({
-				code: "LOW_CONTRAST",
-				message: `Text color doesn't contrast enough against the background (${ratio.toFixed(1)}:1, needs at least ${MIN_CONTRAST_RATIO}:1) — pick a lighter or darker text color.`
-			});
-		}
 
 		// A save that isn't uploading a new logo/banner (the common case —
 		// editing just colors/name after they're already set) must still use

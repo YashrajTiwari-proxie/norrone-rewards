@@ -133,14 +133,18 @@ export const buildApplePassBase64 = internalAction({
 			// real logo silently pushed it out. Always set explicitly now.
 			logoText: passData.organizationName,
 			storeCard: {
-				// headerFields render top-right on the FRONT of the card,
-				// next to the logo/org-name header — points live here so
-				// they're visible at a glance without scrolling past the box.
-				headerFields: [{ key: "points", label: "Points", value: passData.pointBalance }],
-				// primaryFields renders as the single biggest, boldest text on
-				// the card — used for the org's own name (again, larger than
-				// the small header logoText) directly below the strip box.
-				primaryFields: [{ key: "shopName", label: "", value: passData.organizationName }],
+				// headerFields render top-right on the FRONT of the card, next
+				// to the logo/org-name header — points and the "Powered by"
+				// tag both live here, the one slot on Apple's storeCard that's
+				// guaranteed visible without scrolling past the box or flipping
+				// the card. Kept short — header fields have very little room.
+				headerFields: [
+					{ key: "points", label: "Points", value: passData.pointBalance },
+					{ key: "poweredByHeader", label: "", value: "Norrone" }
+				],
+				// No primaryFields — the org's name already appears via
+				// logoText in the header; repeating it again directly under
+				// the box read as redundant clutter, not a design element.
 				secondaryFields: [
 					{ key: "status", label: "Status", value: passData.status },
 					{
@@ -154,11 +158,7 @@ export const buildApplePassBase64 = internalAction({
 					...(passData.tierName ? [{ key: "tier", label: "Tier", value: passData.tierName }] : []),
 					...(passData.membershipPlanName
 						? [{ key: "membership", label: "Membership", value: passData.membershipPlanName }]
-						: []),
-					// Last auxiliary field renders lowest in the visible field
-					// stack — the closest Apple's storeCard layout gets to a
-					// "bottom of the front card" slot without flipping.
-					{ key: "poweredByFront", label: "", value: "Powered by Norrone" }
+						: [])
 				],
 				backFields: [
 					{

@@ -6,7 +6,7 @@
 	import QRCode from 'qrcode';
 	import { api } from '../../../../../convex/_generated/api';
 	import type { Id } from '../../../../../convex/_generated/dataModel';
-	import { contrastRatio, deriveLabelColor, MIN_CONTRAST_RATIO } from '../../../../../convex/lib/wallet/color';
+	import { deriveLabelColor } from '../../../../../convex/lib/wallet/color';
 
 	let organizationId = $derived(page.params.orgId as Id<'organizations'>);
 	const status = useQuery(api.wallet.configStatus, () => ({ organizationId }));
@@ -76,12 +76,9 @@
 		bannerPreviewUrl = template.data?.bannerUrl ?? null;
 	});
 
-	// Same threshold + formula the server enforces on save (passTemplates.ts)
-	// — surfaced here so a bad color choice is flagged before submit, not
-	// just as a save-time error.
+	// No contrast enforcement — orgs pick their own colors and see the
+	// result in the preview below; we don't second-guess their choice.
 	let labelColor = $derived(deriveLabelColor(backgroundColor, foregroundColor));
-	let contrast = $derived(contrastRatio(foregroundColor, backgroundColor));
-	let lowContrast = $derived(contrast < MIN_CONTRAST_RATIO);
 
 	let qrDataUrl = $state<string | null>(null);
 	$effect(() => {
@@ -323,13 +320,6 @@
 							<input type="color" bind:value={foregroundColor} class="input" style="height:38px;padding:2px" />
 						</label>
 					</div>
-					{#if lowContrast}
-						<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-rust)">
-							Text color doesn't contrast enough against the background ({contrast.toFixed(1)}:1, needs
-							at least {MIN_CONTRAST_RATIO}:1) — pick a lighter or darker text color, or saving will
-							be rejected.
-						</div>
-					{/if}
 					<label class="field">
 						<span class="field-label">Display name on pass (optional — defaults to your org name)</span>
 						<input type="text" bind:value={organizationDisplayName} class="input" placeholder="Norrone Rewards" />
@@ -342,7 +332,7 @@
 						<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-green)">{saveMessage}</div>
 					{/if}
 
-					<button type="submit" class="btn btn-primary" style="align-self:flex-start" disabled={saving || lowContrast}>
+					<button type="submit" class="btn btn-primary" style="align-self:flex-start" disabled={saving}>
 						{#if saving}<span class="spinner"></span>Saving…{:else}Save pass design{/if}
 					</button>
 				</form>
