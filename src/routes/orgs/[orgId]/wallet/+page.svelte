@@ -212,9 +212,6 @@
 										{#if logoPreviewUrl}
 											<img src={logoPreviewUrl} alt="Logo" style="width:26px;height:26px;object-fit:contain;border-radius:6px;background:#fff;flex:none" />
 										{/if}
-										<div style="font:600 12px/1.2 'IBM Plex Sans',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-											{organizationDisplayName.trim() || 'Norrone Rewards'}
-										</div>
 									</div>
 									<div style="text-align:right;flex:none">
 										<div style="font:400 8px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
@@ -243,12 +240,6 @@
 										</div>
 										<div style="margin-top:4px;font:500 12px/1 'IBM Plex Sans',sans-serif">Customer</div>
 									</div>
-								</div>
-								<div style="padding:12px 16px 0">
-									<div style="font:400 9px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
-										Tier
-									</div>
-									<div style="margin-top:4px;font:500 12px/1 'IBM Plex Sans',sans-serif">Gold</div>
 								</div>
 								<div style="padding:12px 16px 0;font:400 9px/1 'IBM Plex Sans',sans-serif;opacity:.7">
 									Powered by Norrone
@@ -288,11 +279,19 @@
 											</div>
 										</div>
 									</div>
-									<div>
-										<div style="font:400 9px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;opacity:.75">
-											Points
+									<div style="display:flex;gap:24px">
+										<div>
+											<div style="font:400 9px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;opacity:.75">
+												Points
+											</div>
+											<div class="mono" style="margin-top:4px;font:600 22px/1 'IBM Plex Mono',monospace">128</div>
 										</div>
-										<div class="mono" style="margin-top:4px;font:600 22px/1 'IBM Plex Mono',monospace">128</div>
+										<div>
+											<div style="font:400 9px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;opacity:.75">
+												Status
+											</div>
+											<div class="mono" style="margin-top:4px;font:600 22px/1 'IBM Plex Mono',monospace">Customer</div>
+										</div>
 									</div>
 									<div style="font:500 12px/1 'IBM Plex Sans',sans-serif">Sample Customer</div>
 								</div>
@@ -303,7 +302,7 @@
 								</div>
 								<div style="border-top:1px solid rgba(0,0,0,.08);padding:10px 16px;display:flex;justify-content:space-between;align-items:center">
 									<span style="font:500 11px 'IBM Plex Sans',sans-serif;color:#46514b">Details</span>
-									<span style="font:400 10px 'IBM Plex Mono',monospace;color:#6f7a74">Status · Tier · Powered by Norrone ▾</span>
+									<span style="font:400 10px 'IBM Plex Mono',monospace;color:#6f7a74">Since · Tier · Powered by Norrone ▾</span>
 								</div>
 							</div>
 						</div>

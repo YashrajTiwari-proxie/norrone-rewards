@@ -90,8 +90,10 @@ const POWERED_BY_MODULE = { header: "", body: "Powered by Norrone" };
 function loyaltyTextModules(
 	passData: Pick<PassData, "tierName" | "membershipPlanName" | "membershipExpiryDate" | "status" | "sinceDate">
 ) {
+	// Status itself is front-visible via secondaryLoyaltyPoints now (see
+	// loyaltyObjectFor) — only the "since" date, which has no other
+	// front-of-card slot, still lives here behind the Details tap.
 	const modules: { header: string; body: string }[] = [
-		{ header: "Status", body: passData.status },
 		{ header: `${passData.status} since`, body: new Date(passData.sinceDate).toLocaleDateString() }
 	];
 	if (passData.tierName) modules.push({ header: "Tier", body: passData.tierName });
@@ -113,6 +115,12 @@ function loyaltyObjectFor(passData: PassData, classId: string, issuerId: string)
 		accountName: passData.customerName,
 		accountId: passData.customerId,
 		loyaltyPoints: { label: "Points", balance: { string: String(passData.pointBalance) } },
+		// Per-object (unlike issuerName/programName, which are class-level
+		// and shared by every customer) — this is the one front-visible,
+		// no-tap slot Google gives us for a second per-customer stat, so
+		// Status ("Member"/"Customer") lives here instead of only behind
+		// the Details tap.
+		secondaryLoyaltyPoints: { label: "Status", balance: { string: passData.status } },
 		textModulesData: loyaltyTextModules(passData),
 		hexBackgroundColor: passData.backgroundColor,
 		// Carries the same customer id used everywhere else in this codebase

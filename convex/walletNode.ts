@@ -125,22 +125,18 @@ export const buildApplePassBase64 = internalAction({
 			backgroundColor: hexToRgbCss(passData.backgroundColor),
 			foregroundColor: hexToRgbCss(passData.foregroundColor),
 			labelColor: hexToRgbCss(passData.labelColor),
-			// logoText is the text shown next to the logo image on the front
-			// of the card — a separate field from organizationName (which
-			// isn't rendered on the card itself, only in notifications/list
-			// view). Without this, the org's name only ever showed up when
-			// there was no logo image to fill that visual slot — adding a
-			// real logo silently pushed it out. Always set explicitly now.
-			logoText: passData.organizationName,
+			// No logoText — the shop name was removed from the header per
+			// feedback; organizationName (above) is still required as
+			// pass.json metadata but isn't rendered on the card face itself,
+			// only in notifications/list view, so the header now shows just
+			// the logo image with no text next to it.
 			storeCard: {
 				// headerFields render top-right on the FRONT of the card, next
-				// to the logo/org-name header — points live here so they're
-				// visible at a glance. Kept to one entry — a second header
-				// field left both cramped and truncated on a real device.
+				// to the logo — points live here so they're visible at a
+				// glance. Kept to one entry — a second header field left
+				// both cramped and truncated on a real device.
 				headerFields: [{ key: "points", label: "Points", value: passData.pointBalance }],
-				// No primaryFields — the org's name already appears via
-				// logoText in the header; repeating it again directly under
-				// the box read as redundant clutter, not a design element.
+				// No primaryFields — kept the front lean per feedback.
 				//
 				// Exactly two fields here, always — Name and Status are the
 				// only two values that always exist for every customer,
@@ -152,18 +148,20 @@ export const buildApplePassBase64 = internalAction({
 					{ key: "member", label: "Name", value: passData.customerName },
 					{ key: "status", label: "Status", value: passData.status }
 				],
-				// Only the genuinely optional data lives here, plus "Powered
-				// by Norrone" fixed as the LAST field — the closest Apple's
-				// storeCard layout gets to "just above the barcode", since
-				// the barcode itself always renders after every field group
-				// with no way to place anything below it.
-				auxiliaryFields: [
-					...(passData.tierName ? [{ key: "tier", label: "Tier", value: passData.tierName }] : []),
-					...(passData.membershipPlanName
-						? [{ key: "membership", label: "Membership", value: passData.membershipPlanName }]
-						: []),
-					{ key: "poweredByFront", label: "", value: "Powered by Norrone" }
-				],
+				// Just "Powered by Norrone" here now — Tier/Membership were
+				// dropped per feedback, keeping the front to exactly Name +
+				// Status (secondaryFields above) plus this fixed last field,
+				// the closest Apple's storeCard layout gets to "just above
+				// the barcode" (the barcode itself always renders after
+				// every field group, nothing can go below it).
+				// Non-empty label deliberately — every field that's rendered
+				// reliably on a real device has had a real label; this field
+				// used an empty label (to avoid "Powered by Norrone: Powered
+				// by Norrone") across three different placements and never
+				// once showed up, which points at Apple Wallet's known quirk
+				// of silently dropping empty-label fields rather than a
+				// placement problem.
+				auxiliaryFields: [{ key: "poweredByFront", label: "Powered by", value: "Norrone" }],
 				backFields: [
 					{
 						key: "about",
@@ -179,7 +177,7 @@ export const buildApplePassBase64 = internalAction({
 								}
 							]
 						: []),
-					{ key: "poweredByBack", label: "", value: "Powered by Norrone" }
+					{ key: "poweredByBack", label: "Powered by", value: "Norrone" }
 				]
 			},
 			barcodes: [
