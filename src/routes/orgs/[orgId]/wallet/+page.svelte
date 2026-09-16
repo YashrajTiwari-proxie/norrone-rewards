@@ -194,86 +194,126 @@
 				<p>Loading…</p>
 			{:else}
 				<div>
-					<div style="font:500 11px/1 'IBM Plex Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">
+					<div style="font:500 11px/1 'IBM Plex Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px">
 						Preview
 					</div>
-					<div
-						style="width:280px;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;background:{backgroundColor};color:{foregroundColor};box-shadow:0 8px 24px rgba(27,36,48,.16)"
-					>
-						<div style="padding:18px 18px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px">
-							<div style="display:flex;align-items:center;gap:10px">
-								{#if logoPreviewUrl}
-									<img src={logoPreviewUrl} alt="Logo" style="width:28px;height:28px;object-fit:contain;border-radius:6px;background:#fff" />
+					<div style="display:flex;gap:28px;flex-wrap:wrap">
+						<!-- Apple: front-loaded — header, box, then two even field
+							rows and "Powered by Norrone" right above the barcode. -->
+						<div>
+							<div style="font:500 11px/1 'IBM Plex Sans',sans-serif;color:var(--text-muted);margin-bottom:8px">
+								Apple Wallet
+							</div>
+							<div
+								style="width:260px;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;background:{backgroundColor};color:{foregroundColor};box-shadow:0 8px 24px rgba(27,36,48,.16)"
+							>
+								<div style="padding:16px 16px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+									<div style="display:flex;align-items:center;gap:8px;min-width:0">
+										{#if logoPreviewUrl}
+											<img src={logoPreviewUrl} alt="Logo" style="width:26px;height:26px;object-fit:contain;border-radius:6px;background:#fff;flex:none" />
+										{/if}
+										<div style="font:600 12px/1.2 'IBM Plex Sans',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+											{organizationDisplayName.trim() || 'Norrone Rewards'}
+										</div>
+									</div>
+									<div style="text-align:right;flex:none">
+										<div style="font:400 8px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
+											Points
+										</div>
+										<div class="mono" style="margin-top:2px;font:600 14px/1 'IBM Plex Mono',monospace">128</div>
+									</div>
+								</div>
+
+								{#if bannerPreviewUrl}
+									<img src={bannerPreviewUrl} alt="Banner" style="width:100%;height:72px;object-fit:cover;display:block" />
+								{:else}
+									<div style="height:72px;background:{backgroundColor}"></div>
 								{/if}
-								<div style="font:600 13px/1.2 'IBM Plex Sans',sans-serif">
-									{organizationDisplayName.trim() || 'Norrone Rewards'}
+
+								<div style="padding:14px 16px 0;display:flex;gap:18px">
+									<div>
+										<div style="font:400 9px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
+											Name
+										</div>
+										<div style="margin-top:4px;font:500 12px/1 'IBM Plex Sans',sans-serif">Sample Customer</div>
+									</div>
+									<div>
+										<div style="font:400 9px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
+											Status
+										</div>
+										<div style="margin-top:4px;font:500 12px/1 'IBM Plex Sans',sans-serif">Customer</div>
+									</div>
 								</div>
-							</div>
-							<div style="text-align:right">
-								<div style="font:400 9px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
-									Points
+								<div style="padding:12px 16px 0">
+									<div style="font:400 9px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
+										Tier
+									</div>
+									<div style="margin-top:4px;font:500 12px/1 'IBM Plex Sans',sans-serif">Gold</div>
 								</div>
-								<div class="mono" style="margin-top:2px;font:600 15px/1 'IBM Plex Mono',monospace">128</div>
+								<div style="padding:12px 16px 0;font:400 9px/1 'IBM Plex Sans',sans-serif;opacity:.7">
+									Powered by Norrone
+								</div>
+								<div style="padding:16px;display:flex;justify-content:center">
+									{#if qrDataUrl}
+										<img src={qrDataUrl} alt="Sample barcode" style="width:56px;height:56px;border-radius:4px;background:#fff;padding:4px" />
+									{/if}
+								</div>
 							</div>
 						</div>
 
-						<!-- The full-width box: the org's own uploaded banner image, or
-							(when none is set) a plain flat fill of the background color
-							— never generated art. -->
-						{#if bannerPreviewUrl}
-							<img src={bannerPreviewUrl} alt="Banner" style="width:100%;height:80px;object-fit:cover;display:block" />
-						{:else}
-							<div style="height:80px;background:{backgroundColor}"></div>
-						{/if}
-
-						<div style="padding:18px 18px 0">
-							<div style="font:600 20px/1.1 'IBM Plex Sans',sans-serif">
-								{organizationDisplayName.trim() || 'Norrone Rewards'}
+						<!-- Google: everything but logo/hero/color/issuerName is
+							Google's own fixed template — tier/status/membership sit
+							behind a "Details" tap, never on the front. -->
+						<div>
+							<div style="font:500 11px/1 'IBM Plex Sans',sans-serif;color:var(--text-muted);margin-bottom:8px">
+								Google Wallet
 							</div>
-						</div>
-						<div style="padding:12px 18px 0;display:flex;gap:20px">
-							<div>
-								<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
-									Status
+							<div style="width:260px;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 8px 24px rgba(27,36,48,.16)">
+								{#if bannerPreviewUrl}
+									<img src={bannerPreviewUrl} alt="Hero" style="width:100%;height:80px;object-fit:cover;display:block" />
+								{:else}
+									<div style="height:80px;background:{backgroundColor}"></div>
+								{/if}
+								<div style="background:{backgroundColor};color:{foregroundColor};padding:12px 16px 16px;display:flex;flex-direction:column;gap:12px">
+									<div style="display:flex;align-items:center;gap:10px">
+										{#if logoPreviewUrl}
+											<img src={logoPreviewUrl} alt="Logo" style="width:36px;height:36px;object-fit:contain;border-radius:50%;background:#fff;flex:none" />
+										{/if}
+										<div style="min-width:0">
+											<div style="font:600 12px/1.2 'IBM Plex Sans',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+												{organizationDisplayName.trim() || 'Norrone Rewards'}
+											</div>
+											<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;opacity:.75;margin-top:2px">
+												{organizationDisplayName.trim() || 'Norrone Rewards'}
+											</div>
+										</div>
+									</div>
+									<div>
+										<div style="font:400 9px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;opacity:.75">
+											Points
+										</div>
+										<div class="mono" style="margin-top:4px;font:600 22px/1 'IBM Plex Mono',monospace">128</div>
+									</div>
+									<div style="font:500 12px/1 'IBM Plex Sans',sans-serif">Sample Customer</div>
 								</div>
-								<div style="margin-top:4px;font:500 13px/1 'IBM Plex Sans',sans-serif">Customer</div>
-							</div>
-							<div>
-								<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
-									Customer since
+								<div style="background:#fff;padding:14px 16px;display:flex;justify-content:center">
+									{#if qrDataUrl}
+										<img src={qrDataUrl} alt="Sample barcode" style="width:56px;height:56px;border-radius:4px;background:#fff;padding:4px" />
+									{/if}
 								</div>
-								<div style="margin-top:4px;font:500 13px/1 'IBM Plex Sans',sans-serif">Jan 2026</div>
-							</div>
-						</div>
-						<div style="padding:14px 18px 0;display:flex;gap:20px">
-							<div>
-								<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
-									Name
+								<div style="border-top:1px solid rgba(0,0,0,.08);padding:10px 16px;display:flex;justify-content:space-between;align-items:center">
+									<span style="font:500 11px 'IBM Plex Sans',sans-serif;color:#46514b">Details</span>
+									<span style="font:400 10px 'IBM Plex Mono',monospace;color:#6f7a74">Status · Tier · Powered by Norrone ▾</span>
 								</div>
-								<div style="margin-top:4px;font:500 13px/1 'IBM Plex Sans',sans-serif">Sample Customer</div>
 							</div>
-							<div>
-								<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{labelColor}">
-									Tier
-								</div>
-								<div style="margin-top:4px;font:500 13px/1 'IBM Plex Sans',sans-serif">Gold</div>
-							</div>
-						</div>
-						<div style="padding:14px 18px 0;font:400 10px/1 'IBM Plex Sans',sans-serif;opacity:.7">
-							Powered by Norrone
-						</div>
-						<div style="padding:18px;display:flex;justify-content:center">
-							{#if qrDataUrl}
-								<img src={qrDataUrl} alt="Sample barcode" style="width:64px;height:64px;border-radius:4px;background:#fff;padding:4px" />
-							{/if}
 						</div>
 					</div>
-					<div style="margin-top:8px;font:400 12px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
-						Approximate mockup, not a pixel-exact render of Apple/Google's own UI. Sample values shown
-						— a real customer's pass shows their actual points/status/tier/membership (only shown when
-						they have one), and its barcode encodes that specific customer's id. "Status" reads
-						"Member" once a customer has an active membership, "Customer" otherwise — same for
-						"Member since" vs "Customer since".
+					<div style="margin-top:12px;font:400 12px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+						Approximate mockups, not pixel-exact renders — real Apple/Google apps position things
+						slightly differently. Sample values shown; a real customer's pass shows their actual
+						points/status/tier/membership (only shown when they have one). Apple shows Status/Tier
+						right on the front; Google keeps them one tap into "Details" — that's a real platform
+						difference, not something either preview gets to override.
 					</div>
 				</div>
 

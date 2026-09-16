@@ -202,15 +202,14 @@ export async function ensureLoyaltyClass(input: {
 		id: classId,
 		// issuerName/programName are both class-level — shared by every
 		// customer of this org, so neither can hold a per-customer value
-		// like the member's name (that's accountName, set per-object in
-		// loyaltyObjectFor below, already correct). issuerName is the
-		// small, always-visible top line — the shop's own name reads
-		// better there than "Powered by Norrone", which instead moves to
-		// textModulesData (loyaltyTextModules' POWERED_BY_MODULE) — still
-		// visible, just one tap into Details rather than occupying the
-		// card's most prominent line.
+		// like the member's name or their Member/Customer status (that's
+		// accountName, set per-object in loyaltyObjectFor below, already
+		// correct — the actual per-customer "name" line Google gives us).
+		// Both title slots carry the shop's own name rather than a generic
+		// filler label — "Powered by Norrone" lives in textModulesData
+		// (loyaltyTextModules' POWERED_BY_MODULE), one tap into Details.
 		issuerName: input.organizationName,
-		programName: "Loyalty Rewards",
+		programName: input.organizationName,
 		reviewStatus: "UNDER_REVIEW",
 		hexBackgroundColor: input.backgroundColor,
 		programLogo: { sourceUri: { uri: logoUrl } },

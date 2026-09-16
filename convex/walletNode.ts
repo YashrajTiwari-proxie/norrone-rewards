@@ -142,19 +142,15 @@ export const buildApplePassBase64 = internalAction({
 				// logoText in the header; repeating it again directly under
 				// the box read as redundant clutter, not a design element.
 				//
-				// Status/Since/Name are always present (unlike Tier/
-				// Membership, which depend on data every customer doesn't
-				// have), so they're grouped into one 3-across secondaryFields
-				// row — a consistently full row rather than a sparse 2-up
-				// row next to an unevenly-sized auxiliary row underneath.
+				// Exactly two fields here, always — Name and Status are the
+				// only two values that always exist for every customer,
+				// which keeps this row an even 2-up split every time rather
+				// than the 3-across row this used to be (dropped "since" —
+				// three uneven-width fields read as cluttered, not
+				// structured).
 				secondaryFields: [
-					{ key: "status", label: "Status", value: passData.status },
-					{
-						key: "since",
-						label: `${passData.status} since`,
-						value: new Date(passData.sinceDate).toLocaleDateString()
-					},
-					{ key: "member", label: "Name", value: passData.customerName }
+					{ key: "member", label: "Name", value: passData.customerName },
+					{ key: "status", label: "Status", value: passData.status }
 				],
 				// Only the genuinely optional data lives here, plus "Powered
 				// by Norrone" fixed as the LAST field — the closest Apple's
