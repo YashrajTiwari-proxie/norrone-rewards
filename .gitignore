@@ -40,3 +40,10 @@ vite.config.ts.timestamp-*
 test-results
 
 CLAUDE_CODE_BUILD_SPEC_V2_SUPABASE.md
+
+# Testing guides contain real dev-deployment credentials (admin password,
+# API keys) — never commit these. A prior version was committed as a PDF
+# with the admin password in plaintext; see docs/AUDIT.md's 2026-09-17
+# critical finding.
+Norrone-Testing-Guide.pdf
+*-Testing-Guide.pdf

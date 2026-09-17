@@ -1,10 +1,124 @@
-# Security & Correctness Audit — 2026-09-11 (updated 2026-09-14: rate limiting)
+# Security & Correctness Audit — 2026-09-11 (updated 2026-09-14: rate limiting; updated 2026-09-17: wallet subsystem + recent mutations)
 
 Performed after the full Supabase → Convex migration, covering every `convex/*.ts`
 file: tenant isolation, the public API's auth boundary, permission coverage, input
 validation, CORS, and idempotency/data-integrity edges. This is a point-in-time
 record — re-run the same checklist after any future change that adds a new
 org-scoped query/mutation or touches `convex/lib/authz.ts`.
+
+## Update — 2026-09-17: wallet subsystem + all mutations added since the last pass
+
+Covers everything built since 2026-09-14 that the pass above never saw: the full
+Apple/Google Wallet pipeline (`convex/wallet.ts`, `walletNode.ts`, `httpWallet.ts`,
+`httpPassService.ts`, `passRegistrations.ts`, `lib/wallet/*`, `passTemplates.ts`, the
+`src/routes/v1/[...path]` reverse proxy), plus `membershipPlans.remove`'s cascade fix,
+`devTools.ts`'s two newest repair functions, and the `passTemplates` schema additions.
+
+### 🔴 Critical — found and requires your action (not something I can safely fix myself)
+
+**`Norrone-Testing-Guide.pdf`, committed to git and pushed to the remote GitHub repo,
+contains the real platform-admin and org-owner passwords in plaintext** (confirmed by
+extracting and decompressing the PDF's own content streams — the strings
+`Admin@123`/`admin@mail.com` are present in the file at `HEAD`, not just in an old
+commit). `README.md`'s "Test accounts" table documents the same two demo credentials
+too, but at least frames them explicitly as non-production seed data; the PDF was
+built specifically for external tester distribution and ended up in version control
+instead of a private share channel. Either way, these credentials grant real
+dashboard access to a live, internet-reachable Convex dev deployment — not a
+local-only sandbox — so anyone with read access to the GitHub repo (and, since it's
+already pushed, potentially anyone who ever clones it, even after a future fix)
+already has them.
+**This needs a decision only you can make, not a code fix**: (1) rotate both
+passwords now (`Admin@123` for `admin@mail.com` and `org@mail.com`) via the app or a
+direct Convex mutation, (2) remove the PDF from the repo going forward (`git rm`) and
+share future versions through a private channel instead, and (3) decide whether the
+exposure warrants rewriting git history to purge it from old commits too (disruptive
+for a shared repo — force-pushes rewrite everyone's history — so this is a call for
+you, not something to do unilaterally). I have not modified or removed anything here.
+
+### 🟠 Medium — fixed
+
+**Every `orgStaffAction`-based endpoint silently skipped the active-staff check.**
+`lib/authz.ts`'s `orgStaffAction` checked the authz permission grant but — unlike
+`orgStaffQuery`/`orgStaffMutation` — never verified the caller is still an *active*
+`organizationStaff` row (its own comment said so explicitly: actions have no direct
+`ctx.db`, and no internalQuery hop had been added yet). `staff.invite` had already
+worked around this ad hoc with its own `assertActorActiveStaff` internalQuery, but the
+two newer action-based endpoints — `passTemplates.saveGoogle` and
+`wallet.getPassLinkToken` — had not. Not exploitable today (nothing in the codebase
+ever sets `organizationStaff.isActive: false` yet — there's no "remove staff" feature
+built), but the instant one ships and does the natural, minimal thing (flip
+`isActive`), a removed staff member would retain the ability to rewrite an org's
+Google Wallet branding and mint wallet-pass links for any of that org's customers
+indefinitely.
+**Fix**: moved the check into `orgStaffAction` itself (`assertActiveOrgStaffQuery`, a
+new internalQuery reached via `ctx.runQuery` since actions have no `ctx.db`) so every
+current and future action-based endpoint is covered automatically, rather than
+requiring each one to remember to add it. Removed `staff.ts`'s now-redundant duplicate
+check. Verified: `bun run check` clean, Convex push succeeded (confirming
+`internal.lib.authz.assertActiveOrgStaffQuery` resolves correctly through codegen —
+the first internal Convex function ever defined directly inside `lib/authz.ts`), full
+test suite still green.
+
+### 🟢 Verified safe — wallet subsystem (no fix needed)
+
+- **Token crypto** (`lib/walletSigning.ts`): real HMAC-SHA256 with `WALLET_SIGNING_SECRET`,
+  timing-safe comparison, `signWalletToken` (dashboard "Add to Wallet" links) expires
+  in 15 minutes; `verifyPassAuthToken` (Apple's own device-to-server protocol) is
+  deterministic by design but correctly scoped — it's recomputed per-`serialNumber`,
+  so a token valid for one customer's pass fails verification against any other
+  customer's serial number.
+- **IDOR**: `getPassLinkToken`/`saveApple`/`saveGoogle` all derive the organization
+  from the verified session (`ctx.organizationId`), never a client-supplied value;
+  `getPassLinkToken` additionally checks `customer.organizationId !== ctx.organizationId`
+  before issuing a token.
+- **Apple's PassKit Web Service protocol** (`httpPassService.ts`): `registerDevice`/
+  `unregisterDevice`/`getLatestPass` all correctly gate on `verifyPassAuthToken`.
+  `listUpdatablePasses` is intentionally unauthenticated — that's Apple's own spec,
+  not a gap introduced here (every real-world PassKit server implementation works
+  this way).
+- **SSRF**: `walletNode.ts`'s `fetch(passData.logoUrl)`/`fetch(passData.bannerUrl)`
+  only ever receive Convex-storage-generated URLs — `logoStorageId`/`bannerStorageId`
+  are strictly `v.id("_storage")` end-to-end from upload to fetch, no path for an
+  attacker-supplied arbitrary URL to reach either call.
+- **Secret handling**: Apple/Google credentials are read only from `process.env`
+  inside Convex functions, never returned to a client response; no log call in
+  `apns.ts`/`googlePass.ts` prints private key material, only response status/body.
+- **The reverse proxy** (`src/routes/v1/[...path]/+server.ts`): target is a fixed
+  `${PUBLIC_CONVEX_SITE_URL}/v1/...` base with the client-supplied segment only ever
+  appended as a path component, never as a scheme/host — not usable as an open proxy
+  to arbitrary hosts.
+- **Route ordering** (`http.ts`): all wallet routes are more-specific prefixes than
+  the general `/v1/` handlers; confirmed no shadowing.
+- **`membershipPlans.remove`'s cascade fix**: the `plan.organizationId !== ctx.organizationId`
+  ownership check runs before the cascade logic, so a foreign `planId` can never reach
+  the `customerMemberships` cancellation loop — the subsequent query, filtered by that
+  exact (now ownership-confirmed) `planId`, can only ever match this org's own rows.
+- **`passTemplates.ts`'s full restructure**: every export correctly wrapped
+  (`orgStaffQuery`/`orgStaffMutation`/`orgStaffAction` for client-facing, `internal*`
+  for the rest); `organizationId` sourced from `ctx.organizationId` everywhere, never
+  a client argument.
+- **`devTools.ts`'s two newest repair functions** (`repairMissingAuthzGrants`,
+  `repairOrphanedMemberships`): both `internalMutation`, unreachable from any client.
+- **`schema.ts`'s new `passTemplates` fields**: all correctly `v.optional(...)` with
+  matching types, nothing loosely typed.
+- **`customerGrants.ts`'s `manualGrantTier` fix**: the pre-existing cross-tenant
+  `tier.organizationId !== customer.organizationId` guard is untouched by the
+  no-op-comparison fix.
+
+### 🟡 Low — accepted, not changed (new this pass)
+
+- **No rate limiting on the wallet token endpoints** (`/v1/wallet/apple/:token`,
+  `/v1/wallet/google/:token`) or Apple's PassKit protocol surface, unlike
+  `httpApiV1.ts`'s keyed `apiRequest` limiter. Low risk — forging a valid token needs
+  `WALLET_SIGNING_SECRET`, and Apple's polling endpoint is unauthenticated by spec
+  regardless — but an attacker could still cheaply hammer token verification as a
+  minor DoS vector. Worth a lightweight IP-based limiter if this becomes a target.
+- **`passTemplates.saveApple`/`saveGoogle`'s `logoStorageId`/`bannerStorageId` args
+  accept any `v.id("_storage")` with no check that the calling org actually owns that
+  storage object** — Convex storage IDs are global, not org-scoped, so a staff member
+  who somehow obtained another org's storage ID could reference it here. Low severity:
+  storage IDs aren't guessable or enumerable through any exposed endpoint.
 
 ## Findings & resolutions
 

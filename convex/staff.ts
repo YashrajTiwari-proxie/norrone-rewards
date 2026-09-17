@@ -1,6 +1,6 @@
 import { v, ConvexError } from "convex/values";
 import { internal, components } from "./_generated/api";
-import { internalMutation, internalQuery } from "./_generated/server";
+import { internalMutation } from "./_generated/server";
 import { orgStaffQuery, orgStaffMutation, orgStaffAction } from "./lib/authz";
 import { authComponent, createAuth } from "./auth";
 import { authz, orgRoleValidator } from "./authzConfig";
@@ -76,28 +76,11 @@ export const attachRole = internalMutation({
 	}
 });
 
-/** orgStaffAction skips the isActive check orgStaffMutation does (actions have no ctx.db) — do it explicitly here. */
-export const assertActorActiveStaff = internalQuery({
-	args: { organizationId: v.id("organizations"), authUserId: v.string() },
-	handler: async (ctx, args) => {
-		const membership = await ctx.db
-			.query("organizationStaff")
-			.withIndex("by_organization_and_user", (q) => q.eq("organizationId", args.organizationId).eq("authUserId", args.authUserId))
-			.unique();
-		if (!membership || !membership.isActive) {
-			throw new ConvexError({ code: "ACCOUNT_INACTIVE", message: "Not an active staff member of this organization" });
-		}
-	}
-});
-
+// orgStaffAction (lib/authz.ts) now checks isActive itself before this
+// handler ever runs — no per-call-site workaround needed here anymore.
 export const invite = orgStaffAction("staff:invite")({
 	args: { email: v.string(), role: orgRoleValidator, password: v.string() },
 	handler: async (ctx, args) => {
-		await ctx.runQuery(internal.staff.assertActorActiveStaff, {
-			organizationId: ctx.organizationId,
-			authUserId: ctx.authUserId
-		});
-
 		const email = args.email.trim().toLowerCase();
 		const existingUser = await ctx.runQuery(components.betterAuth.adapter.findOne, {
 			model: "user",

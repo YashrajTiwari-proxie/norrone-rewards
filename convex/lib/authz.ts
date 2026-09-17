@@ -1,5 +1,6 @@
 import { customQuery, customMutation, customAction } from "convex-helpers/server/customFunctions";
-import { query, mutation, action } from "../_generated/server";
+import { query, mutation, action, internalQuery } from "../_generated/server";
+import { internal } from "../_generated/api";
 import { ConvexError, v } from "convex/values";
 import type { Id } from "../_generated/dataModel";
 import type { QueryCtx, MutationCtx } from "../_generated/server";
@@ -39,6 +40,24 @@ async function assertActiveOrgStaff(
 		throw new ConvexError({ code: "ACCOUNT_INACTIVE", message: "Not an active staff member of this organization" });
 	}
 }
+
+/**
+ * Actions have no direct ctx.db, so orgStaffAction (below) reaches this
+ * same check via an internalQuery hop instead of calling
+ * assertActiveOrgStaff directly — security-audit fix: this used to be a
+ * documented-but-unclosed gap (every orgStaffAction endpoint silently
+ * skipped the isActive check that orgStaffQuery/orgStaffMutation enforce).
+ * Not exploitable yet since nothing sets organizationStaff.isActive: false
+ * today, but the fix belongs here once, not copy-pasted into every action
+ * that happens to need it (staff.ts's invite had already worked around it
+ * ad hoc before this fix).
+ */
+export const assertActiveOrgStaffQuery = internalQuery({
+	args: { organizationId: v.id("organizations"), authUserId: v.string() },
+	handler: async (ctx, args) => {
+		await assertActiveOrgStaff(ctx, args.organizationId, args.authUserId);
+	}
+});
 
 async function assertActivePlatformAdmin(ctx: QueryCtx | MutationCtx, authUserId: string): Promise<void> {
 	const row = await ctx.db
@@ -153,16 +172,20 @@ export const platformMutation = (permission: Permission) =>
 	});
 
 // Action variants — needed for endpoints that must create a Better Auth
-// user (staff invite) or otherwise need a full action context. Actions
-// have no direct ctx.db, so these skip the isActive check that
-// assertActiveOrgStaff/assertActivePlatformAdmin do above; add an
-// internalQuery hop here (mirroring admin-panel-v2's
-// lib/staffActiveQuery.ts) if/when an action-based endpoint needs it.
+// user (staff invite), sync Google's LoyaltyClass, or otherwise need a
+// full action context.
 export const orgStaffAction = (permission: Permission) =>
 	customAction(action, {
 		args: { organizationId: v.id("organizations") },
 		input: async (ctx, args) => {
 			const authUserId = await requireAuthUserId(ctx);
+			// Actions have no direct ctx.db, hence the internalQuery hop —
+			// see assertActiveOrgStaffQuery's own comment for why this needs
+			// to live here rather than be re-added per call site.
+			await ctx.runQuery(internal.lib.authz.assertActiveOrgStaffQuery, {
+				organizationId: args.organizationId,
+				authUserId
+			});
 			await authz
 				.withTenant(args.organizationId)
 				.require(ctx, authUserId, permission, { type: "organization", id: args.organizationId });
