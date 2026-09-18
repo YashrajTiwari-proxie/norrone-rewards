@@ -20,6 +20,17 @@
 		return `${baseUrl()}/customers/${encodeURIComponent(externalId.trim())}${suffix}`;
 	}
 
+	// Creation is POST /customers (the base collection) with externalId in
+	// the JSON body — distinct from every other customer endpoint, which
+	// takes externalId as a path segment. Using customerUrl() here was a
+	// real bug: it always 404'd against the wrong path
+	// (/customers/:externalId instead of /customers), so "Create" silently
+	// never worked, which cascaded into every downstream action ("customer
+	// not found") since the customer was never actually created.
+	function createCustomerUrl() {
+		return `${baseUrl()}/customers`;
+	}
+
 	async function call(
 		method: 'GET' | 'POST' | 'PUT',
 		url: string,
@@ -153,7 +164,7 @@
 				onclick={() =>
 					createSlot.run(
 						() =>
-							call('POST', customerUrl(), {
+							call('POST', createCustomerUrl(), {
 								externalId: externalId.trim(),
 								name: customerName.trim() || undefined,
 								phone: customerPhone.trim() || undefined,

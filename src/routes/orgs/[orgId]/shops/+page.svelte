@@ -21,6 +21,13 @@
 	let editSaving = $state(false);
 	let editingShop = $state<NonNullable<typeof shops.data>[number] | null>(null);
 	let errorMessage = $state<string | null>(null);
+	let shopIdCopied = $state(false);
+
+	function copyShopId(id: string) {
+		navigator.clipboard.writeText(id);
+		shopIdCopied = true;
+		setTimeout(() => (shopIdCopied = false), 1500);
+	}
 
 	let name = $state('');
 	let externalShopId = $state('');
@@ -185,6 +192,26 @@
 	{#if editingShop}
 		<form id="edit-shop-form" onsubmit={submitUpdate}>
 			<div style="display:flex;flex-direction:column;gap:18px">
+				<div class="field">
+					<span class="field-label">API Shop ID — use this in /v1/shops/:shopId/... calls</span>
+					<div style="display:flex;gap:8px;align-items:center">
+						<code class="mono" style="flex:1;background:var(--surface-soft);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;overflow-x:auto;white-space:nowrap">
+							{editingShop._id}
+						</code>
+						<button
+							type="button"
+							class="btn btn-outline"
+							style="flex:none"
+							onclick={() => copyShopId(editingShop!._id)}
+						>
+							{shopIdCopied ? 'Copied!' : 'Copy'}
+						</button>
+					</div>
+					<span style="font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted);margin-top:4px;display:block">
+						Not the same as "External shop ID" below (that's your own reference number). See
+						<a href="/orgs/{organizationId}/api-keys">API Keys</a> for a full reference.
+					</span>
+				</div>
 				<label class="field">
 					<span class="field-label">Name</span>
 					<input type="text" bind:value={name} required class="input" />

@@ -54,6 +54,22 @@
 		editOpen = true;
 	}
 
+	// price/durationDays are bound to <input type="number"> — Svelte
+	// coerces that binding to a real JS number once the user types
+	// anything (only the untouched initial '' stays a string), unlike a
+	// text input which always stays a string. Calling .trim() on it
+	// unconditionally (the old code) threw "price.trim is not a function"
+	// the instant a real value was entered — a client-side exception that
+	// never even reached Convex (confirmed live: the mutation never
+	// appeared in `npx convex logs` while this was reproduced), silently
+	// swallowed by the catch block below as a generic "Failed to create".
+	// This handles both possible runtime types safely.
+	function numberOrUndefined(value: string | number): number | undefined {
+		if (value === '' || value === null || value === undefined) return undefined;
+		const n = Number(value);
+		return Number.isFinite(n) ? n : undefined;
+	}
+
 	async function submitAdd(event: SubmitEvent) {
 		event.preventDefault();
 		if (!name.trim()) {
@@ -66,14 +82,14 @@
 			await createPlan({
 				organizationId,
 				name: name.trim(),
-				price: price.trim() ? Number(price) : undefined,
-				durationDays: durationDays.trim() ? Number(durationDays) : undefined,
+				price: numberOrUndefined(price),
+				durationDays: numberOrUndefined(durationDays),
 				pointMultiplier: Number(pointMultiplier) || 1,
 				shopId: (shopId || undefined) as Id<'shops'> | undefined
 			});
 			addOpen = false;
-		} catch {
-			errorMessage = 'Failed to create membership plan.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to create membership plan.';
 		} finally {
 			addSaving = false;
 		}
@@ -93,14 +109,14 @@
 				organizationId,
 				planId: editingPlan._id,
 				name: name.trim(),
-				price: price.trim() ? Number(price) : undefined,
-				durationDays: durationDays.trim() ? Number(durationDays) : undefined,
+				price: numberOrUndefined(price),
+				durationDays: numberOrUndefined(durationDays),
 				pointMultiplier: Number(pointMultiplier) || 1,
 				shopId: (shopId || undefined) as Id<'shops'> | undefined
 			});
 			editOpen = false;
-		} catch {
-			errorMessage = 'Failed to update membership plan.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to update membership plan.';
 		} finally {
 			editSaving = false;
 		}

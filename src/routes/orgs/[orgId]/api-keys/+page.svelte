@@ -33,6 +33,18 @@
 		}
 	}
 
+	// The public API is entirely path-based (/v1/shops/:shopId/...) — a key
+	// alone isn't enough to actually call it, but neither the org's own id
+	// nor any shop's real id was ever shown anywhere in the dashboard.
+	// Nothing here calls the API using this value — it's just a copyable
+	// reference for building your own requests.
+	let copiedId = $state<string | null>(null);
+	function copyId(id: string) {
+		navigator.clipboard.writeText(id);
+		copiedId = id;
+		setTimeout(() => (copiedId = null), 1500);
+	}
+
 	async function submitCreate(event: SubmitEvent) {
 		event.preventDefault();
 		addSaving = true;
@@ -65,6 +77,40 @@
 </PageHeader>
 
 <div style="padding:34px 40px 72px;max-width:1260px;display:flex;flex-direction:column;gap:26px">
+	{#if org.data}
+		<div class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:14px">
+			<div>
+				<div style="font:600 14px/1 'IBM Plex Sans',sans-serif">API reference IDs</div>
+				<div style="margin-top:6px;font:400 13px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+					Every call is <code class="mono">/v1/shops/:shopId/...</code> — the shop ID below is what
+					goes in that URL. It's not shown anywhere else in the dashboard.
+				</div>
+			</div>
+			<div style="display:flex;flex-direction:column;gap:8px">
+				<div style="display:grid;grid-template-columns:140px 1fr auto;gap:10px;align-items:center">
+					<span style="font:500 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">Organization</span>
+					<code class="mono" style="background:var(--surface-soft);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12.5px;overflow-x:auto;white-space:nowrap">
+						{organizationId}
+					</code>
+					<button type="button" class="btn btn-outline" style="padding:6px 12px;font-size:12px" onclick={() => copyId(organizationId)}>
+						{copiedId === organizationId ? 'Copied!' : 'Copy'}
+					</button>
+				</div>
+				{#each org.data.shops as shop (shop._id)}
+					<div style="display:grid;grid-template-columns:140px 1fr auto;gap:10px;align-items:center">
+						<span style="font:500 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">{shop.name}</span>
+						<code class="mono" style="background:var(--surface-soft);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12.5px;overflow-x:auto;white-space:nowrap">
+							{shop._id}
+						</code>
+						<button type="button" class="btn btn-outline" style="padding:6px 12px;font-size:12px" onclick={() => copyId(shop._id)}>
+							{copiedId === shop._id ? 'Copied!' : 'Copy'}
+						</button>
+					</div>
+				{/each}
+			</div>
+		</div>
+	{/if}
+
 	{#if newKey && !keyDismissed}
 		<div style="background:var(--ink);border-radius:12px;padding:26px 28px">
 			<div style="display:flex;align-items:center;gap:10px">
