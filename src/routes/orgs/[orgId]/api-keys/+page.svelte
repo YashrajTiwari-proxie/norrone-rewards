@@ -3,6 +3,7 @@
 	import Drawer from '$lib/components/Drawer.svelte';
 	import Chip from '$lib/components/Chip.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
+	import ApiIdsCard from '$lib/components/ApiIdsCard.svelte';
 	import { page } from '$app/state';
 	import { useQuery, useMutation } from 'convex-svelte';
 	import { api } from '../../../../../convex/_generated/api';
@@ -11,6 +12,7 @@
 	let organizationId = $derived(page.params.orgId as Id<'organizations'>);
 	const keys = useQuery(api.apiKeys.list, () => ({ organizationId }));
 	const org = useQuery(api.organizations.getForStaff, () => ({ organizationId }));
+	const plans = useQuery(api.membershipPlans.list, () => ({ organizationId }));
 
 	const createKey = useMutation(api.apiKeys.create);
 	const revokeKey = useMutation(api.apiKeys.revoke);
@@ -31,18 +33,6 @@
 			copied = true;
 			setTimeout(() => (copied = false), 1500);
 		}
-	}
-
-	// The public API is entirely path-based (/v1/shops/:shopId/...) — a key
-	// alone isn't enough to actually call it, but neither the org's own id
-	// nor any shop's real id was ever shown anywhere in the dashboard.
-	// Nothing here calls the API using this value — it's just a copyable
-	// reference for building your own requests.
-	let copiedId = $state<string | null>(null);
-	function copyId(id: string) {
-		navigator.clipboard.writeText(id);
-		copiedId = id;
-		setTimeout(() => (copiedId = null), 1500);
 	}
 
 	async function submitCreate(event: SubmitEvent) {
@@ -78,37 +68,7 @@
 
 <div style="padding:34px 40px 72px;max-width:1260px;display:flex;flex-direction:column;gap:26px">
 	{#if org.data}
-		<div class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:14px">
-			<div>
-				<div style="font:600 14px/1 'IBM Plex Sans',sans-serif">API reference IDs</div>
-				<div style="margin-top:6px;font:400 13px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
-					Every call is <code class="mono">/v1/shops/:shopId/...</code> — the shop ID below is what
-					goes in that URL. It's not shown anywhere else in the dashboard.
-				</div>
-			</div>
-			<div style="display:flex;flex-direction:column;gap:8px">
-				<div style="display:grid;grid-template-columns:140px 1fr auto;gap:10px;align-items:center">
-					<span style="font:500 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">Organization</span>
-					<code class="mono" style="background:var(--surface-soft);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12.5px;overflow-x:auto;white-space:nowrap">
-						{organizationId}
-					</code>
-					<button type="button" class="btn btn-outline" style="padding:6px 12px;font-size:12px" onclick={() => copyId(organizationId)}>
-						{copiedId === organizationId ? 'Copied!' : 'Copy'}
-					</button>
-				</div>
-				{#each org.data.shops as shop (shop._id)}
-					<div style="display:grid;grid-template-columns:140px 1fr auto;gap:10px;align-items:center">
-						<span style="font:500 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">{shop.name}</span>
-						<code class="mono" style="background:var(--surface-soft);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12.5px;overflow-x:auto;white-space:nowrap">
-							{shop._id}
-						</code>
-						<button type="button" class="btn btn-outline" style="padding:6px 12px;font-size:12px" onclick={() => copyId(shop._id)}>
-							{copiedId === shop._id ? 'Copied!' : 'Copy'}
-						</button>
-					</div>
-				{/each}
-			</div>
-		</div>
+		<ApiIdsCard {organizationId} shops={org.data.shops} membershipPlans={plans.data ?? []} />
 	{/if}
 
 	{#if newKey && !keyDismissed}

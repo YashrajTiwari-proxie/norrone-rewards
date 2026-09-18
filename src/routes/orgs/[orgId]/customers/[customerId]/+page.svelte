@@ -58,6 +58,19 @@
 	let selectedRewardId = $state('');
 	let selectedCouponDefId = $state('');
 	let selectedPlanId = $state('');
+	// The code the backend just generated — shown immediately in the
+	// drawer instead of closing it, since staff previously had no way to
+	// know which of possibly several coupons on this customer was the one
+	// they'd just issued (the code wasn't surfaced anywhere at the moment
+	// of issuing, only in the Coupons list further down the page).
+	let issuedCouponCode = $state<string | null>(null);
+	let couponCodeCopied = $state(false);
+	function copyIssuedCode() {
+		if (!issuedCouponCode) return;
+		navigator.clipboard.writeText(issuedCouponCode);
+		couponCodeCopied = true;
+		setTimeout(() => (couponCodeCopied = false), 1500);
+	}
 
 	const couponStatusTone: Record<string, 'green' | 'grey' | 'rust'> = {
 		ISSUED: 'green',
@@ -132,8 +145,8 @@
 		issueCouponSaving = true;
 		errorMessage = null;
 		try {
-			await grantCoupon({ customerId, couponDefinitionId: selectedCouponDefId as Id<'couponDefinitions'> });
-			issueCouponOpen = false;
+			const result = await grantCoupon({ customerId, couponDefinitionId: selectedCouponDefId as Id<'couponDefinitions'> });
+			issuedCouponCode = result.code;
 		} catch {
 			errorMessage = 'Failed to issue coupon.';
 		} finally {
@@ -198,7 +211,7 @@
 				<button class="btn btn-outline" onclick={() => { errorMessage = null; adjustOpen = true; }}>Adjust points</button>
 				<button class="btn btn-outline" onclick={() => { errorMessage = null; changeTierOpen = true; }}>Change tier</button>
 				<button class="btn btn-outline" onclick={() => { errorMessage = null; grantRewardOpen = true; }}>Grant reward</button>
-				<button class="btn btn-outline" onclick={() => { errorMessage = null; issueCouponOpen = true; }}>Issue coupon</button>
+				<button class="btn btn-outline" onclick={() => { errorMessage = null; issuedCouponCode = null; issueCouponOpen = true; }}>Issue coupon</button>
 				<button class="btn btn-outline" onclick={() => { errorMessage = null; enrollOpen = true; }}>Enroll in membership</button>
 				<button
 					class="btn btn-ghost"
@@ -389,7 +402,22 @@
 	</Drawer>
 
 	<Drawer bind:open={issueCouponOpen} title="Issue coupon" note="Generates a new coupon code for this customer immediately, without checking its eligibility conditions.">
-		{#if data.availableCoupons.length === 0}
+		{#if issuedCouponCode}
+			<div style="display:flex;flex-direction:column;gap:10px">
+				<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">Coupon issued — code:</div>
+				<div style="display:flex;gap:8px;align-items:center">
+					<code class="mono" style="flex:1;background:var(--surface-soft);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:16px;letter-spacing:.05em">
+						{issuedCouponCode}
+					</code>
+					<button type="button" class="btn btn-outline" onclick={copyIssuedCode}>
+						{couponCodeCopied ? 'Copied!' : 'Copy'}
+					</button>
+				</div>
+				<div style="font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+					Also listed in this customer's Coupons section below.
+				</div>
+			</div>
+		{:else if data.availableCoupons.length === 0}
 			<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">No coupon types configured for this shop yet.</div>
 		{:else}
 			<form id="issue-coupon-form" onsubmit={submitIssueCoupon}>
@@ -408,11 +436,15 @@
 			<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 		{/if}
 		{#snippet footer()}
-			<button type="button" class="btn btn-ghost" onclick={() => (issueCouponOpen = false)} disabled={issueCouponSaving}>Cancel</button>
-			{#if data.availableCoupons.length > 0}
-				<button type="submit" form="issue-coupon-form" class="btn btn-accent" disabled={issueCouponSaving}>
-					{#if issueCouponSaving}<span class="spinner"></span>Issuing…{:else}Issue coupon{/if}
-				</button>
+			{#if issuedCouponCode}
+				<button type="button" class="btn btn-accent" onclick={() => (issueCouponOpen = false)}>Done</button>
+			{:else}
+				<button type="button" class="btn btn-ghost" onclick={() => (issueCouponOpen = false)} disabled={issueCouponSaving}>Cancel</button>
+				{#if data.availableCoupons.length > 0}
+					<button type="submit" form="issue-coupon-form" class="btn btn-accent" disabled={issueCouponSaving}>
+						{#if issueCouponSaving}<span class="spinner"></span>Issuing…{:else}Issue coupon{/if}
+					</button>
+				{/if}
 			{/if}
 		{/snippet}
 	</Drawer>

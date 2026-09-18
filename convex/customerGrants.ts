@@ -136,6 +136,14 @@ export const manualGrantCoupon = mutation({
 			status: "ISSUED",
 			expiresAt: Date.now() + couponDef.validityDays * 24 * 60 * 60 * 1000
 		});
+
+		// The code was previously discarded here — the customer detail
+		// page's "Coupons" list further down the same page does show it,
+		// but with no feedback at the moment of issuing, staff had no way
+		// to know which of possibly several coupons was the one they just
+		// created, or had to scroll to find it at all. Returning it lets
+		// the drawer show it immediately.
+		return { code };
 	}
 });
 

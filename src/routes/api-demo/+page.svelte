@@ -53,6 +53,19 @@
 		return null;
 	}
 
+	// deltaSpend/deltaVisits are bound to <input type="number"> — Svelte
+	// coerces that binding to a real number once typed (unlike a text
+	// input, which always stays a string), so calling .trim() on them
+	// unconditionally threw "deltaSpend.trim is not a function" before
+	// fetch() ever ran — surfacing as the generic "Network error" below,
+	// nothing to do with actual connectivity. Same bug class as the
+	// membership plan form; see that file's numberOrUndefined comment.
+	function numberOrUndefined(value: string | number): number | undefined {
+		if (value === '' || value === null || value === undefined) return undefined;
+		const n = Number(value);
+		return Number.isFinite(n) ? n : undefined;
+	}
+
 	// One small reactive result-slot per action, all following the same
 	// shape — keeps each section self-contained (its own busy/result/error)
 	// without a generic framework for what's just seven buttons.
@@ -81,8 +94,14 @@
 				result = null;
 				try {
 					result = await fn();
-				} catch {
-					error = 'Network error — is the API reachable?';
+				} catch (err) {
+					// A thrown error here isn't always a real network
+					// failure — a client-side exception building the request
+					// (e.g. calling .trim() on a value a number input had
+					// coerced to a number) throws before fetch() ever runs
+					// and looks identical from here. Surface the real
+					// message instead of guessing "Network error" for both.
+					error = err instanceof Error ? err.message : 'Request failed — is the API reachable?';
 				} finally {
 					busy = false;
 				}
@@ -220,8 +239,8 @@
 					eventSlot.run(
 						() =>
 							call('PUT', customerUrl(), {
-								deltaSpend: deltaSpend.trim() ? Number(deltaSpend) : undefined,
-								deltaVisits: deltaVisits.trim() ? Number(deltaVisits) : undefined,
+								deltaSpend: numberOrUndefined(deltaSpend),
+								deltaVisits: numberOrUndefined(deltaVisits),
 								action: action.trim() || undefined,
 								idempotencyKey: eventIdempotencyKey.trim() || undefined
 							}),
