@@ -2,7 +2,7 @@
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import StatTicket from '$lib/components/StatTicket.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
-	import ApiIdsCard from '$lib/components/ApiIdsCard.svelte';
+	import IdLine from '$lib/components/IdLine.svelte';
 	import { page } from '$app/state';
 	import { useQuery } from 'convex-svelte';
 	import { api } from '../../../../convex/_generated/api';
@@ -11,8 +11,6 @@
 	let organizationId = $derived(page.params.orgId as Id<'organizations'>);
 	let shopId = $derived((page.url.searchParams.get('shop') as Id<'shops'> | null) ?? undefined);
 	const overview = useQuery(api.dashboard.getOverview, () => ({ organizationId, shopId }));
-	const org = useQuery(api.organizations.getForStaff, () => ({ organizationId }));
-	const plans = useQuery(api.membershipPlans.list, () => ({ organizationId }));
 
 	const couponTones: Record<string, string> = {
 		ISSUED: 'var(--stamp-green)',
@@ -28,9 +26,12 @@
 <PageHeader title="Overview" subtitle="How your rewards program is doing right now." />
 
 <div style="padding:34px 40px 72px;max-width:1260px;display:flex;flex-direction:column;gap:26px">
-	{#if org.data}
-		<ApiIdsCard {organizationId} shops={org.data.shops} membershipPlans={plans.data ?? []} />
-	{/if}
+	<div style="display:flex;flex-direction:column;gap:6px;max-width:620px">
+		<IdLine label="Organization ID" id={organizationId} />
+		{#if shopId}
+			<IdLine label="Shop ID" id={shopId} />
+		{/if}
+	</div>
 	{#if overview.isLoading}
 		<p>Loading…</p>
 	{:else if overview.error}

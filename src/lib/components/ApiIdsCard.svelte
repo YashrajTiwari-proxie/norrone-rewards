@@ -4,9 +4,11 @@
 	// visible anywhere in the dashboard, so an org had no way to actually
 	// use the public API without a developer querying the database
 	// directly. This card is the one place all of it is copyable at a
-	// glance; shown on both the Overview page (first thing you see) and
-	// the API Keys page (where you'd naturally look for "how do I call
-	// this").
+	// glance — shown on the API Keys page (where you'd naturally look for
+	// "how do I call this"). The Overview page instead shows just the
+	// org/shop id inline via IdLine directly, not this full dump.
+	import IdLine from './IdLine.svelte';
+
 	let {
 		organizationId,
 		shops,
@@ -16,13 +18,6 @@
 		shops: { _id: string; name: string }[];
 		membershipPlans?: { _id: string; name: string }[];
 	} = $props();
-
-	let copiedId = $state<string | null>(null);
-	function copyId(id: string) {
-		navigator.clipboard.writeText(id);
-		copiedId = id;
-		setTimeout(() => (copiedId = null), 1500);
-	}
 
 	function row(label: string, id: string) {
 		return { label, id };
@@ -44,20 +39,7 @@
 	</div>
 	<div style="display:flex;flex-direction:column;gap:8px">
 		{#each rows as r (r.id)}
-			<div style="display:grid;grid-template-columns:140px 1fr auto;gap:10px;align-items:center">
-				<span style="font:500 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-					{r.label}
-				</span>
-				<code
-					class="mono"
-					style="background:var(--surface-soft);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12.5px;overflow-x:auto;white-space:nowrap"
-				>
-					{r.id}
-				</code>
-				<button type="button" class="btn btn-outline" style="padding:6px 12px;font-size:12px" onclick={() => copyId(r.id)}>
-					{copiedId === r.id ? 'Copied!' : 'Copy'}
-				</button>
-			</div>
+			<IdLine label={r.label} id={r.id} />
 		{/each}
 	</div>
 </div>

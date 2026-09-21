@@ -74,8 +74,8 @@
 				currencyCode: currencyCode.trim() ? currencyCode.trim().toUpperCase() : undefined
 			});
 			drawerOpen = false;
-		} catch {
-			errorMessage = 'Failed to create shop.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to create shop.';
 		} finally {
 			saving = false;
 		}
@@ -98,8 +98,8 @@
 				currencyCode: currencyCode.trim() ? currencyCode.trim().toUpperCase() : undefined
 			});
 			editOpen = false;
-		} catch {
-			errorMessage = 'Failed to update shop.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to update shop.';
 		} finally {
 			editSaving = false;
 		}

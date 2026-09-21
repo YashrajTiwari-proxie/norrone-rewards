@@ -1,5 +1,5 @@
 import { v, ConvexError } from "convex/values";
-import { mutation, type MutationCtx } from "./_generated/server";
+import { mutation, internalMutation, type MutationCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { requireAuthUserId } from "./lib/authz";
@@ -36,25 +36,47 @@ async function assertOrgStaffCanGrant(ctx: MutationCtx, organizationId: Id<"orga
 	return authUserId;
 }
 
+/**
+ * Shared by the dashboard's manualAdjustPoints (Better-Auth-session,
+ * organizationId already verified by assertOrgStaffCanGrant) and the
+ * public API's points endpoint (API-key, organizationId already resolved
+ * by requireApiKey) — one place inserting the ledger row and re-running
+ * grant eligibility, not two.
+ */
+async function adjustPointsHandler(ctx: MutationCtx, customerId: Id<"customers">, amount: number, note?: string) {
+	await ctx.db.insert("pointLedger", {
+		customerId,
+		amount,
+		reason: "MANUAL",
+		referenceId: note
+	});
+
+	// A manual adjustment can cross a POINTS-based eligibility threshold,
+	// so re-run the same auto-grant check the API path triggers.
+	const result = await evaluateAndGrant(ctx, customerId);
+	schedulePassUpdate(ctx, customerId);
+	return result;
+}
+
 export const manualAdjustPoints = mutation({
 	args: { customerId: v.id("customers"), amount: v.number(), note: v.optional(v.string()) },
 	handler: async (ctx, args) => {
 		const customer = await ctx.db.get(args.customerId);
 		if (!customer) throw new ConvexError({ code: "NOT_FOUND", message: "Customer not found" });
 		await assertOrgStaffCanGrant(ctx, customer.organizationId);
+		return await adjustPointsHandler(ctx, args.customerId, args.amount, args.note);
+	}
+});
 
-		await ctx.db.insert("pointLedger", {
-			customerId: args.customerId,
-			amount: args.amount,
-			reason: "MANUAL",
-			referenceId: args.note
-		});
-
-		// A manual adjustment can cross a POINTS-based eligibility threshold,
-		// so re-run the same auto-grant check the API path triggers.
-		const result = await evaluateAndGrant(ctx, args.customerId);
-		schedulePassUpdate(ctx, args.customerId);
-		return result;
+/** Public-API-facing variant — organizationId already trusted (resolved from the API key by requireApiKey). */
+export const internalAdjustPoints = internalMutation({
+	args: { organizationId: v.id("organizations"), customerId: v.id("customers"), amount: v.number(), note: v.optional(v.string()) },
+	handler: async (ctx, args) => {
+		const customer = await ctx.db.get(args.customerId);
+		if (!customer || customer.organizationId !== args.organizationId) {
+			throw new ConvexError({ code: "NOT_FOUND", message: "Customer not found in this organization" });
+		}
+		return await adjustPointsHandler(ctx, args.customerId, args.amount, args.note);
 	}
 });
 

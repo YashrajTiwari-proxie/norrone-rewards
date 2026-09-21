@@ -3,6 +3,7 @@
 	import Drawer from '$lib/components/Drawer.svelte';
 	import GrantBuilder from '$lib/components/GrantBuilder.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
+	import IdLine from '$lib/components/IdLine.svelte';
 	import { page } from '$app/state';
 	import { useQuery, useMutation } from 'convex-svelte';
 	import { api } from '../../../../../convex/_generated/api';
@@ -127,8 +128,8 @@
 		try {
 			await removePlan({ organizationId, planId: editingPlan._id });
 			editOpen = false;
-		} catch {
-			errorMessage = 'Failed to delete membership plan.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to delete membership plan.';
 		}
 	}
 </script>
@@ -168,6 +169,9 @@
 						<tr onclick={() => openEdit(plan)} style="cursor:pointer">
 							<td>
 								<div style="font:500 14px 'IBM Plex Sans',sans-serif;color:var(--ink)">{plan.name}</div>
+								<div style="margin-top:3px" onclick={(e) => e.stopPropagation()} role="presentation">
+									<IdLine id={plan._id} compact />
+								</div>
 								{#if plan.benefits.length}
 									<div style="margin-top:4px;font:400 12px/1.4 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
 										{plan.benefits.length} benefit{plan.benefits.length === 1 ? '' : 's'} granted
@@ -230,6 +234,9 @@
 
 <Drawer bind:open={editOpen} title={editingPlan?.name ?? ''} note="Update this plan's terms or manage what it grants.">
 	{#if editingPlan}
+		<div style="margin-bottom:16px">
+			<IdLine id={editingPlan._id} compact />
+		</div>
 		<form id="edit-plan-form" onsubmit={submitUpdate}>
 			<div style="display:flex;flex-direction:column;gap:18px">
 				<label class="field">

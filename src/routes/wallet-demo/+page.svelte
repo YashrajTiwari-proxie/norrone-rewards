@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { PUBLIC_CONVEX_SITE_URL } from '$env/static/public';
 
 	// Example integration for docs/API.md's wallet endpoints — this page
 	// calls the public /v1/... API directly from the browser using an org's
 	// own API key, exactly the way an org's own website/POS would. It's
-	// intentionally a plain fetch() against PUBLIC_CONVEX_SITE_URL, not a
-	// dashboard feature — nothing here talks to Better Auth or any
+	// intentionally a plain fetch() against this app's own domain (proxied
+	// through to the backend — see src/routes/v1/[...path]/+server.ts), not
+	// a dashboard feature — nothing here talks to Better Auth or any
 	// session-authenticated Convex function.
 	//
 	// Optionally pre-filled via ?key=&shop=&customer= query params, so a
@@ -23,7 +23,7 @@
 	let googleSaveUrl = $state<string | null>(null);
 
 	function walletUrl(platform: 'apple' | 'google') {
-		return `${PUBLIC_CONVEX_SITE_URL}/v1/shops/${encodeURIComponent(shopId.trim())}/customers/${encodeURIComponent(externalId.trim())}/wallet/${platform}`;
+		return `${page.url.origin}/v1/shops/${encodeURIComponent(shopId.trim())}/customers/${encodeURIComponent(externalId.trim())}/wallet/${platform}`;
 	}
 
 	function validateInputs(): boolean {
@@ -137,7 +137,7 @@
 		</div>
 
 		<div style="font:400 12px/1.6 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
-			This page only ever talks to <code class="mono">{PUBLIC_CONVEX_SITE_URL}/v1/...</code> — the same
+			This page only ever talks to <code class="mono">{page.url.origin}/v1/...</code> — the same
 			public API any external integration uses. It has no access to your dashboard session, and nothing
 			you type here is stored anywhere. Tip: the fields above can be pre-filled via
 			<code class="mono">?key=&amp;shop=&amp;customer=</code> query params, so you can share one link

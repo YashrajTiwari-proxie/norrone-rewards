@@ -39,6 +39,7 @@
 	let integrationNav = $derived([
 		{ id: 'shops', label: 'Shops', href: `/orgs/${orgId}/shops` },
 		{ id: 'api-keys', label: 'API Keys', href: `/orgs/${orgId}/api-keys` },
+		{ id: 'api-docs', label: 'API Docs', href: `/orgs/${orgId}/api-docs` },
 		{ id: 'wallet', label: 'Wallet Pass', href: `/orgs/${orgId}/wallet` },
 		{ id: 'staff', label: 'Staff', href: `/orgs/${orgId}/staff` }
 	]);

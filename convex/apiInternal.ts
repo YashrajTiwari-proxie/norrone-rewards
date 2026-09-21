@@ -141,6 +141,22 @@ export const getCustomerByExternalId = internalQuery({
 	}
 });
 
+/** GET .../points — full ledger history (newest first) plus the running balance, for a single customer. */
+export const getCustomerPoints = internalQuery({
+	args: { customerId: v.id("customers") },
+	handler: async (ctx, args) => {
+		const rows = await ctx.db
+			.query("pointLedger")
+			.withIndex("by_customer", (q) => q.eq("customerId", args.customerId))
+			.collect();
+		rows.sort((a, b) => b._creationTime - a._creationTime);
+		return {
+			balance: rows.reduce((sum, r) => sum + r.amount, 0),
+			ledger: rows.map((r) => ({ amount: r.amount, reason: r.reason, note: r.referenceId, at: r._creationTime }))
+		};
+	}
+});
+
 export const getMembershipPlanInScope = internalQuery({
 	args: { planId: v.id("membershipPlans"), organizationId: v.id("organizations"), shopId: v.id("shops") },
 	handler: async (ctx, args) => {

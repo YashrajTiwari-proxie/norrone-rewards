@@ -44,8 +44,8 @@
 			newKey = result.plaintextKey;
 			keyDismissed = false;
 			addOpen = false;
-		} catch {
-			errorMessage = 'Failed to create API key.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to create API key.';
 		} finally {
 			addSaving = false;
 		}
@@ -54,8 +54,8 @@
 	async function revoke(apiKeyId: Id<'apiKeys'>) {
 		try {
 			await revokeKey({ organizationId, apiKeyId });
-		} catch {
-			errorMessage = 'Failed to revoke API key.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to revoke API key.';
 		}
 	}
 </script>

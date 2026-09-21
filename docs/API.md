@@ -1,8 +1,9 @@
 # Norrone Rewards — Public API
 
-Base URL: your Convex deployment's **`.site`** domain (not `.convex.cloud`) — e.g.
-`https://your-deployment.convex.site`. Find it in `.env.local` as
-`PUBLIC_CONVEX_SITE_URL`, or on the org dashboard's API Keys page.
+Base URL: **your own app's domain** — e.g. `https://your-domain.example.com`. Every
+request is `<your domain>/v1/...`; your deployment transparently proxies that through
+to the backend (`src/routes/v1/[...path]/+server.ts`), so integrators never need to
+know or depend on what's running behind it.
 
 This is a machine-to-machine API for your website/POS to integrate the loyalty
 program headlessly — it is **not** the same authentication system as the staff
@@ -129,6 +130,58 @@ replay) a `newlyGranted` object:
 `tier` is only ever the *first* newly-granted tier this call (a customer can only
 realistically cross one tier boundary per event); `rewards`/`coupons` are full arrays.
 
+## `PUT /v1/shops/:shopId/customers/:externalId/profile`
+
+Updates the customer's own profile fields (not stats — see the plain `PUT
+.../customers/:externalId` above for recording an event). **Requires a secret key.**
+
+**Body** (all fields optional — send only what changed)
+
+```json
+{ "name": "Ada Lovelace", "phone": "+1...", "email": "ada@example.com" }
+```
+
+**Response** `200` — the [customer view](#customer-view-shape).
+
+## `DELETE /v1/shops/:shopId/customers/:externalId`
+
+Permanently deletes the customer and every row referencing them (point ledger, tier
+history, memberships, granted rewards, and issued coupons). **Requires a secret key.**
+This cannot be undone.
+
+**Response** `204`, empty body.
+
+## `GET /v1/shops/:shopId/customers/:externalId/points`
+
+The customer's full point ledger (newest first) and running balance. Works with
+either key type.
+
+**Response** `200`
+
+```json
+{
+  "balance": 1250,
+  "ledger": [{ "amount": 50, "reason": "MANUAL", "note": "welcome bonus", "at": 1798761600000 }]
+}
+```
+
+`reason` is one of `ACTION | MANUAL | EXPIRY | REVERSAL`. `note` is whatever string you
+sent as `note` on the `POST` below (or `undefined` for ledger rows from other sources).
+
+## `POST /v1/shops/:shopId/customers/:externalId/points`
+
+Manually grants or adjusts points (use a negative `amount` to deduct) — re-checks
+tier/reward/coupon eligibility the same way `PUT .../customers/:externalId` does,
+since a manual grant can cross a POINTS-based threshold. **Requires a secret key.**
+
+**Body**
+
+```json
+{ "amount": 50, "note": "welcome bonus" }
+```
+
+**Response** `201` — the same shape as `GET .../points` above, reflecting the new balance.
+
 ## `POST /v1/shops/:shopId/customers/:externalId/membership`
 
 Enrolls a customer in a paid membership plan — starts it immediately, applies the
@@ -225,6 +278,90 @@ expired (the coupon's status is also flipped to `EXPIRED` server-side at this po
 once wallet passes are implemented — see the main README's "Known gaps"). Signed
 payloads are HMAC-verified server-side against `WALLET_SIGNING_SECRET` before the code
 inside is used.
+
+---
+
+## Org-scoped resources: membership plans, tiers, rewards, coupon types
+
+Unlike customers (genuinely shop-scoped, under `/v1/shops/:shopId/...`), these four
+are org-level resources — a plan/tier/reward/coupon type can optionally be restricted
+to one shop via its own `shopId` field, but the endpoint itself isn't nested under a
+shop. All four follow the identical shape, `<resource>` being one of:
+
+| `<resource>` | Definition managed |
+| --- | --- |
+| `membership-plans` | [Membership plans](#membership-plans-fields) |
+| `tiers` | [Tiers](#tiers-fields) |
+| `rewards` | [Rewards](#rewards-fields) |
+| `coupons` | Coupon *types* — see [Coupons fields](#coupons-fields). Distinct from `POST /v1/coupons/:code/redeem` above, which acts on a coupon *instance* by its code. |
+
+### `GET /v1/<resource>`
+
+Lists every item of this type for your organization. Works with either key type.
+Optionally filter with `?shopId=<id>` — returns items scoped to that shop plus every
+org-wide (no `shopId`) item.
+
+**Response** `200` — an array of items, each shaped per the resource's fields table below.
+
+### `GET /v1/<resource>/:id`
+
+Fetches one item. Works with either key type. `404` if it doesn't exist or belongs to
+another organization.
+
+### `POST /v1/<resource>`
+
+Creates an item. **Requires a secret key.**
+
+**Response** `201` — the created item.
+
+### `PUT /v1/<resource>/:id`
+
+Replaces an item's fields (send the full set of fields, not a partial patch —
+matches how the dashboard's own edit forms work). **Requires a secret key.**
+
+**Response** `200` — the updated item.
+
+### `DELETE /v1/<resource>/:id`
+
+Deletes an item. **Requires a secret key.** For membership plans specifically: any
+customer with an active membership on the deleted plan has that membership cancelled
+(not silently left dangling) as part of the same call.
+
+**Response** `204`, empty body.
+
+#### Membership plans fields
+
+```json
+{ "name": "Gold Membership", "price": 29.99, "durationDays": 30, "pointMultiplier": 2, "shopId": "..." }
+```
+
+`price` absent = free. `durationDays` absent = never expires. `shopId` is optional
+(absent = applies org-wide, to all shops).
+
+#### Tiers fields
+
+```json
+{ "name": "Gold", "level": 2, "pointMultiplier": 1.5, "shopId": "..." }
+```
+
+Higher `level` = higher tier. `shopId` optional, same meaning as above.
+
+#### Rewards fields
+
+```json
+{ "name": "Free Dessert", "description": "On the house", "memberOnly": false, "shopId": "..." }
+```
+
+#### Coupons fields
+
+```json
+{ "name": "First Visit 10% Off", "discountValue": 10, "discountType": "PERCENTAGE", "validityDays": 30, "memberOnly": false, "shopId": "..." }
+```
+
+`discountType` is `PERCENTAGE` or `FIXED`. This creates the coupon *type* — actual
+redeemable codes are issued to a customer separately (from the dashboard's manual
+grant, or automatically via eligibility conditions), then redeemed with
+`POST /v1/coupons/:code/redeem` above.
 
 ---
 

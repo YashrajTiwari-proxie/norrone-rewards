@@ -7,10 +7,16 @@
  * (create customer → record a purchase → check offers → redeem a coupon).
  *
  * Usage:
- *   NORRONE_BASE_URL=https://your-deployment.convex.site \
+ *   NORRONE_BASE_URL=https://your-domain.example.com \
  *   NORRONE_API_KEY=sk_... \
  *   NORRONE_SHOP_ID=<shop id from the dashboard> \
  *     bun run examples/api-client.ts
+ *
+ * NORRONE_BASE_URL is your own app's domain, not a Convex URL — every
+ * request goes to `<your domain>/v1/...`, which your own deployment
+ * transparently proxies through to the backend (see
+ * src/routes/v1/[...path]/+server.ts). You never need to know or depend
+ * on Convex being the backend.
  *
  * Works with plain `fetch` — no SDK dependency. Runnable with Bun, Node
  * 18+, or Deno with trivial changes (only `Bun.argv`-style env reading

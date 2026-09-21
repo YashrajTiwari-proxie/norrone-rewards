@@ -1,5 +1,7 @@
 import { v, ConvexError } from "convex/values";
 import { orgStaffQuery, orgStaffMutation, assertShopInOrg, assertNonNegative, assertPositive } from "./lib/authz";
+import { internalQuery, internalMutation, type QueryCtx, type MutationCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 
 const metricLabel: Record<string, string> = {
 	SPEND: "spend",
@@ -10,98 +12,152 @@ const metricLabel: Record<string, string> = {
 };
 const opLabel: Record<string, string> = { GTE: "≥", LTE: "≤", EQ: "=" };
 
+async function listTiersHandler(ctx: QueryCtx, organizationId: Id<"organizations">) {
+	const shops = await ctx.db
+		.query("shops")
+		.withIndex("by_organization", (q) => q.eq("organizationId", organizationId))
+		.collect();
+	const shopNameById = new Map(shops.map((s) => [s._id, s.name]));
+
+	const tiers = await ctx.db
+		.query("tiers")
+		.withIndex("by_organization", (q) => q.eq("organizationId", organizationId))
+		.collect();
+	tiers.sort((a, b) => a.level - b.level);
+
+	return await Promise.all(
+		tiers.map(async (tier) => {
+			const conditions = await ctx.db
+				.query("eligibilityConditions")
+				.withIndex("by_target", (q) => q.eq("targetType", "TIER").eq("targetId", tier._id))
+				.collect();
+			const benefits = await ctx.db
+				.query("grantedBenefits")
+				.withIndex("by_source", (q) => q.eq("sourceType", "TIER").eq("sourceId", tier._id))
+				.collect();
+			const holders = await ctx.db
+				.query("customerTier")
+				.withIndex("by_tier", (q) => q.eq("tierId", tier._id))
+				.collect();
+
+			const conditionSummary =
+				conditions.map((c) => `${metricLabel[c.metric] ?? c.metric} ${opLabel[c.operator] ?? c.operator} ${c.value}`).join(", ") ||
+				"No conditions set — will never auto-grant";
+
+			return {
+				...tier,
+				scopeName: tier.shopId ? (shopNameById.get(tier.shopId) ?? "This shop") : "All shops",
+				conditionSummary,
+				customers: holders.length,
+				conditions,
+				benefits
+			};
+		})
+	);
+}
+
+async function getTierHandler(ctx: QueryCtx, organizationId: Id<"organizations">, tierId: Id<"tiers">) {
+	const tier = await ctx.db.get(tierId);
+	if (!tier || tier.organizationId !== organizationId) return null;
+	return tier;
+}
+
 export const list = orgStaffQuery("tiers:read")({
 	args: {},
-	handler: async (ctx) => {
-		const shops = await ctx.db
-			.query("shops")
-			.withIndex("by_organization", (q) => q.eq("organizationId", ctx.organizationId))
-			.collect();
-		const shopNameById = new Map(shops.map((s) => [s._id, s.name]));
+	handler: async (ctx) => listTiersHandler(ctx, ctx.organizationId)
+});
 
-		const tiers = await ctx.db
-			.query("tiers")
-			.withIndex("by_organization", (q) => q.eq("organizationId", ctx.organizationId))
-			.collect();
-		tiers.sort((a, b) => a.level - b.level);
+export const internalList = internalQuery({
+	args: { organizationId: v.id("organizations") },
+	handler: async (ctx, args) => listTiersHandler(ctx, args.organizationId)
+});
 
-		return await Promise.all(
-			tiers.map(async (tier) => {
-				const conditions = await ctx.db
-					.query("eligibilityConditions")
-					.withIndex("by_target", (q) => q.eq("targetType", "TIER").eq("targetId", tier._id))
-					.collect();
-				const benefits = await ctx.db
-					.query("grantedBenefits")
-					.withIndex("by_source", (q) => q.eq("sourceType", "TIER").eq("sourceId", tier._id))
-					.collect();
-				const holders = await ctx.db
-					.query("customerTier")
-					.withIndex("by_tier", (q) => q.eq("tierId", tier._id))
-					.collect();
+export const internalGet = internalQuery({
+	args: { organizationId: v.id("organizations"), tierId: v.id("tiers") },
+	handler: async (ctx, args) => getTierHandler(ctx, args.organizationId, args.tierId)
+});
 
-				const conditionSummary =
-					conditions.map((c) => `${metricLabel[c.metric] ?? c.metric} ${opLabel[c.operator] ?? c.operator} ${c.value}`).join(", ") ||
-					"No conditions set — will never auto-grant";
+const tierFields = {
+	name: v.string(),
+	level: v.number(),
+	pointMultiplier: v.number(),
+	shopId: v.optional(v.id("shops"))
+};
 
-				return {
-					...tier,
-					scopeName: tier.shopId ? (shopNameById.get(tier.shopId) ?? "This shop") : "All shops",
-					conditionSummary,
-					customers: holders.length,
-					conditions,
-					benefits
-				};
-			})
-		);
+async function createTierHandler(
+	ctx: MutationCtx,
+	organizationId: Id<"organizations">,
+	args: { name: string; level: number; pointMultiplier: number; shopId?: Id<"shops"> }
+) {
+	assertNonNegative(args.level, "level");
+	assertNonNegative(args.pointMultiplier, "pointMultiplier");
+	await assertShopInOrg(ctx, args.shopId, organizationId);
+	return await ctx.db.insert("tiers", { organizationId, ...args });
+}
+
+async function updateTierHandler(
+	ctx: MutationCtx,
+	organizationId: Id<"organizations">,
+	tierId: Id<"tiers">,
+	fields: { name: string; level: number; pointMultiplier: number; shopId?: Id<"shops"> }
+) {
+	const tier = await ctx.db.get(tierId);
+	assertNonNegative(fields.level, "level");
+	assertNonNegative(fields.pointMultiplier, "pointMultiplier");
+	if (!tier || tier.organizationId !== organizationId) {
+		throw new ConvexError({ code: "NOT_FOUND", message: "Tier not found in this organization" });
+	}
+	await assertShopInOrg(ctx, fields.shopId, organizationId);
+	await ctx.db.patch(tierId, fields);
+}
+
+async function removeTierHandler(ctx: MutationCtx, organizationId: Id<"organizations">, tierId: Id<"tiers">) {
+	const tier = await ctx.db.get(tierId);
+	if (!tier || tier.organizationId !== organizationId) {
+		throw new ConvexError({ code: "NOT_FOUND", message: "Tier not found in this organization" });
+	}
+	await ctx.db.delete(tierId);
+}
+
+export const create = orgStaffMutation("tiers:write")({
+	args: tierFields,
+	handler: async (ctx, args) => {
+		await createTierHandler(ctx, ctx.organizationId, args);
 	}
 });
 
-export const create = orgStaffMutation("tiers:write")({
-	args: {
-		name: v.string(),
-		level: v.number(),
-		pointMultiplier: v.number(),
-		shopId: v.optional(v.id("shops"))
-	},
+export const internalCreate = internalMutation({
+	args: { organizationId: v.id("organizations"), ...tierFields },
 	handler: async (ctx, args) => {
-		assertNonNegative(args.level, "level");
-		assertNonNegative(args.pointMultiplier, "pointMultiplier");
-		await assertShopInOrg(ctx, args.shopId, ctx.organizationId);
-		await ctx.db.insert("tiers", { organizationId: ctx.organizationId, ...args });
+		const { organizationId, ...fields } = args;
+		return await createTierHandler(ctx, organizationId, fields);
 	}
 });
 
 export const update = orgStaffMutation("tiers:write")({
-	args: {
-		tierId: v.id("tiers"),
-		name: v.string(),
-		level: v.number(),
-		pointMultiplier: v.number(),
-		shopId: v.optional(v.id("shops"))
-	},
+	args: { tierId: v.id("tiers"), ...tierFields },
 	handler: async (ctx, args) => {
 		const { tierId, ...fields } = args;
-		const tier = await ctx.db.get(tierId);
-		assertNonNegative(fields.level, "level");
-		assertNonNegative(fields.pointMultiplier, "pointMultiplier");
-		if (!tier || tier.organizationId !== ctx.organizationId) {
-			throw new ConvexError({ code: "NOT_FOUND", message: "Tier not found in this organization" });
-		}
-		await assertShopInOrg(ctx, fields.shopId, ctx.organizationId);
-		await ctx.db.patch(tierId, fields);
+		await updateTierHandler(ctx, ctx.organizationId, tierId, fields);
+	}
+});
+
+export const internalUpdate = internalMutation({
+	args: { organizationId: v.id("organizations"), tierId: v.id("tiers"), ...tierFields },
+	handler: async (ctx, args) => {
+		const { organizationId, tierId, ...fields } = args;
+		await updateTierHandler(ctx, organizationId, tierId, fields);
 	}
 });
 
 export const remove = orgStaffMutation("tiers:write")({
 	args: { tierId: v.id("tiers") },
-	handler: async (ctx, args) => {
-		const tier = await ctx.db.get(args.tierId);
-		if (!tier || tier.organizationId !== ctx.organizationId) {
-			throw new ConvexError({ code: "NOT_FOUND", message: "Tier not found in this organization" });
-		}
-		await ctx.db.delete(args.tierId);
-	}
+	handler: async (ctx, args) => removeTierHandler(ctx, ctx.organizationId, args.tierId)
+});
+
+export const internalRemove = internalMutation({
+	args: { organizationId: v.id("organizations"), tierId: v.id("tiers") },
+	handler: async (ctx, args) => removeTierHandler(ctx, args.organizationId, args.tierId)
 });
 
 export const addCondition = orgStaffMutation("tiers:write")({

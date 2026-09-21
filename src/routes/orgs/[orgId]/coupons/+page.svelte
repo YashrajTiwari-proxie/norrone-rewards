@@ -6,6 +6,7 @@
 	import Chip from '$lib/components/Chip.svelte';
 	import ConditionBuilder from '$lib/components/ConditionBuilder.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
+	import IdLine from '$lib/components/IdLine.svelte';
 	import { useQuery, useMutation } from 'convex-svelte';
 	import { api } from '../../../../../convex/_generated/api';
 	import type { Id } from '../../../../../convex/_generated/dataModel';
@@ -88,8 +89,8 @@
 				shopId: (shopId || undefined) as Id<'shops'> | undefined
 			});
 			addOpen = false;
-		} catch {
-			errorMessage = 'Failed to create coupon.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to create coupon.';
 		} finally {
 			addSaving = false;
 		}
@@ -118,8 +119,8 @@
 				shopId: (shopId || undefined) as Id<'shops'> | undefined
 			});
 			editOpen = false;
-		} catch {
-			errorMessage = 'Failed to update coupon.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to update coupon.';
 		} finally {
 			editSaving = false;
 		}
@@ -130,8 +131,8 @@
 		try {
 			await removeDef({ organizationId, couponDefinitionId: editingDef._id });
 			editOpen = false;
-		} catch {
-			errorMessage = 'Failed to delete coupon.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to delete coupon.';
 		}
 	}
 
@@ -197,6 +198,9 @@
 							<tr onclick={() => openEdit(def)} style="cursor:pointer">
 								<td>
 									<div style="font:500 14px 'IBM Plex Sans',sans-serif;color:var(--ink)">{def.name}</div>
+									<div style="margin-top:3px" onclick={(e) => e.stopPropagation()} role="presentation">
+										<IdLine id={def._id} compact />
+									</div>
 									{#if def.memberOnly}<div style="margin-top:4px"><Chip tone="amber" text="Members only" /></div>{/if}
 								</td>
 								<td class="right mono" style="font-weight:500;color:var(--stamp-amber)">
@@ -329,6 +333,9 @@
 
 <Drawer bind:open={editOpen} title={editingDef?.name ?? ''} note="Update this coupon type and who qualifies.">
 	{#if editingDef}
+		<div style="margin-bottom:16px">
+			<IdLine id={editingDef._id} compact />
+		</div>
 		<form id="edit-coupon-form" onsubmit={submitUpdate}>
 			<div style="display:flex;flex-direction:column;gap:18px">
 				<label class="field">

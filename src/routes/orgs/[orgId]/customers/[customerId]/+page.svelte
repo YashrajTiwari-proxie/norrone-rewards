@@ -31,8 +31,8 @@
 		try {
 			const { token } = await getPassLinkToken({ organizationId, customerId });
 			window.open(`${PUBLIC_CONVEX_SITE_URL}/v1/wallet/${platform}/${token}`, '_blank');
-		} catch {
-			errorMessage = `Failed to generate ${platform === 'apple' ? 'Apple' : 'Google'} Wallet link.`;
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : `Failed to generate ${platform === 'apple' ? 'Apple' : 'Google'} Wallet link.`;
 		} finally {
 			walletBusy = null;
 		}
@@ -93,8 +93,8 @@
 			adjustOpen = false;
 			amount = '';
 			reason = '';
-		} catch {
-			errorMessage = 'Failed to adjust points.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to adjust points.';
 		} finally {
 			adjustSaving = false;
 		}
@@ -111,8 +111,8 @@
 		try {
 			await grantTier({ customerId, tierId: selectedTierId as Id<'tiers'> });
 			changeTierOpen = false;
-		} catch {
-			errorMessage = 'Failed to change tier.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to change tier.';
 		} finally {
 			changeTierSaving = false;
 		}
@@ -129,8 +129,8 @@
 		try {
 			await grantReward({ customerId, rewardId: selectedRewardId as Id<'rewardDefinitions'> });
 			grantRewardOpen = false;
-		} catch {
-			errorMessage = 'Failed to grant reward.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to grant reward.';
 		} finally {
 			grantRewardSaving = false;
 		}
@@ -147,8 +147,8 @@
 		try {
 			const result = await grantCoupon({ customerId, couponDefinitionId: selectedCouponDefId as Id<'couponDefinitions'> });
 			issuedCouponCode = result.code;
-		} catch {
-			errorMessage = 'Failed to issue coupon.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to issue coupon.';
 		} finally {
 			issueCouponSaving = false;
 		}
@@ -165,8 +165,8 @@
 		try {
 			await enrollMembership({ customerId, planId: selectedPlanId as Id<'membershipPlans'> });
 			enrollOpen = false;
-		} catch {
-			errorMessage = 'Failed to enroll membership.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to enroll membership.';
 		} finally {
 			enrollSaving = false;
 		}

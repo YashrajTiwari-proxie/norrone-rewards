@@ -1,7 +1,79 @@
 import { v } from "convex/values";
-import { orgStaffQuery } from "./lib/authz";
+import { orgStaffQuery, orgStaffMutation } from "./lib/authz";
 import { isActiveMember } from "./lib/loyaltyEngine";
 import { ConvexError } from "convex/values";
+import { internalMutation, type MutationCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+
+/**
+ * Tables that reference a customer row — deleting a customer must not
+ * leave any of these dangling. Every one has a `by_customer` index (see
+ * schema.ts). Shared by the dashboard's `remove` and the public API's
+ * `internalRemove` so both delete the exact same set of rows.
+ */
+async function deleteCustomerCascade(ctx: MutationCtx, customerId: Id<"customers">) {
+	for (const table of ["pointLedger", "customerTier", "customerMemberships", "customerRewards", "couponInstances"] as const) {
+		const rows = await ctx.db
+			.query(table)
+			.withIndex("by_customer", (q) => q.eq("customerId", customerId))
+			.collect();
+		for (const row of rows) await ctx.db.delete(row._id);
+	}
+	await ctx.db.delete(customerId);
+}
+
+const profileFields = {
+	name: v.optional(v.string()),
+	phone: v.optional(v.string()),
+	email: v.optional(v.string())
+};
+
+async function updateProfileHandler(
+	ctx: MutationCtx,
+	organizationId: Id<"organizations">,
+	customerId: Id<"customers">,
+	fields: { name?: string; phone?: string; email?: string }
+) {
+	const customer = await ctx.db.get(customerId);
+	if (!customer || customer.organizationId !== organizationId) {
+		throw new ConvexError({ code: "NOT_FOUND", message: "Customer not found in this organization" });
+	}
+	await ctx.db.patch(customerId, fields);
+}
+
+async function removeCustomerHandler(ctx: MutationCtx, organizationId: Id<"organizations">, customerId: Id<"customers">) {
+	const customer = await ctx.db.get(customerId);
+	if (!customer || customer.organizationId !== organizationId) {
+		throw new ConvexError({ code: "NOT_FOUND", message: "Customer not found in this organization" });
+	}
+	await deleteCustomerCascade(ctx, customerId);
+}
+
+export const update = orgStaffMutation("customers:write")({
+	args: { customerId: v.id("customers"), ...profileFields },
+	handler: async (ctx, args) => {
+		const { customerId, ...fields } = args;
+		await updateProfileHandler(ctx, ctx.organizationId, customerId, fields);
+	}
+});
+
+export const internalUpdateProfile = internalMutation({
+	args: { organizationId: v.id("organizations"), customerId: v.id("customers"), ...profileFields },
+	handler: async (ctx, args) => {
+		const { organizationId, customerId, ...fields } = args;
+		await updateProfileHandler(ctx, organizationId, customerId, fields);
+	}
+});
+
+export const remove = orgStaffMutation("customers:write")({
+	args: { customerId: v.id("customers") },
+	handler: async (ctx, args) => removeCustomerHandler(ctx, ctx.organizationId, args.customerId)
+});
+
+export const internalRemove = internalMutation({
+	args: { organizationId: v.id("organizations"), customerId: v.id("customers") },
+	handler: async (ctx, args) => removeCustomerHandler(ctx, args.organizationId, args.customerId)
+});
 
 const PAGE_SIZE = 8;
 

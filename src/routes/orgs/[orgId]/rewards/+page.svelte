@@ -4,6 +4,7 @@
 	import Chip from '$lib/components/Chip.svelte';
 	import ConditionBuilder from '$lib/components/ConditionBuilder.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
+	import IdLine from '$lib/components/IdLine.svelte';
 	import { page } from '$app/state';
 	import { useQuery, useMutation } from 'convex-svelte';
 	import { api } from '../../../../../convex/_generated/api';
@@ -69,8 +70,8 @@
 				shopId: (shopId || undefined) as Id<'shops'> | undefined
 			});
 			addOpen = false;
-		} catch {
-			errorMessage = 'Failed to create reward.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to create reward.';
 		} finally {
 			addSaving = false;
 		}
@@ -95,8 +96,8 @@
 				shopId: (shopId || undefined) as Id<'shops'> | undefined
 			});
 			editOpen = false;
-		} catch {
-			errorMessage = 'Failed to update reward.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to update reward.';
 		} finally {
 			editSaving = false;
 		}
@@ -107,8 +108,8 @@
 		try {
 			await removeReward({ organizationId, rewardId: editingReward._id });
 			editOpen = false;
-		} catch {
-			errorMessage = 'Failed to delete reward.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to delete reward.';
 		}
 	}
 </script>
@@ -133,13 +134,19 @@
 	{:else}
 		<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px">
 			{#each rewards.data as reward (reward._id)}
-				<button
+				<div
 					onclick={() => openEdit(reward)}
-					style="all:unset;cursor:pointer;display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;min-height:132px"
+					onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && openEdit(reward)}
+					role="button"
+					tabindex="0"
+					style="cursor:pointer;display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;min-height:132px"
 				>
 					<div style="flex:1;min-width:0;padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between">
 						<div>
 							<div style="font:600 15px/1.3 'IBM Plex Sans',sans-serif;color:var(--ink)">{reward.name}</div>
+							<div style="margin-top:5px" onclick={(e) => e.stopPropagation()} role="presentation">
+								<IdLine id={reward._id} compact />
+							</div>
 							{#if reward.description}
 								<div style="margin-top:7px;font:400 13px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
 									{reward.description}
@@ -159,7 +166,7 @@
 							<div class="mono" style="margin-top:8px;font:500 12px/1 'IBM Plex Mono',monospace;color:var(--text-muted)">{reward.grantedCount} granted</div>
 						</div>
 					</div>
-				</button>
+				</div>
 			{/each}
 		</div>
 	{/if}
@@ -204,6 +211,9 @@
 
 <Drawer bind:open={editOpen} title={editingReward?.name ?? ''} note="Update this reward and who qualifies.">
 	{#if editingReward}
+		<div style="margin-bottom:16px">
+			<IdLine id={editingReward._id} compact />
+		</div>
 		<form id="edit-reward-form" onsubmit={submitUpdate}>
 			<div style="display:flex;flex-direction:column;gap:18px">
 				<label class="field">

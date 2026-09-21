@@ -1,5 +1,7 @@
 import { v, ConvexError } from "convex/values";
 import { orgStaffQuery, orgStaffMutation, assertShopInOrg, assertPositive, assertNonNegative } from "./lib/authz";
+import { internalQuery, internalMutation } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 
 const metricLabel: Record<string, string> = {
 	SPEND: "spend",
@@ -12,39 +14,61 @@ const opLabel: Record<string, string> = { GTE: "≥", LTE: "≤", EQ: "=" };
 const STATUSES = ["ISSUED", "REDEEMED", "EXPIRED", "CANCELLED"] as const;
 const PAGE_SIZE = 6;
 
+async function listDefinitionsHandler(ctx: import("./_generated/server").QueryCtx, organizationId: Id<"organizations">) {
+	const shops = await ctx.db
+		.query("shops")
+		.withIndex("by_organization", (q) => q.eq("organizationId", organizationId))
+		.collect();
+	const shopNameById = new Map(shops.map((s) => [s._id, s.name]));
+
+	const definitions = await ctx.db
+		.query("couponDefinitions")
+		.withIndex("by_organization", (q) => q.eq("organizationId", organizationId))
+		.collect();
+	definitions.sort((a, b) => a.name.localeCompare(b.name));
+
+	return await Promise.all(
+		definitions.map(async (def) => {
+			const conditions = await ctx.db
+				.query("eligibilityConditions")
+				.withIndex("by_target", (q) => q.eq("targetType", "COUPON").eq("targetId", def._id))
+				.collect();
+			const conditionSummary =
+				conditions.map((c) => `${metricLabel[c.metric] ?? c.metric} ${opLabel[c.operator] ?? c.operator} ${c.value}`).join(", ") ||
+				"No conditions";
+			return {
+				...def,
+				scopeName: def.shopId ? (shopNameById.get(def.shopId) ?? "This shop") : "All shops",
+				conditionSummary,
+				conditions
+			};
+		})
+	);
+}
+
+async function getDefinitionHandler(
+	ctx: import("./_generated/server").QueryCtx,
+	organizationId: Id<"organizations">,
+	couponDefinitionId: Id<"couponDefinitions">
+) {
+	const def = await ctx.db.get(couponDefinitionId);
+	if (!def || def.organizationId !== organizationId) return null;
+	return def;
+}
+
 export const listDefinitions = orgStaffQuery("coupons:read")({
 	args: {},
-	handler: async (ctx) => {
-		const shops = await ctx.db
-			.query("shops")
-			.withIndex("by_organization", (q) => q.eq("organizationId", ctx.organizationId))
-			.collect();
-		const shopNameById = new Map(shops.map((s) => [s._id, s.name]));
+	handler: async (ctx) => listDefinitionsHandler(ctx, ctx.organizationId)
+});
 
-		const definitions = await ctx.db
-			.query("couponDefinitions")
-			.withIndex("by_organization", (q) => q.eq("organizationId", ctx.organizationId))
-			.collect();
-		definitions.sort((a, b) => a.name.localeCompare(b.name));
+export const internalListDefinitions = internalQuery({
+	args: { organizationId: v.id("organizations") },
+	handler: async (ctx, args) => listDefinitionsHandler(ctx, args.organizationId)
+});
 
-		return await Promise.all(
-			definitions.map(async (def) => {
-				const conditions = await ctx.db
-					.query("eligibilityConditions")
-					.withIndex("by_target", (q) => q.eq("targetType", "COUPON").eq("targetId", def._id))
-					.collect();
-				const conditionSummary =
-					conditions.map((c) => `${metricLabel[c.metric] ?? c.metric} ${opLabel[c.operator] ?? c.operator} ${c.value}`).join(", ") ||
-					"No conditions";
-				return {
-					...def,
-					scopeName: def.shopId ? (shopNameById.get(def.shopId) ?? "This shop") : "All shops",
-					conditionSummary,
-					conditions
-				};
-			})
-		);
-	}
+export const internalGetDefinition = internalQuery({
+	args: { organizationId: v.id("organizations"), couponDefinitionId: v.id("couponDefinitions") },
+	handler: async (ctx, args) => getDefinitionHandler(ctx, args.organizationId, args.couponDefinitionId)
 });
 
 /** Issued coupon instances — paginated, optionally filtered by status. */
@@ -110,13 +134,57 @@ const couponFields = {
 	shopId: v.optional(v.id("shops"))
 };
 
+async function createDefinitionHandler(
+	ctx: import("./_generated/server").MutationCtx,
+	organizationId: Id<"organizations">,
+	args: { name: string; discountValue: number; discountType: "PERCENTAGE" | "FIXED"; validityDays: number; memberOnly: boolean; shopId?: Id<"shops"> }
+) {
+	assertPositive(args.discountValue, "discountValue");
+	assertPositive(args.validityDays, "validityDays");
+	await assertShopInOrg(ctx, args.shopId, organizationId);
+	return await ctx.db.insert("couponDefinitions", { organizationId, ...args });
+}
+
+async function updateDefinitionHandler(
+	ctx: import("./_generated/server").MutationCtx,
+	organizationId: Id<"organizations">,
+	couponDefinitionId: Id<"couponDefinitions">,
+	fields: { name: string; discountValue: number; discountType: "PERCENTAGE" | "FIXED"; validityDays: number; memberOnly: boolean; shopId?: Id<"shops"> }
+) {
+	assertPositive(fields.discountValue, "discountValue");
+	assertPositive(fields.validityDays, "validityDays");
+	const def = await ctx.db.get(couponDefinitionId);
+	if (!def || def.organizationId !== organizationId) {
+		throw new ConvexError({ code: "NOT_FOUND", message: "Coupon type not found in this organization" });
+	}
+	await assertShopInOrg(ctx, fields.shopId, organizationId);
+	await ctx.db.patch(couponDefinitionId, fields);
+}
+
+async function removeDefinitionHandler(
+	ctx: import("./_generated/server").MutationCtx,
+	organizationId: Id<"organizations">,
+	couponDefinitionId: Id<"couponDefinitions">
+) {
+	const def = await ctx.db.get(couponDefinitionId);
+	if (!def || def.organizationId !== organizationId) {
+		throw new ConvexError({ code: "NOT_FOUND", message: "Coupon type not found in this organization" });
+	}
+	await ctx.db.delete(couponDefinitionId);
+}
+
 export const create = orgStaffMutation("coupons:write")({
 	args: couponFields,
 	handler: async (ctx, args) => {
-		assertPositive(args.discountValue, "discountValue");
-		assertPositive(args.validityDays, "validityDays");
-		await assertShopInOrg(ctx, args.shopId, ctx.organizationId);
-		await ctx.db.insert("couponDefinitions", { organizationId: ctx.organizationId, ...args });
+		await createDefinitionHandler(ctx, ctx.organizationId, args);
+	}
+});
+
+export const internalCreate = internalMutation({
+	args: { organizationId: v.id("organizations"), ...couponFields },
+	handler: async (ctx, args) => {
+		const { organizationId, ...fields } = args;
+		return await createDefinitionHandler(ctx, organizationId, fields);
 	}
 });
 
@@ -124,26 +192,26 @@ export const update = orgStaffMutation("coupons:write")({
 	args: { couponDefinitionId: v.id("couponDefinitions"), ...couponFields },
 	handler: async (ctx, args) => {
 		const { couponDefinitionId, ...fields } = args;
-		assertPositive(fields.discountValue, "discountValue");
-		assertPositive(fields.validityDays, "validityDays");
-		const def = await ctx.db.get(couponDefinitionId);
-		if (!def || def.organizationId !== ctx.organizationId) {
-			throw new ConvexError({ code: "NOT_FOUND", message: "Coupon type not found in this organization" });
-		}
-		await assertShopInOrg(ctx, fields.shopId, ctx.organizationId);
-		await ctx.db.patch(couponDefinitionId, fields);
+		await updateDefinitionHandler(ctx, ctx.organizationId, couponDefinitionId, fields);
+	}
+});
+
+export const internalUpdate = internalMutation({
+	args: { organizationId: v.id("organizations"), couponDefinitionId: v.id("couponDefinitions"), ...couponFields },
+	handler: async (ctx, args) => {
+		const { organizationId, couponDefinitionId, ...fields } = args;
+		await updateDefinitionHandler(ctx, organizationId, couponDefinitionId, fields);
 	}
 });
 
 export const remove = orgStaffMutation("coupons:write")({
 	args: { couponDefinitionId: v.id("couponDefinitions") },
-	handler: async (ctx, args) => {
-		const def = await ctx.db.get(args.couponDefinitionId);
-		if (!def || def.organizationId !== ctx.organizationId) {
-			throw new ConvexError({ code: "NOT_FOUND", message: "Coupon type not found in this organization" });
-		}
-		await ctx.db.delete(args.couponDefinitionId);
-	}
+	handler: async (ctx, args) => removeDefinitionHandler(ctx, ctx.organizationId, args.couponDefinitionId)
+});
+
+export const internalRemove = internalMutation({
+	args: { organizationId: v.id("organizations"), couponDefinitionId: v.id("couponDefinitions") },
+	handler: async (ctx, args) => removeDefinitionHandler(ctx, args.organizationId, args.couponDefinitionId)
 });
 
 export const addCondition = orgStaffMutation("coupons:write")({

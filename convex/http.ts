@@ -1,7 +1,7 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { authComponent, createAuth } from "./auth";
-import { handleV1Get, handleV1Post, handleV1Put } from "./httpApiV1";
+import { handleV1Get, handleV1Post, handleV1Put, handleV1Delete } from "./httpApiV1";
 import { handleAppleWallet, handleGoogleWallet } from "./httpWallet";
 import { registerDevice, unregisterDevice, listUpdatablePasses, getLatestPass, logErrors } from "./httpPassService";
 
@@ -32,6 +32,7 @@ http.route({ path: "/v1/log", method: "POST", handler: logErrors });
 http.route({ pathPrefix: "/v1/", method: "GET", handler: handleV1Get });
 http.route({ pathPrefix: "/v1/", method: "POST", handler: handleV1Post });
 http.route({ pathPrefix: "/v1/", method: "PUT", handler: handleV1Put });
+http.route({ pathPrefix: "/v1/", method: "DELETE", handler: handleV1Delete });
 
 // CORS preflight for the publishable-key/browser use case documented on
 // the API Keys page — a custom Authorization header makes every
@@ -44,7 +45,7 @@ http.route({
 			status: 204,
 			headers: {
 				"Access-Control-Allow-Origin": "*",
-				"Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
+				"Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
 				"Access-Control-Allow-Headers": "Authorization, Content-Type",
 				"Access-Control-Max-Age": "86400"
 			}

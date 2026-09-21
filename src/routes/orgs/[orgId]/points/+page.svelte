@@ -67,8 +67,8 @@
 				shopId: (shopId || undefined) as Id<'shops'> | undefined
 			});
 			addOpen = false;
-		} catch {
-			errorMessage = 'Failed to create point rule.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to create point rule.';
 		} finally {
 			addSaving = false;
 		}
@@ -94,8 +94,8 @@
 				shopId: (shopId || undefined) as Id<'shops'> | undefined
 			});
 			editOpen = false;
-		} catch {
-			errorMessage = 'Failed to update point rule.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to update point rule.';
 		} finally {
 			editSaving = false;
 		}
@@ -106,8 +106,8 @@
 		try {
 			await removeRule({ organizationId, pointRuleId: editingRule._id });
 			editOpen = false;
-		} catch {
-			errorMessage = 'Failed to delete point rule.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to delete point rule.';
 		}
 	}
 </script>

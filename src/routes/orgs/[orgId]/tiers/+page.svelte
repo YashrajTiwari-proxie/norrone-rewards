@@ -5,6 +5,7 @@
 	import ConditionBuilder from '$lib/components/ConditionBuilder.svelte';
 	import GrantBuilder from '$lib/components/GrantBuilder.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
+	import IdLine from '$lib/components/IdLine.svelte';
 	import { page } from '$app/state';
 	import { useQuery, useMutation } from 'convex-svelte';
 	import { api } from '../../../../../convex/_generated/api';
@@ -77,8 +78,8 @@
 				shopId: (shopId || undefined) as Id<'shops'> | undefined
 			});
 			addOpen = false;
-		} catch {
-			errorMessage = 'Failed to create tier.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to create tier.';
 		} finally {
 			addSaving = false;
 		}
@@ -104,8 +105,8 @@
 				shopId: (shopId || undefined) as Id<'shops'> | undefined
 			});
 			editOpen = false;
-		} catch {
-			errorMessage = 'Failed to update tier.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to update tier.';
 		} finally {
 			editSaving = false;
 		}
@@ -116,8 +117,8 @@
 		try {
 			await removeTier({ organizationId, tierId: editingTier._id });
 			editOpen = false;
-		} catch {
-			errorMessage = 'Failed to delete tier.';
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Failed to delete tier.';
 		}
 	}
 
@@ -154,6 +155,7 @@
 						<div style="margin-top:6px;font:400 13px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
 							{tier.conditionSummary} · {tier.scopeName}
 						</div>
+						<div style="margin-top:4px"><IdLine id={tier._id} compact /></div>
 					</div>
 					<div style="text-align:right">
 						<div style="font:500 10px/1 'IBM Plex Sans',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">Multiplier</div>
@@ -209,6 +211,9 @@
 
 <Drawer bind:open={editOpen} title={editingTier?.name ?? ''} note="Update this tier, who qualifies, and what it grants.">
 	{#if editingTier}
+		<div style="margin-bottom:16px">
+			<IdLine id={editingTier._id} compact />
+		</div>
 		<form id="edit-tier-form" onsubmit={submitUpdate}>
 			<div style="display:flex;flex-direction:column;gap:18px">
 				<label class="field">
