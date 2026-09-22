@@ -1,7 +1,7 @@
 import { internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
 import type { ActionCtx } from "../_generated/server";
-import { requireApiKey, json, errorResponse, segments } from "./shared";
+import { requireApiKey, json, errorResponse, segments, getOrNull } from "./shared";
 
 /** GET/POST /v1/tiers, GET/PUT/DELETE /v1/tiers/:id — see membershipPlans.ts's identical shape/comment. */
 export async function dispatchTiers(ctx: ActionCtx, request: Request): Promise<Response | null> {
@@ -24,7 +24,7 @@ export async function dispatchTiers(ctx: ActionCtx, request: Request): Promise<R
 	}
 
 	if (request.method === "GET" && id) {
-		const tier = await ctx.runQuery(internal.tiers.internalGet, { organizationId: apiCtx.organizationId, tierId: id });
+		const tier = await getOrNull(() => ctx.runQuery(internal.tiers.internalGet, { organizationId: apiCtx.organizationId, tierId: id }));
 		if (!tier) return errorResponse(404, "Tier not found.");
 		return json(tier);
 	}
@@ -46,7 +46,7 @@ export async function dispatchTiers(ctx: ActionCtx, request: Request): Promise<R
 	}
 
 	if (request.method === "PUT" && id) {
-		const existing = await ctx.runQuery(internal.tiers.internalGet, { organizationId: apiCtx.organizationId, tierId: id });
+		const existing = await getOrNull(() => ctx.runQuery(internal.tiers.internalGet, { organizationId: apiCtx.organizationId, tierId: id }));
 		if (!existing) return errorResponse(404, "Tier not found.");
 		const body = await request.json().catch(() => null);
 		if (!body || typeof body.name !== "string" || !body.name) return errorResponse(400, "name is required.");
@@ -65,7 +65,7 @@ export async function dispatchTiers(ctx: ActionCtx, request: Request): Promise<R
 	}
 
 	if (request.method === "DELETE" && id) {
-		const existing = await ctx.runQuery(internal.tiers.internalGet, { organizationId: apiCtx.organizationId, tierId: id });
+		const existing = await getOrNull(() => ctx.runQuery(internal.tiers.internalGet, { organizationId: apiCtx.organizationId, tierId: id }));
 		if (!existing) return errorResponse(404, "Tier not found.");
 		await ctx.runMutation(internal.tiers.internalRemove, { organizationId: apiCtx.organizationId, tierId: id });
 		return new Response(null, { status: 204, headers: { "Access-Control-Allow-Origin": "*" } });

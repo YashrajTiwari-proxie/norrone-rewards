@@ -89,6 +89,22 @@ export function assertShopInScope(apiCtx: ApiKeyContext, requestedShopId: Id<"sh
 	return null;
 }
 
+/**
+ * Runs a runQuery lookup keyed by a URL-supplied id and treats a
+ * malformed id (wrong table, wrong shape) the same as "not found" instead
+ * of letting Convex's ArgumentValidationError bubble up as an uncaught
+ * 500 — a bad/typo'd id in a path segment is a routine client mistake,
+ * not a server error.
+ */
+export async function getOrNull<T>(fn: () => Promise<T>): Promise<T | null> {
+	try {
+		return await fn();
+	} catch (err) {
+		if (err instanceof Error && /ArgumentValidationError/.test(err.message)) return null;
+		throw err;
+	}
+}
+
 export function isWalletNotConfigured(err: unknown): err is ConvexError<{ code: string; message: string }> {
 	return err instanceof ConvexError && (err.data as { code?: string } | undefined)?.code === WALLET_NOT_CONFIGURED;
 }

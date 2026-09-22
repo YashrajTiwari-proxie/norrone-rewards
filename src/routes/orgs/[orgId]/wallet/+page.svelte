@@ -1,6 +1,7 @@
 <script lang="ts">
+	import PageLoading from '$lib/components/PageLoading.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
-	import Chip from '$lib/components/Chip.svelte';
+	import Badge from '$lib/components/Badge.svelte';
 	import { page } from '$app/state';
 	import { useQuery, useMutation, useAction } from 'convex-svelte';
 	import QRCode from 'qrcode';
@@ -193,7 +194,7 @@
 
 <div style="padding:34px 40px 72px;max-width:760px;display:flex;flex-direction:column;gap:20px">
 	{#if status.isLoading}
-		<p>Loading…</p>
+		<PageLoading />
 	{:else if status.error}
 		<p>Failed to load wallet status: {status.error.message}</p>
 	{:else}
@@ -201,9 +202,9 @@
 			<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
 				<div style="font:600 15px/1 'IBM Plex Sans',sans-serif">Apple Wallet</div>
 				<div style="display:flex;gap:6px">
-					<Chip tone={status.data.apple ? 'green' : 'amber'} text={status.data.apple ? 'Configured' : 'Not configured'} />
+					<Badge tone={status.data.apple ? 'green' : 'amber'} text={status.data.apple ? 'Configured' : 'Not configured'} />
 					{#if status.data.apple}
-						<Chip
+						<Badge
 							tone={status.data.appleAutoUpdate ? 'green' : 'grey'}
 							text={status.data.appleAutoUpdate ? 'Auto-update on' : 'Auto-update off'}
 						/>
@@ -222,7 +223,7 @@
 		<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:16px">
 			<div style="display:flex;align-items:center;justify-content:space-between">
 				<div style="font:600 15px/1 'IBM Plex Sans',sans-serif">Google Wallet</div>
-				<Chip tone={status.data.google ? 'green' : 'amber'} text={status.data.google ? 'Configured' : 'Not configured'} />
+				<Badge tone={status.data.google ? 'green' : 'amber'} text={status.data.google ? 'Configured' : 'Not configured'} />
 			</div>
 			{#if !status.data.google}
 				<div style="font:400 13px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
@@ -253,7 +254,7 @@
 
 			<div style="padding:22px 24px;display:flex;flex-direction:column;gap:18px">
 				{#if template.isLoading}
-					<p>Loading…</p>
+					<PageLoading />
 				{:else if activeTab === 'apple'}
 					<div style="font:400 13px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
 						Apple's own logo, banner, colors, and display name — fully independent of Google's tab.

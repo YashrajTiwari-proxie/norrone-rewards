@@ -1,9 +1,12 @@
 <script lang="ts">
+	import PageLoading from '$lib/components/PageLoading.svelte';
+	import Table from '$lib/components/Table.svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Drawer from '$lib/components/Drawer.svelte';
-	import Chip from '$lib/components/Chip.svelte';
+	import AlertDialog from '$lib/components/AlertDialog.svelte';
+	import Badge from '$lib/components/Badge.svelte';
 	import ConditionBuilder from '$lib/components/ConditionBuilder.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import IdLine from '$lib/components/IdLine.svelte';
@@ -126,13 +129,20 @@
 		}
 	}
 
+	let deleteConfirmOpen = $state(false);
+	let deleting = $state(false);
+
 	async function deleteDef() {
 		if (!editingDef) return;
+		deleting = true;
 		try {
 			await removeDef({ organizationId, couponDefinitionId: editingDef._id });
+			deleteConfirmOpen = false;
 			editOpen = false;
 		} catch (err) {
 			errorMessage = err instanceof Error ? err.message : 'Failed to delete coupon.';
+		} finally {
+			deleting = false;
 		}
 	}
 
@@ -172,7 +182,7 @@
 	<div>
 		<div style="font:600 15px/1 'IBM Plex Sans',sans-serif;color:var(--ink);margin-bottom:14px">Coupon types</div>
 		{#if definitions.isLoading}
-			<p>Loading…</p>
+			<PageLoading />
 		{:else if definitions.error}
 			<p>Failed to load coupons: {definitions.error.message}</p>
 		{:else if definitions.data.length === 0}
@@ -182,8 +192,7 @@
 				{/snippet}
 			</EmptyState>
 		{:else}
-			<div class="card" style="padding:6px 20px 14px">
-				<table>
+			<Table>
 					<thead>
 						<tr>
 							<th>Name</th>
@@ -201,7 +210,7 @@
 									<div style="margin-top:3px" onclick={(e) => e.stopPropagation()} role="presentation">
 										<IdLine id={def._id} compact />
 									</div>
-									{#if def.memberOnly}<div style="margin-top:4px"><Chip tone="amber" text="Members only" /></div>{/if}
+									{#if def.memberOnly}<div style="margin-top:4px"><Badge tone="amber" text="Members only" /></div>{/if}
 								</td>
 								<td class="right mono" style="font-weight:500;color:var(--stamp-amber)">
 									{def.discountType === 'PERCENTAGE' ? `${def.discountValue}%` : `₹${def.discountValue}`}
@@ -212,15 +221,14 @@
 							</tr>
 						{/each}
 					</tbody>
-				</table>
-			</div>
+				</Table>
 		{/if}
 	</div>
 
 	<div>
 		<div style="font:600 15px/1 'IBM Plex Sans',sans-serif;color:var(--ink);margin-bottom:14px">Issued coupons</div>
 		{#if instances.isLoading}
-			<p>Loading…</p>
+			<PageLoading />
 		{:else if instances.error}
 			<p>Failed to load issued coupons: {instances.error.message}</p>
 		{:else}
@@ -252,7 +260,7 @@
 								<div>
 									<div style="font:400 12px/1.4 'IBM Plex Sans',sans-serif;color:var(--text-muted)">{coupon.holder}</div>
 									<div style="margin-top:9px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-										<Chip tone={statusTone[coupon.status] ?? 'grey'} text={coupon.status} />
+										<Badge tone={statusTone[coupon.status] ?? 'grey'} text={coupon.status} />
 										<span class="mono" style="font:400 12px 'IBM Plex Mono',monospace;color:var(--text-muted)">
 											{new Date(coupon.expiresAt).toLocaleDateString()}
 										</span>
@@ -376,7 +384,7 @@
 			onAdd={(input) => addCondition({ organizationId, couponDefinitionId: editingDef!._id, ...input } as never)}
 			onRemove={(conditionId) => removeCondition({ organizationId, conditionId: conditionId as Id<'eligibilityConditions'> })}
 		/>
-		<button type="button" class="btn-danger-text" style="margin-top:4px" onclick={deleteDef}>Delete this coupon type</button>
+		<button type="button" class="btn-danger-text" style="margin-top:4px" onclick={() => (deleteConfirmOpen = true)}>Delete this coupon type</button>
 	{/if}
 	{#snippet footer()}
 		<button type="button" class="btn btn-ghost" onclick={() => (editOpen = false)} disabled={editSaving}>Cancel</button>
@@ -385,3 +393,12 @@
 		</button>
 	{/snippet}
 </Drawer>
+
+<AlertDialog
+	bind:open={deleteConfirmOpen}
+	title="Delete this coupon type?"
+	body="Existing issued coupons of this type are unaffected, but no new ones can be issued. This can't be undone."
+	confirmLabel="Delete coupon type"
+	confirming={deleting}
+	onconfirm={deleteDef}
+/>

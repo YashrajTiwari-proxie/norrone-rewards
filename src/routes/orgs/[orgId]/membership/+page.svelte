@@ -1,4 +1,6 @@
 <script lang="ts">
+	import PageLoading from '$lib/components/PageLoading.svelte';
+	import Table from '$lib/components/Table.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Drawer from '$lib/components/Drawer.svelte';
 	import GrantBuilder from '$lib/components/GrantBuilder.svelte';
@@ -142,7 +144,7 @@
 
 <div style="padding:34px 40px 72px;max-width:1260px">
 	{#if plans.isLoading}
-		<p>Loading…</p>
+		<PageLoading />
 	{:else if plans.error}
 		<p>Failed to load membership plans: {plans.error.message}</p>
 	{:else if plans.data.length === 0}
@@ -152,8 +154,7 @@
 			{/snippet}
 		</EmptyState>
 	{:else}
-		<div class="card" style="padding:6px 20px 14px">
-			<table>
+		<Table>
 				<thead>
 					<tr>
 						<th>Plan</th>
@@ -186,8 +187,7 @@
 						</tr>
 					{/each}
 				</tbody>
-			</table>
-		</div>
+			</Table>
 	{/if}
 </div>
 

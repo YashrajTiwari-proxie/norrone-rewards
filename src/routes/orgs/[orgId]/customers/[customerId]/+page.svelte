@@ -1,8 +1,9 @@
 <script lang="ts">
+	import PageLoading from '$lib/components/PageLoading.svelte';
 	import { page } from '$app/state';
 	import StatTicket from '$lib/components/StatTicket.svelte';
 	import TierStamp from '$lib/components/TierStamp.svelte';
-	import Chip from '$lib/components/Chip.svelte';
+	import Badge from '$lib/components/Badge.svelte';
 	import Drawer from '$lib/components/Drawer.svelte';
 	import { tierColor } from '$lib/tierColor';
 	import { useQuery, useMutation, useAction } from 'convex-svelte';
@@ -174,7 +175,7 @@
 </script>
 
 {#if detail.isLoading}
-	<div style="padding:40px">Loading…</div>
+	<PageLoading />
 {:else if detail.error}
 	<div style="padding:40px">Failed to load customer: {detail.error.message}</div>
 {:else}
@@ -196,14 +197,14 @@
 				</div>
 				<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
 					{#if data.membershipPlan}
-						<Chip tone="green" text="Member · {data.membershipPlan.name}" />
+						<Badge tone="green" text="Member · {data.membershipPlan.name}" />
 						{#if data.membershipExpiry! > Date.now() + 100 * 365 * 24 * 60 * 60 * 1000}
-							<Chip tone="amber" text="No expiry" />
+							<Badge tone="amber" text="No expiry" />
 						{:else}
-							<Chip tone="amber" mono text="Renews {new Date(data.membershipExpiry!).toLocaleDateString()}" />
+							<Badge tone="amber" mono text="Renews {new Date(data.membershipExpiry!).toLocaleDateString()}" />
 						{/if}
 					{:else}
-						<Chip tone="grey" text="Not a member" />
+						<Badge tone="grey" text="Not a member" />
 					{/if}
 				</div>
 			</div>
@@ -313,7 +314,7 @@
 								</div>
 								<div style="display:flex;align-items:center;gap:12px">
 									<span class="mono" style="font:400 12px 'IBM Plex Mono',monospace;color:var(--text-muted)">{c.value}</span>
-									<Chip tone={couponStatusTone[c.status] ?? 'grey'} text={c.status} />
+									<Badge tone={couponStatusTone[c.status] ?? 'grey'} text={c.status} />
 								</div>
 							</div>
 						{/each}

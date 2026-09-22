@@ -1,7 +1,10 @@
 <script lang="ts">
+	import PageLoading from '$lib/components/PageLoading.svelte';
+	import Table from '$lib/components/Table.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Drawer from '$lib/components/Drawer.svelte';
-	import Chip from '$lib/components/Chip.svelte';
+	import AlertDialog from '$lib/components/AlertDialog.svelte';
+	import Badge from '$lib/components/Badge.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import ApiIdsCard from '$lib/components/ApiIdsCard.svelte';
 	import { page } from '$app/state';
@@ -51,11 +54,26 @@
 		}
 	}
 
-	async function revoke(apiKeyId: Id<'apiKeys'>) {
+	let revokeTarget = $state<Id<'apiKeys'> | null>(null);
+	let revokeDialogOpen = $state(false);
+	let revoking = $state(false);
+
+	function confirmRevoke(apiKeyId: Id<'apiKeys'>) {
+		revokeTarget = apiKeyId;
+		revokeDialogOpen = true;
+	}
+
+	async function revoke() {
+		if (!revokeTarget) return;
+		revoking = true;
 		try {
-			await revokeKey({ organizationId, apiKeyId });
+			await revokeKey({ organizationId, apiKeyId: revokeTarget });
+			revokeDialogOpen = false;
+			revokeTarget = null;
 		} catch (err) {
 			errorMessage = err instanceof Error ? err.message : 'Failed to revoke API key.';
+		} finally {
+			revoking = false;
 		}
 	}
 </script>
@@ -105,7 +123,7 @@
 	{/if}
 
 	{#if keys.isLoading}
-		<p>Loading…</p>
+		<PageLoading />
 	{:else if keys.error}
 		<p>Failed to load API keys: {keys.error.message}</p>
 	{:else if keys.data.length === 0}
@@ -115,8 +133,7 @@
 			{/snippet}
 		</EmptyState>
 	{:else}
-		<div class="card" style="padding:6px 20px 14px">
-			<table>
+		<Table>
 				<thead>
 					<tr>
 						<th>Type</th>
@@ -129,7 +146,7 @@
 					{#each keys.data as key (key.id)}
 						<tr>
 							<td>
-								<Chip tone={key.type === 'secret' ? 'rust' : 'green'} text={key.type} />
+								<Badge tone={key.type === 'secret' ? 'rust' : 'green'} text={key.type} />
 							</td>
 							<td style="color:var(--text-muted)">{key.scopeName}</td>
 							<td class="right mono" style="color:var(--text-muted)">{new Date(key.createdAt).toLocaleDateString()}</td>
@@ -137,14 +154,13 @@
 								{#if key.revoked}
 									<span style="font:500 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">Revoked</span>
 								{:else}
-									<button type="button" class="btn-danger-text" onclick={() => revoke(key.id)}>Revoke</button>
+									<button type="button" class="btn-danger-text" onclick={() => confirmRevoke(key.id)}>Revoke</button>
 								{/if}
 							</td>
 						</tr>
 					{/each}
 				</tbody>
-			</table>
-		</div>
+			</Table>
 	{/if}
 	{#if errorMessage}
 		<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
@@ -179,3 +195,12 @@
 		</button>
 	{/snippet}
 </Drawer>
+
+<AlertDialog
+	bind:open={revokeDialogOpen}
+	title="Revoke this API key?"
+	body="Any integration using this key will immediately start getting 401 Unauthorized. This can't be undone."
+	confirmLabel="Revoke key"
+	confirming={revoking}
+	onconfirm={revoke}
+/>

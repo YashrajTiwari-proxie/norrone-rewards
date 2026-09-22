@@ -18,6 +18,7 @@ packages/*/*.tsbuildinfo
 /Certs
 /Logo and Apple directions
 /reference
+/admin-panel-v2
 coverage
 
 # OS

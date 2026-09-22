@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Table from '$lib/components/Table.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Drawer from '$lib/components/Drawer.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
@@ -112,8 +113,7 @@
 			{/snippet}
 		</EmptyState>
 	{:else}
-		<div class="card" style="padding:6px 20px 14px">
-			<table>
+		<Table>
 				<thead>
 					<tr>
 						<th>Country</th>
@@ -134,8 +134,7 @@
 						</tr>
 					{/each}
 				</tbody>
-			</table>
-		</div>
+			</Table>
 	{/if}
 </div>
 

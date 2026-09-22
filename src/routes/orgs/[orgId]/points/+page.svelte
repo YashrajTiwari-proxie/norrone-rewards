@@ -1,7 +1,9 @@
 <script lang="ts">
+	import PageLoading from '$lib/components/PageLoading.svelte';
+	import Table from '$lib/components/Table.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Drawer from '$lib/components/Drawer.svelte';
-	import Chip from '$lib/components/Chip.svelte';
+	import Badge from '$lib/components/Badge.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import { page } from '$app/state';
 	import { useQuery, useMutation } from 'convex-svelte';
@@ -120,7 +122,7 @@
 
 <div style="padding:34px 40px 72px;max-width:1260px">
 	{#if rules.isLoading}
-		<p>Loading…</p>
+		<PageLoading />
 	{:else if rules.error}
 		<p>Failed to load point rules: {rules.error.message}</p>
 	{:else if rules.data.length === 0}
@@ -130,8 +132,7 @@
 			{/snippet}
 		</EmptyState>
 	{:else}
-		<div class="card" style="padding:6px 20px 14px">
-			<table>
+		<Table>
 				<thead>
 					<tr>
 						<th>Action</th>
@@ -148,9 +149,9 @@
 							<td class="right mono" style="font-weight:500;color:var(--stamp-amber)">+{rule.pointsPerUnit}</td>
 							<td>
 								{#if rule.memberOnly}
-									<Chip tone="amber" text="Members only" />
+									<Badge tone="amber" text="Members only" />
 								{:else}
-									<Chip tone="grey" text="Everyone" />
+									<Badge tone="grey" text="Everyone" />
 								{/if}
 							</td>
 							<td style="color:var(--text-muted)">{rule.scopeName}</td>
@@ -158,8 +159,7 @@
 						</tr>
 					{/each}
 				</tbody>
-			</table>
-		</div>
+			</Table>
 	{/if}
 </div>
 

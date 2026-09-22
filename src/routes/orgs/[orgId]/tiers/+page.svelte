@@ -1,6 +1,8 @@
 <script lang="ts">
+	import PageLoading from '$lib/components/PageLoading.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Drawer from '$lib/components/Drawer.svelte';
+	import AlertDialog from '$lib/components/AlertDialog.svelte';
 	import TierStamp from '$lib/components/TierStamp.svelte';
 	import ConditionBuilder from '$lib/components/ConditionBuilder.svelte';
 	import GrantBuilder from '$lib/components/GrantBuilder.svelte';
@@ -112,13 +114,20 @@
 		}
 	}
 
+	let deleteConfirmOpen = $state(false);
+	let deleting = $state(false);
+
 	async function deleteTier() {
 		if (!editingTier) return;
+		deleting = true;
 		try {
 			await removeTier({ organizationId, tierId: editingTier._id });
+			deleteConfirmOpen = false;
 			editOpen = false;
 		} catch (err) {
 			errorMessage = err instanceof Error ? err.message : 'Failed to delete tier.';
+		} finally {
+			deleting = false;
 		}
 	}
 
@@ -133,7 +142,7 @@
 
 <div style="padding:34px 40px 72px;max-width:1260px">
 	{#if tiers.isLoading}
-		<p>Loading…</p>
+		<PageLoading />
 	{:else if tiers.error}
 		<p>Failed to load tiers: {tiers.error.message}</p>
 	{:else if tiers.data.length === 0}
@@ -249,7 +258,7 @@
 			onAdd={(input) => addBenefit({ organizationId, tierId: editingTier!._id, ...input })}
 			onRemove={(benefitId) => removeBenefit({ organizationId, benefitId: benefitId as Id<'grantedBenefits'> })}
 		/>
-		<button type="button" class="btn-danger-text" style="margin-top:4px" onclick={deleteTier}>Delete this tier</button>
+		<button type="button" class="btn-danger-text" style="margin-top:4px" onclick={() => (deleteConfirmOpen = true)}>Delete this tier</button>
 	{/if}
 	{#snippet footer()}
 		<button type="button" class="btn btn-ghost" onclick={() => (editOpen = false)} disabled={editSaving}>Cancel</button>
@@ -258,3 +267,12 @@
 		</button>
 	{/snippet}
 </Drawer>
+
+<AlertDialog
+	bind:open={deleteConfirmOpen}
+	title="Delete this tier?"
+	body="Customers currently at this tier will lose it. This can't be undone."
+	confirmLabel="Delete tier"
+	confirming={deleting}
+	onconfirm={deleteTier}
+/>

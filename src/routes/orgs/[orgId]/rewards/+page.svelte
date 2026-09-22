@@ -1,7 +1,9 @@
 <script lang="ts">
+	import PageLoading from '$lib/components/PageLoading.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Drawer from '$lib/components/Drawer.svelte';
-	import Chip from '$lib/components/Chip.svelte';
+	import AlertDialog from '$lib/components/AlertDialog.svelte';
+	import Badge from '$lib/components/Badge.svelte';
 	import ConditionBuilder from '$lib/components/ConditionBuilder.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import IdLine from '$lib/components/IdLine.svelte';
@@ -103,13 +105,20 @@
 		}
 	}
 
+	let deleteConfirmOpen = $state(false);
+	let deleting = $state(false);
+
 	async function deleteReward() {
 		if (!editingReward) return;
+		deleting = true;
 		try {
 			await removeReward({ organizationId, rewardId: editingReward._id });
+			deleteConfirmOpen = false;
 			editOpen = false;
 		} catch (err) {
 			errorMessage = err instanceof Error ? err.message : 'Failed to delete reward.';
+		} finally {
+			deleting = false;
 		}
 	}
 </script>
@@ -122,7 +131,7 @@
 
 <div style="padding:34px 40px 72px;max-width:1260px">
 	{#if rewards.isLoading}
-		<p>Loading…</p>
+		<PageLoading />
 	{:else if rewards.error}
 		<p>Failed to load rewards: {rewards.error.message}</p>
 	{:else if rewards.data.length === 0}
@@ -154,8 +163,8 @@
 							{/if}
 						</div>
 						<div style="margin-top:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-							<Chip tone="grey" mono text={reward.conditionSummary} />
-							{#if reward.memberOnly}<Chip tone="amber" text="Members only" />{/if}
+							<Badge tone="grey" mono text={reward.conditionSummary} />
+							{#if reward.memberOnly}<Badge tone="amber" text="Members only" />{/if}
 						</div>
 					</div>
 					<div class="stub-perforation"></div>
@@ -244,7 +253,7 @@
 			onAdd={(input) => addCondition({ organizationId, rewardId: editingReward!._id, ...input } as never)}
 			onRemove={(conditionId) => removeCondition({ organizationId, conditionId: conditionId as Id<'eligibilityConditions'> })}
 		/>
-		<button type="button" class="btn-danger-text" style="margin-top:4px" onclick={deleteReward}>Delete this reward</button>
+		<button type="button" class="btn-danger-text" style="margin-top:4px" onclick={() => (deleteConfirmOpen = true)}>Delete this reward</button>
 	{/if}
 	{#snippet footer()}
 		<button type="button" class="btn btn-ghost" onclick={() => (editOpen = false)} disabled={editSaving}>Cancel</button>
@@ -253,3 +262,12 @@
 		</button>
 	{/snippet}
 </Drawer>
+
+<AlertDialog
+	bind:open={deleteConfirmOpen}
+	title="Delete this reward?"
+	body="This reward will no longer be granted or shown to customers. This can't be undone."
+	confirmLabel="Delete reward"
+	confirming={deleting}
+	onconfirm={deleteReward}
+/>

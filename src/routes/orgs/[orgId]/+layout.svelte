@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
+	import AppHeader from '$lib/components/AppHeader.svelte';
 	import { page } from '$app/state';
 	import { useQuery, useAuth } from 'convex-svelte';
 	import { api } from '../../../../convex/_generated/api';
@@ -43,6 +44,7 @@
 			staffRole={org.data.myRole}
 		/>
 		<div style="flex:1;min-width:0;display:flex;flex-direction:column">
+			<AppHeader orgId={organizationId} orgName={org.data.organization.name} />
 			{@render children()}
 		</div>
 	</div>

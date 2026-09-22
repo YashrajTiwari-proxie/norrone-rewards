@@ -1,6 +1,7 @@
 <script lang="ts">
+	import Table from '$lib/components/Table.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
-	import Chip from '$lib/components/Chip.svelte';
+	import Badge from '$lib/components/Badge.svelte';
 	import { page } from '$app/state';
 	import { useQuery, useAction } from 'convex-svelte';
 	import { ConvexError } from 'convex/values';
@@ -55,8 +56,7 @@
 <PageHeader title="Staff" subtitle="Who has access to this organization's dashboard." />
 
 <div style="padding:34px 40px 72px;max-width:1260px;display:flex;flex-direction:column;gap:26px">
-	<div class="card" style="padding:6px 20px 14px">
-		<table>
+	<Table>
 			<thead>
 				<tr>
 					<th>Email</th>
@@ -75,14 +75,13 @@
 							<td class="mono" style="color:var(--text-muted)">{s.email}</td>
 							<td style="color:var(--text-muted);text-transform:capitalize">{s.role}</td>
 							<td class="right">
-								<Chip tone={s.status === 'Active' ? 'green' : 'amber'} text={s.status} />
+								<Badge tone={s.status === 'Active' ? 'green' : 'amber'} text={s.status} />
 							</td>
 						</tr>
 					{/each}
 				{/if}
 			</tbody>
-		</table>
-	</div>
+		</Table>
 
 	<div class="card" style="padding:22px 24px;max-width:560px">
 		<div style="font:600 15px/1 'IBM Plex Sans',sans-serif">Add someone</div>

@@ -1,8 +1,9 @@
 <script lang="ts">
+	import PageLoading from '$lib/components/PageLoading.svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import PageHeader from '$lib/components/PageHeader.svelte';
-	import Chip from '$lib/components/Chip.svelte';
+	import Badge from '$lib/components/Badge.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import { useQuery } from 'convex-svelte';
 	import { api } from '../../../../../convex/_generated/api';
@@ -72,7 +73,7 @@
 	</div>
 
 	{#if customers.isLoading}
-		<p>Loading…</p>
+		<PageLoading />
 	{:else if customers.error}
 		<p>Failed to load customers: {customers.error.message}</p>
 	{:else if customers.data.customers.length === 0}
@@ -101,14 +102,14 @@
 							<td style="color:var(--text-muted)">{c.shopName}</td>
 							<td>
 								{#if c.tier}
-									<Chip tone="grey" text={c.tier.name} />
+									<Badge tone="grey" text={c.tier.name} />
 								{:else}
 									<span style="color:var(--text-muted)">—</span>
 								{/if}
 							</td>
 							<td class="right mono" style="font-weight:500;color:var(--ink)">{c.points.toLocaleString()}</td>
 							<td>
-								{#if c.isMember}<Chip tone="green" text="Member" />{:else}<Chip tone="grey" text="Not a member" />{/if}
+								{#if c.isMember}<Badge tone="green" text="Member" />{:else}<Badge tone="grey" text="Not a member" />{/if}
 							</td>
 							<td class="right mono" style="color:var(--text-muted)">{new Date(c.lastActivity).toLocaleDateString()}</td>
 						</tr>

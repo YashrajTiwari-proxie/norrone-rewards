@@ -1,7 +1,7 @@
 import { internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
 import type { ActionCtx } from "../_generated/server";
-import { requireApiKey, json, errorResponse, segments } from "./shared";
+import { requireApiKey, json, errorResponse, segments, getOrNull } from "./shared";
 
 /**
  * GET/POST /v1/membership-plans, GET/PUT/DELETE /v1/membership-plans/:id
@@ -33,7 +33,7 @@ export async function dispatchMembershipPlans(ctx: ActionCtx, request: Request):
 	}
 
 	if (request.method === "GET" && id) {
-		const plan = await ctx.runQuery(internal.membershipPlans.internalGet, { organizationId: apiCtx.organizationId, planId: id });
+		const plan = await getOrNull(() => ctx.runQuery(internal.membershipPlans.internalGet, { organizationId: apiCtx.organizationId, planId: id }));
 		if (!plan) return errorResponse(404, "Membership plan not found.");
 		return json(plan);
 	}
@@ -55,7 +55,7 @@ export async function dispatchMembershipPlans(ctx: ActionCtx, request: Request):
 	}
 
 	if (request.method === "PUT" && id) {
-		const existing = await ctx.runQuery(internal.membershipPlans.internalGet, { organizationId: apiCtx.organizationId, planId: id });
+		const existing = await getOrNull(() => ctx.runQuery(internal.membershipPlans.internalGet, { organizationId: apiCtx.organizationId, planId: id }));
 		if (!existing) return errorResponse(404, "Membership plan not found.");
 		const body = await request.json().catch(() => null);
 		if (!body || typeof body.name !== "string" || !body.name) return errorResponse(400, "name is required.");
@@ -69,12 +69,12 @@ export async function dispatchMembershipPlans(ctx: ActionCtx, request: Request):
 			pointMultiplier: body.pointMultiplier,
 			shopId: typeof body.shopId === "string" ? (body.shopId as Id<"shops">) : undefined
 		});
-		const plan = await ctx.runQuery(internal.membershipPlans.internalGet, { organizationId: apiCtx.organizationId, planId: id });
+		const plan = await getOrNull(() => ctx.runQuery(internal.membershipPlans.internalGet, { organizationId: apiCtx.organizationId, planId: id }));
 		return json(plan);
 	}
 
 	if (request.method === "DELETE" && id) {
-		const existing = await ctx.runQuery(internal.membershipPlans.internalGet, { organizationId: apiCtx.organizationId, planId: id });
+		const existing = await getOrNull(() => ctx.runQuery(internal.membershipPlans.internalGet, { organizationId: apiCtx.organizationId, planId: id }));
 		if (!existing) return errorResponse(404, "Membership plan not found.");
 		await ctx.runMutation(internal.membershipPlans.internalRemove, { organizationId: apiCtx.organizationId, planId: id });
 		return new Response(null, { status: 204, headers: { "Access-Control-Allow-Origin": "*" } });

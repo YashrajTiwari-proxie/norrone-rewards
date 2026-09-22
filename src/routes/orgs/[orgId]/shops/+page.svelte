@@ -1,9 +1,13 @@
 <script lang="ts">
+	import PageLoading from '$lib/components/PageLoading.svelte';
+	import Table from '$lib/components/Table.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Drawer from '$lib/components/Drawer.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import RegionCurrencyFields from '$lib/components/RegionCurrencyFields.svelte';
+	import StatTicket from '$lib/components/StatTicket.svelte';
 	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 	import { useQuery, useMutation } from 'convex-svelte';
 	import { api } from '../../../../../convex/_generated/api';
 	import type { Id } from '../../../../../convex/_generated/dataModel';
@@ -12,8 +16,13 @@
 	const shops = useQuery(api.shops.list, () => ({ organizationId }));
 	const org = useQuery(api.organizations.getForStaff, () => ({ organizationId }));
 	const regions = useQuery(api.regions.list, {});
+	const overview = useQuery(api.dashboard.getOverview, () => ({ organizationId }));
 	const createShop = useMutation(api.shops.create);
 	const updateShop = useMutation(api.shops.update);
+
+	function openShop(shopId: string) {
+		goto(`/orgs/${organizationId}?shop=${shopId}`);
+	}
 
 	let drawerOpen = $state(false);
 	let saving = $state(false);
@@ -106,15 +115,25 @@
 	}
 </script>
 
-<PageHeader title="Shops" subtitle="Every location running this rewards program.">
+<PageHeader title="Shops" subtitle="All locations at a glance. Click a shop to open its own dashboard.">
 	{#snippet actions()}
 		<button class="btn btn-primary" onclick={openAdd}>Add a shop</button>
 	{/snippet}
 </PageHeader>
 
-<div style="padding:34px 40px 72px;max-width:1260px">
+<div style="padding:34px 40px 72px;max-width:1260px;display:flex;flex-direction:column;gap:26px">
+	{#if overview.data && !overview.isLoading}
+		{@const data = overview.data}
+		<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px">
+			<StatTicket label="Shops" value={(shops.data?.length ?? 0).toLocaleString()} note="All locations" />
+			<StatTicket label="Customers" value={data.stats.customerCount.toLocaleString()} note="Across every shop" />
+			<StatTicket label="Active members" value={data.stats.activeMemberCount.toLocaleString()} note="Paid membership, not expired" />
+			<StatTicket label="Points issued" value={data.stats.pointsIssuedTotal.toLocaleString()} note="Last 12 weeks" />
+		</div>
+	{/if}
+
 	{#if shops.isLoading}
-		<p>Loading…</p>
+		<PageLoading />
 	{:else if shops.error}
 		<p>Failed to load shops: {shops.error.message}</p>
 	{:else if shops.data.length === 0}
@@ -124,8 +143,7 @@
 			{/snippet}
 		</EmptyState>
 	{:else}
-		<div class="card" style="padding:6px 20px 14px">
-			<table>
+		<Table>
 				<thead>
 					<tr>
 						<th>Shop</th>
@@ -134,11 +152,12 @@
 						<th>Currency</th>
 						<th class="right">Customers</th>
 						<th class="right">Added</th>
+						<th></th>
 					</tr>
 				</thead>
 				<tbody>
 					{#each shops.data as shop (shop._id)}
-						<tr onclick={() => openEdit(shop)} style="cursor:pointer">
+						<tr onclick={() => openShop(shop._id)} style="cursor:pointer">
 							<td style="font:500 14px 'IBM Plex Sans',sans-serif;color:var(--ink)">{shop.name}</td>
 							<td class="mono" style="color:var(--text-muted)">{shop.externalShopId ?? '—'}</td>
 							<td style="color:var(--text-muted)">{shop.regionName ?? '—'}</td>
@@ -147,11 +166,23 @@
 							<td class="right mono" style="color:var(--text-muted)">
 								{new Date(shop._creationTime).toLocaleDateString()}
 							</td>
+							<td class="right">
+								<button
+									type="button"
+									class="btn btn-outline"
+									style="padding:5px 11px;font-size:12px"
+									onclick={(e) => {
+										e.stopPropagation();
+										openEdit(shop);
+									}}
+								>
+									Edit
+								</button>
+							</td>
 						</tr>
 					{/each}
 				</tbody>
-			</table>
-		</div>
+			</Table>
 	{/if}
 </div>
 

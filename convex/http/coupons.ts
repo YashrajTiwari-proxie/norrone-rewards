@@ -1,7 +1,7 @@
 import { internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
 import type { ActionCtx } from "../_generated/server";
-import { requireApiKey, json, errorResponse, segments } from "./shared";
+import { requireApiKey, json, errorResponse, segments, getOrNull } from "./shared";
 
 /**
  * GET/POST /v1/coupons, GET/PUT/DELETE /v1/coupons/:id — coupon
@@ -31,7 +31,7 @@ export async function dispatchCoupons(ctx: ActionCtx, request: Request): Promise
 	}
 
 	if (request.method === "GET" && id) {
-		const def = await ctx.runQuery(internal.coupons.internalGetDefinition, { organizationId: apiCtx.organizationId, couponDefinitionId: id });
+		const def = await getOrNull(() => ctx.runQuery(internal.coupons.internalGetDefinition, { organizationId: apiCtx.organizationId, couponDefinitionId: id }));
 		if (!def) return errorResponse(404, "Coupon type not found.");
 		return json(def);
 	}
@@ -56,7 +56,7 @@ export async function dispatchCoupons(ctx: ActionCtx, request: Request): Promise
 	}
 
 	if (request.method === "PUT" && id) {
-		const existing = await ctx.runQuery(internal.coupons.internalGetDefinition, { organizationId: apiCtx.organizationId, couponDefinitionId: id });
+		const existing = await getOrNull(() => ctx.runQuery(internal.coupons.internalGetDefinition, { organizationId: apiCtx.organizationId, couponDefinitionId: id }));
 		if (!existing) return errorResponse(404, "Coupon type not found.");
 		const body = await request.json().catch(() => null);
 		if (!body || typeof body.name !== "string" || !body.name) return errorResponse(400, "name is required.");
@@ -73,12 +73,12 @@ export async function dispatchCoupons(ctx: ActionCtx, request: Request): Promise
 			memberOnly: typeof body.memberOnly === "boolean" ? body.memberOnly : false,
 			shopId: typeof body.shopId === "string" ? (body.shopId as Id<"shops">) : undefined
 		});
-		const def = await ctx.runQuery(internal.coupons.internalGetDefinition, { organizationId: apiCtx.organizationId, couponDefinitionId: id });
+		const def = await getOrNull(() => ctx.runQuery(internal.coupons.internalGetDefinition, { organizationId: apiCtx.organizationId, couponDefinitionId: id }));
 		return json(def);
 	}
 
 	if (request.method === "DELETE" && id) {
-		const existing = await ctx.runQuery(internal.coupons.internalGetDefinition, { organizationId: apiCtx.organizationId, couponDefinitionId: id });
+		const existing = await getOrNull(() => ctx.runQuery(internal.coupons.internalGetDefinition, { organizationId: apiCtx.organizationId, couponDefinitionId: id }));
 		if (!existing) return errorResponse(404, "Coupon type not found.");
 		await ctx.runMutation(internal.coupons.internalRemove, { organizationId: apiCtx.organizationId, couponDefinitionId: id });
 		return new Response(null, { status: 204, headers: { "Access-Control-Allow-Origin": "*" } });

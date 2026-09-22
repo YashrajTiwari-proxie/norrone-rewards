@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PageLoading from '$lib/components/PageLoading.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import StatTicket from '$lib/components/StatTicket.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
@@ -33,7 +34,7 @@
 		{/if}
 	</div>
 	{#if overview.isLoading}
-		<p>Loading…</p>
+		<PageLoading />
 	{:else if overview.error}
 		<p>Failed to load overview: {overview.error.message}</p>
 	{:else if overview.data.stats.customerCount === 0}

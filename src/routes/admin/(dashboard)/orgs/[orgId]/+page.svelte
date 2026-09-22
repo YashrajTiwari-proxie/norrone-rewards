@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import StatTicket from '$lib/components/StatTicket.svelte';
 	import Drawer from '$lib/components/Drawer.svelte';
-	import Chip from '$lib/components/Chip.svelte';
+	import Badge from '$lib/components/Badge.svelte';
 	import RegionCurrencyFields from '$lib/components/RegionCurrencyFields.svelte';
 	import { useQuery, useMutation } from 'convex-svelte';
 	import { api } from '../../../../../../convex/_generated/api';
@@ -116,10 +116,10 @@
 				{#if data.organization.businessRegistrationNumber || data.organization.taxId}
 					<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
 						{#if data.organization.businessRegistrationNumber}
-							<Chip tone="grey" mono text="Reg. {data.organization.businessRegistrationNumber}" />
+							<Badge tone="grey" mono text="Reg. {data.organization.businessRegistrationNumber}" />
 						{/if}
 						{#if data.organization.taxId}
-							<Chip tone="grey" mono text="Tax ID {data.organization.taxId}" />
+							<Badge tone="grey" mono text="Tax ID {data.organization.taxId}" />
 						{/if}
 					</div>
 				{/if}
@@ -185,7 +185,7 @@
 						{#each data.staff as s (s.id)}
 							<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid var(--line-2)">
 								<div class="mono" style="font:400 13px 'IBM Plex Mono',monospace;color:var(--ink)">{s.email}</div>
-								<Chip tone="grey" text={s.role} />
+								<Badge tone="grey" text={s.role} />
 							</div>
 						{/each}
 					</div>

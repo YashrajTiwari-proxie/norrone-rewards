@@ -1,6 +1,7 @@
 <script lang="ts">
+	import Table from '$lib/components/Table.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
-	import Chip from '$lib/components/Chip.svelte';
+	import Badge from '$lib/components/Badge.svelte';
 	import IdLine from '$lib/components/IdLine.svelte';
 	import { page } from '$app/state';
 	import { useQuery } from 'convex-svelte';
@@ -95,23 +96,21 @@
 		<div style="font:400 14px/1.6 'IBM Plex Sans',sans-serif;color:var(--text)">
 			Every request needs an <code class="mono">Authorization: Bearer &lt;key&gt;</code> header. There are two key types:
 		</div>
-		<div class="card" style="margin-top:12px;padding:6px 20px 14px">
-			<table>
+		<Table>
 				<thead><tr><th>Type</th><th>Prefix</th><th>Can call</th></tr></thead>
 				<tbody>
 					<tr>
-						<td><Chip tone="rust" text="Secret" /></td>
+						<td><Badge tone="rust" text="Secret" /></td>
 						<td class="mono">sk_</td>
 						<td>Every endpoint, including writes. Server-side only — never ship it to a browser.</td>
 					</tr>
 					<tr>
-						<td><Chip tone="green" text="Publishable" /></td>
+						<td><Badge tone="green" text="Publishable" /></td>
 						<td class="mono">pk_</td>
 						<td>Read-only endpoints (marked "either" below). Safe for client-side/browser code.</td>
 					</tr>
 				</tbody>
-			</table>
-		</div>
+			</Table>
 		<div style="margin-top:10px;font:400 13px/1.6 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
 			A key can optionally be scoped to one shop when you generate it. A shop-scoped key gets <code class="mono">403</code>
 			on any request for a different shop. Every response is scoped to your key's own organization — there's no way to
@@ -124,13 +123,12 @@
 		<div style="font:400 14px/1.6 'IBM Plex Sans',sans-serif;color:var(--text-muted);margin-bottom:12px">
 			Customers belong to one shop. Paths below are relative to <code class="mono">{baseUrl}</code>.
 		</div>
-		<div class="card" style="padding:6px 20px 14px">
-			<table>
+		<Table>
 				<thead><tr><th>Method</th><th>Path</th><th>What it does</th><th class="right">Key</th></tr></thead>
 				<tbody>
 					{#each customerRows as r (r.method + r.path)}
 						<tr>
-							<td><Chip tone={methodTone[r.method]} mono text={r.method} /></td>
+							<td><Badge tone={methodTone[r.method]} mono text={r.method} /></td>
 							<td class="mono" style="font-size:12.5px">{r.path}</td>
 							<td style="color:var(--text-muted)">{r.desc}</td>
 							<td class="right" style="color:var(--text-muted)">{r.key === 'secret' ? 'Secret' : 'Either'}</td>
@@ -138,15 +136,14 @@
 					{/each}
 					{#each shopRows as r (r.method + r.path)}
 						<tr>
-							<td><Chip tone={methodTone[r.method]} mono text={r.method} /></td>
+							<td><Badge tone={methodTone[r.method]} mono text={r.method} /></td>
 							<td class="mono" style="font-size:12.5px">{r.path}</td>
 							<td style="color:var(--text-muted)">{r.desc}</td>
 							<td class="right" style="color:var(--text-muted)">Either</td>
 						</tr>
 					{/each}
 				</tbody>
-			</table>
-		</div>
+			</Table>
 	</div>
 
 	<div>
@@ -158,20 +155,18 @@
 		{#each [['membership-plans', 'Membership plans'], ['tiers', 'Tiers'], ['rewards', 'Rewards'], ['coupons', 'Coupon types']] as [resource, label] (resource)}
 			<div style="margin-bottom:14px">
 				<div style="font:500 13px/1 'IBM Plex Sans',sans-serif;color:var(--ink);margin-bottom:8px">{label}</div>
-				<div class="card" style="padding:6px 20px 14px">
-					<table>
+				<Table>
 						<tbody>
 							{#each resourceRows(resource) as r (r.method + r.path)}
 								<tr>
-									<td><Chip tone={methodTone[r.method]} mono text={r.method} /></td>
+									<td><Badge tone={methodTone[r.method]} mono text={r.method} /></td>
 									<td class="mono" style="font-size:12.5px">{r.path}</td>
 									<td style="color:var(--text-muted)">{r.desc}</td>
 									<td class="right" style="color:var(--text-muted)">{r.key === 'secret' ? 'Secret' : 'Either'}</td>
 								</tr>
 							{/each}
 						</tbody>
-					</table>
-				</div>
+					</Table>
 			</div>
 		{/each}
 		<div style="font:400 13px/1.6 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
@@ -190,20 +185,18 @@
 
 	<div>
 		<div style="font:600 15px/1 'IBM Plex Sans',sans-serif;color:var(--ink);margin-bottom:10px">4. Redeeming a coupon</div>
-		<div class="card" style="padding:6px 20px 14px">
-			<table>
+		<Table>
 				<tbody>
 					{#each couponActionRows as r (r.method + r.path)}
 						<tr>
-							<td><Chip tone={methodTone[r.method]} mono text={r.method} /></td>
+							<td><Badge tone={methodTone[r.method]} mono text={r.method} /></td>
 							<td class="mono" style="font-size:12.5px">{r.path}</td>
 							<td style="color:var(--text-muted)">{r.desc}</td>
 							<td class="right" style="color:var(--text-muted)">Secret</td>
 						</tr>
 					{/each}
 				</tbody>
-			</table>
-		</div>
+			</Table>
 	</div>
 
 	<div>
@@ -221,8 +214,7 @@
 		<div style="font:400 14px/1.6 'IBM Plex Sans',sans-serif;color:var(--text-muted);margin-bottom:12px">
 			Every error is <code class="mono">{'{'} "error": "&lt;message or code&gt;" {'}'}</code> with a matching HTTP status.
 		</div>
-		<div class="card" style="padding:6px 20px 14px">
-			<table>
+		<Table>
 				<thead><tr><th>Status</th><th>Meaning</th></tr></thead>
 				<tbody>
 					{#each errorRows as e (e.status)}
@@ -232,8 +224,7 @@
 						</tr>
 					{/each}
 				</tbody>
-			</table>
-		</div>
+			</Table>
 	</div>
 
 	<div>

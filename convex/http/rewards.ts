@@ -1,7 +1,7 @@
 import { internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
 import type { ActionCtx } from "../_generated/server";
-import { requireApiKey, json, errorResponse, segments } from "./shared";
+import { requireApiKey, json, errorResponse, segments, getOrNull } from "./shared";
 
 /** GET/POST /v1/rewards, GET/PUT/DELETE /v1/rewards/:id — see membershipPlans.ts's identical shape/comment. */
 export async function dispatchRewards(ctx: ActionCtx, request: Request): Promise<Response | null> {
@@ -24,7 +24,7 @@ export async function dispatchRewards(ctx: ActionCtx, request: Request): Promise
 	}
 
 	if (request.method === "GET" && id) {
-		const reward = await ctx.runQuery(internal.rewards.internalGet, { organizationId: apiCtx.organizationId, rewardId: id });
+		const reward = await getOrNull(() => ctx.runQuery(internal.rewards.internalGet, { organizationId: apiCtx.organizationId, rewardId: id }));
 		if (!reward) return errorResponse(404, "Reward not found.");
 		return json(reward);
 	}
@@ -44,7 +44,7 @@ export async function dispatchRewards(ctx: ActionCtx, request: Request): Promise
 	}
 
 	if (request.method === "PUT" && id) {
-		const existing = await ctx.runQuery(internal.rewards.internalGet, { organizationId: apiCtx.organizationId, rewardId: id });
+		const existing = await getOrNull(() => ctx.runQuery(internal.rewards.internalGet, { organizationId: apiCtx.organizationId, rewardId: id }));
 		if (!existing) return errorResponse(404, "Reward not found.");
 		const body = await request.json().catch(() => null);
 		if (!body || typeof body.name !== "string" || !body.name) return errorResponse(400, "name is required.");
@@ -56,12 +56,12 @@ export async function dispatchRewards(ctx: ActionCtx, request: Request): Promise
 			memberOnly: typeof body.memberOnly === "boolean" ? body.memberOnly : false,
 			shopId: typeof body.shopId === "string" ? (body.shopId as Id<"shops">) : undefined
 		});
-		const reward = await ctx.runQuery(internal.rewards.internalGet, { organizationId: apiCtx.organizationId, rewardId: id });
+		const reward = await getOrNull(() => ctx.runQuery(internal.rewards.internalGet, { organizationId: apiCtx.organizationId, rewardId: id }));
 		return json(reward);
 	}
 
 	if (request.method === "DELETE" && id) {
-		const existing = await ctx.runQuery(internal.rewards.internalGet, { organizationId: apiCtx.organizationId, rewardId: id });
+		const existing = await getOrNull(() => ctx.runQuery(internal.rewards.internalGet, { organizationId: apiCtx.organizationId, rewardId: id }));
 		if (!existing) return errorResponse(404, "Reward not found.");
 		await ctx.runMutation(internal.rewards.internalRemove, { organizationId: apiCtx.organizationId, rewardId: id });
 		return new Response(null, { status: 204, headers: { "Access-Control-Allow-Origin": "*" } });
