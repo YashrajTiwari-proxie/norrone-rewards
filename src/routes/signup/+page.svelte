@@ -31,6 +31,22 @@
 
 	let step = $state<1 | 2>(1);
 
+	/**
+	 * A signed-in user with zero orgs (e.g. their last org was deleted —
+	 * their Better Auth account survives that, see adminOrganizations.remove)
+	 * would otherwise hit step 1's signUp.email and get stuck on "an account
+	 * with this email already exists," with no way forward. If they already
+	 * have a valid session when this page loads, skip straight to step 2 and
+	 * create the org against their existing account instead.
+	 */
+	let skippedStep1 = $state(false);
+	$effect(() => {
+		if (convexAuth.isAuthenticated && step === 1) {
+			skippedStep1 = true;
+			step = 2;
+		}
+	});
+
 	let name = $state('');
 	let email = $state('');
 	let password = $state('');
@@ -103,10 +119,15 @@
 <div style="min-height:100vh;background:var(--paper);display:grid;place-items:center;padding:40px;font-family:'IBM Plex Sans',sans-serif">
 	<div style="width:100%;max-width:420px">
 		<div style="display:flex;align-items:center;gap:10px;margin-bottom:34px">
-			<div style="width:26px;height:26px;background:var(--ink);border-radius:3px"></div>
+			<img src="/norrone_rewards.svg" alt="Norrone Rewards" style="width:26px;height:26px;border-radius:6px" />
 			<div style="font:600 15px/1 'IBM Plex Sans',sans-serif;letter-spacing:-.01em;color:var(--ink)">Norrone Rewards</div>
 		</div>
 		<div class="card" style="padding:32px">
+			{#if convexAuth.isLoading}
+				<div style="padding:20px 0;text-align:center;color:var(--text-muted);font:400 14px 'IBM Plex Sans',sans-serif">
+					Loading…
+				</div>
+			{:else}
 			<div style="display:flex;align-items:center;gap:8px;margin-bottom:20px">
 				<div style="flex:1;height:4px;border-radius:2px;background:var(--ink)"></div>
 				<div style="flex:1;height:4px;border-radius:2px;background:{step === 2 ? 'var(--ink)' : 'var(--line)'}"></div>
@@ -149,7 +170,11 @@
 					Set up your organization
 				</div>
 				<div style="margin-top:8px;font:400 14px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
-					A few details about your business.
+					{#if skippedStep1}
+						You're already signed in — let's create your organization.
+					{:else}
+						A few details about your business.
+					{/if}
 				</div>
 				<form onsubmit={submitOrganization} style="margin-top:24px;display:flex;flex-direction:column;gap:16px">
 					<label class="field">
@@ -181,6 +206,7 @@
 				<div style="margin-top:18px;text-align:center;font:400 13px 'IBM Plex Sans',sans-serif">
 					Already have an account? <a href="/login">Sign in</a>
 				</div>
+			{/if}
 			{/if}
 		</div>
 	</div>

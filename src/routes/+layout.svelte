@@ -1,5 +1,4 @@
 <script lang="ts">
-	import favicon from '$lib/assets/favicon.svg';
 	import '$lib/styles/tokens.css';
 	import NavProgress from '$lib/components/NavProgress.svelte';
 	import { createPlatformAuth } from '@proxie-studio/better-auth-tenant-kit';
@@ -14,7 +13,7 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
+	<link rel="icon" href="/norrone_rewards.svg" />
 </svelte:head>
 
 <NavProgress />

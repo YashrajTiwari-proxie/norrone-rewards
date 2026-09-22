@@ -57,7 +57,7 @@
 	<div style="background:var(--paper);font-family:'IBM Plex Sans',sans-serif;color:var(--text)">
 		<header style="border-bottom:1px solid var(--line);padding:18px 40px;display:flex;align-items:center;justify-content:space-between;max-width:1120px;margin:0 auto">
 			<div style="display:flex;align-items:center;gap:10px">
-				<div style="width:24px;height:24px;background:var(--ink);border-radius:4px"></div>
+				<img src="/norrone_rewards.svg" alt="Norrone Rewards" style="width:24px;height:24px;border-radius:5px" />
 				<div style="font:600 15px/1 'IBM Plex Sans',sans-serif;letter-spacing:-.01em;color:var(--ink)">Norrone Rewards</div>
 			</div>
 			<div style="display:flex;align-items:center;gap:10px">

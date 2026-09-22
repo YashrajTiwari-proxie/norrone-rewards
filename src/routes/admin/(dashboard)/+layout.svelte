@@ -37,7 +37,7 @@
 		>
 			<div style="padding:22px 18px 18px">
 				<div style="display:flex;align-items:center;gap:9px">
-					<div style="width:22px;height:22px;background:var(--paper);border-radius:3px"></div>
+					<img src="/norrone_rewards.svg" alt="Norrone Rewards" style="width:22px;height:22px;border-radius:5px" />
 					<div style="font:600 14px/1 'IBM Plex Sans',sans-serif;color:var(--paper);letter-spacing:-.01em">
 						Platform Admin
 					</div>
