@@ -116,15 +116,15 @@
 	}
 </script>
 
-<div style="min-height:100vh;background:var(--paper);display:grid;place-items:center;padding:40px;font-family:'IBM Plex Sans',sans-serif">
+<div style="min-height:100vh;background:var(--paper);display:grid;place-items:center;padding:40px;font-family: 'Inter', sans-serif">
 	<div style="width:100%;max-width:420px">
 		<div style="display:flex;align-items:center;gap:10px;margin-bottom:34px">
 			<img src="/norrone_rewards.svg" alt="Norrone Rewards" style="width:26px;height:26px;border-radius:6px" />
-			<div style="font:600 15px/1 'IBM Plex Sans',sans-serif;letter-spacing:-.01em;color:var(--ink)">Norrone Rewards</div>
+			<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;letter-spacing:-.01em;color:var(--ink)">Norrone Rewards</div>
 		</div>
 		<div class="card" style="padding:32px">
 			{#if convexAuth.isLoading}
-				<div style="padding:20px 0;text-align:center;color:var(--text-muted);font:400 14px 'IBM Plex Sans',sans-serif">
+				<div style="padding:20px 0;text-align:center;color:var(--text-muted);font:400 14px 'Inter',sans-serif">
 					Loading…
 				</div>
 			{:else}
@@ -132,15 +132,15 @@
 				<div style="flex:1;height:4px;border-radius:2px;background:var(--ink)"></div>
 				<div style="flex:1;height:4px;border-radius:2px;background:{step === 2 ? 'var(--ink)' : 'var(--line)'}"></div>
 			</div>
-			<div style="font:500 11px/1 'IBM Plex Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)">
+			<div style="font:500 11px/1 'Inter',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)">
 				Step {step} of 2
 			</div>
 
 			{#if step === 1}
-				<div style="margin-top:8px;font:600 21px/1.2 'IBM Plex Sans',sans-serif;color:var(--ink);letter-spacing:-.01em">
+				<div style="margin-top:8px;font:600 21px/1.2 'Plus Jakarta Sans',sans-serif;color:var(--ink);letter-spacing:-.01em">
 					Create your account
 				</div>
-				<div style="margin-top:8px;font:400 14px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+				<div style="margin-top:8px;font:400 14px/1.5 'Inter',sans-serif;color:var(--text-muted)">
 					You'll be the owner of your organization.
 				</div>
 				<form onsubmit={submitAccount} style="margin-top:24px;display:flex;flex-direction:column;gap:16px">
@@ -155,7 +155,7 @@
 					<label class="field">
 						<span class="field-label">Password</span>
 						<input type="password" bind:value={password} required minlength="8" class="input mono" />
-						<span style="margin-top:5px;font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">At least 8 characters.</span>
+						<span style="margin-top:5px;font:400 12px 'Inter',sans-serif;color:var(--text-muted)">At least 8 characters.</span>
 					</label>
 					<label class="field">
 						<span class="field-label">Confirm password</span>
@@ -166,10 +166,10 @@
 					</button>
 				</form>
 			{:else}
-				<div style="margin-top:8px;font:600 21px/1.2 'IBM Plex Sans',sans-serif;color:var(--ink);letter-spacing:-.01em">
+				<div style="margin-top:8px;font:600 21px/1.2 'Plus Jakarta Sans',sans-serif;color:var(--ink);letter-spacing:-.01em">
 					Set up your organization
 				</div>
-				<div style="margin-top:8px;font:400 14px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+				<div style="margin-top:8px;font:400 14px/1.5 'Inter',sans-serif;color:var(--text-muted)">
 					{#if skippedStep1}
 						You're already signed in — let's create your organization.
 					{:else}
@@ -200,10 +200,10 @@
 				</form>
 			{/if}
 			{#if errorMessage}
-				<div style="margin-top:14px;font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+				<div style="margin-top:14px;font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 			{/if}
 			{#if step === 1}
-				<div style="margin-top:18px;text-align:center;font:400 13px 'IBM Plex Sans',sans-serif">
+				<div style="margin-top:18px;text-align:center;font:400 13px 'Inter',sans-serif">
 					Already have an account? <a href="/login">Sign in</a>
 				</div>
 			{/if}

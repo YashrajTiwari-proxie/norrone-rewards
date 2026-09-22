@@ -54,8 +54,8 @@
 
 			<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px">
 				<div class="card" style="padding:22px 24px 18px">
-					<div style="font:600 15px/1 'IBM Plex Sans',sans-serif;color:var(--ink)">Points issued</div>
-					<div style="margin-top:6px;font:400 12px/1.4 'IBM Plex Sans',sans-serif;color:var(--text-muted)">Last 12 weeks</div>
+					<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;color:var(--ink)">Points issued</div>
+					<div style="margin-top:6px;font:400 12px/1.4 'Inter',sans-serif;color:var(--text-muted)">Last 12 weeks</div>
 					<div style="margin-top:24px;display:flex;align-items:flex-end;gap:8px;height:132px;border-bottom:1px solid var(--line);padding-bottom:2px">
 						{#each data.weekBuckets as w, i (i)}
 							<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%" title="{w.total} points">
@@ -66,12 +66,12 @@
 				</div>
 
 				<div class="card" style="padding:22px 24px 20px">
-					<div style="font:600 15px/1 'IBM Plex Sans',sans-serif;color:var(--ink)">Where customers sit</div>
-					<div style="margin-top:6px;font:400 12px/1.4 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+					<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;color:var(--ink)">Where customers sit</div>
+					<div style="margin-top:6px;font:400 12px/1.4 'Inter',sans-serif;color:var(--text-muted)">
 						Share of {data.stats.customerCount.toLocaleString()} customers by tier
 					</div>
 					{#if data.tierDist.length === 0}
-						<div style="margin-top:22px;font:400 13px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+						<div style="margin-top:22px;font:400 13px 'Inter',sans-serif;color:var(--text-muted)">
 							No customers hold a tier yet.
 						</div>
 					{:else}
@@ -79,8 +79,8 @@
 							{#each data.tierDist as t (t.name)}
 								<div>
 									<div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
-										<span style="font:500 13px/1 'IBM Plex Sans',sans-serif;color:var(--ink)">{t.name}</span>
-										<span class="mono" style="font:400 12px/1 'IBM Plex Mono',monospace;color:var(--text-muted)">{t.count} · {t.pct}%</span>
+										<span style="font:500 13px/1 'Inter',sans-serif;color:var(--ink)">{t.name}</span>
+										<span class="mono" style="font:400 12px/1 'JetBrains Mono', monospace;color:var(--text-muted)">{t.count} · {t.pct}%</span>
 									</div>
 									<div style="margin-top:8px;height:10px;border-radius:6px;background:var(--stamp-grey-bg);overflow:hidden">
 										<div style="height:100%;width:{t.pct}%;background:var(--stamp-amber)"></div>
@@ -93,7 +93,7 @@
 			</div>
 
 			<div>
-				<div style="font:600 15px/1 'IBM Plex Sans',sans-serif;color:var(--ink);margin-bottom:14px">Coupon outcomes</div>
+				<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;color:var(--ink);margin-bottom:14px">Coupon outcomes</div>
 				<div class="card" style="padding:22px 24px 20px">
 					<div style="display:flex;height:14px;border-radius:8px;overflow:hidden;gap:2px">
 						{#each Object.entries(data.couponStatusCounts) as [status, count] (status)}
@@ -107,8 +107,8 @@
 							<div style="display:flex;align-items:flex-start;gap:9px">
 								<div style="width:9px;height:9px;border-radius:50%;margin-top:4px;background:{couponTones[status]}"></div>
 								<div>
-									<div style="font:500 13px/1 'IBM Plex Sans',sans-serif;color:var(--ink)">{status}</div>
-									<div class="mono" style="margin-top:6px;font:500 16px/1 'IBM Plex Mono',monospace;color:var(--ink)">{count}</div>
+									<div style="font:500 13px/1 'Inter',sans-serif;color:var(--ink)">{status}</div>
+									<div class="mono" style="margin-top:6px;font:500 16px/1 'JetBrains Mono', monospace;color:var(--ink)">{count}</div>
 								</div>
 							</div>
 						{/each}
@@ -119,7 +119,7 @@
 			{#if data.recentCoupons.length > 0}
 				<div>
 					<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
-						<div style="font:600 15px/1 'IBM Plex Sans',sans-serif;color:var(--ink)">Coupons in customers' hands</div>
+						<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;color:var(--ink)">Coupons in customers' hands</div>
 						<a href="/orgs/{organizationId}/coupons">All coupons</a>
 					</div>
 					<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px">
@@ -127,20 +127,20 @@
 							<div class="stub">
 								<div class="stub-body">
 									<div>
-										<div style="font:600 14px/1.3 'IBM Plex Sans',sans-serif;color:var(--ink)">{c.couponDefinition?.name}</div>
-										<div class="mono" style="margin-top:6px;font:500 13px/1 'IBM Plex Mono',monospace;letter-spacing:.04em;color:var(--text-muted)">{c.code}</div>
+										<div style="font:600 14px/1.3 'Inter',sans-serif;color:var(--ink)">{c.couponDefinition?.name}</div>
+										<div class="mono" style="margin-top:6px;font:500 13px/1 'JetBrains Mono', monospace;letter-spacing:.04em;color:var(--text-muted)">{c.code}</div>
 									</div>
 									<span class="chip chip-green">Issued</span>
 								</div>
 								<div class="stub-perforation"></div>
 								<div class="stub-end">
 									<div style="text-align:center">
-										<div class="mono" style="font:600 24px/1 'IBM Plex Mono',monospace;color:var(--stamp-amber)">
+										<div class="mono" style="font:600 24px/1 'JetBrains Mono', monospace;color:var(--stamp-amber)">
 											{c.couponDefinition?.discountType === 'PERCENTAGE'
 												? `${c.couponDefinition?.discountValue}%`
 												: `₹${c.couponDefinition?.discountValue}`}
 										</div>
-										<div style="margin-top:5px;font:500 9px/1 'IBM Plex Sans',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">off</div>
+										<div style="margin-top:5px;font:500 9px/1 'Inter',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">off</div>
 									</div>
 								</div>
 							</div>
@@ -150,15 +150,15 @@
 			{/if}
 
 			<div>
-				<div style="font:600 15px/1 'IBM Plex Sans',sans-serif;color:var(--ink);margin-bottom:14px">Program setup</div>
+				<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;color:var(--ink);margin-bottom:14px">Program setup</div>
 				<div class="card" style="padding:4px 20px">
 					{#each data.modules as m (m.id)}
 						<div style="display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid var(--line-2)">
 							<div style="display:flex;align-items:center;gap:14px;min-width:0">
 								<span style="width:8px;height:8px;border-radius:50%;background:{m.configured ? 'var(--stamp-green)' : 'var(--dash)'}"></span>
 								<div>
-									<div style="font:500 14px/1.3 'IBM Plex Sans',sans-serif;color:var(--ink)">{m.label}</div>
-									<div style="margin-top:3px;font:400 12px/1.4 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+									<div style="font:500 14px/1.3 'Inter',sans-serif;color:var(--ink)">{m.label}</div>
+									<div style="margin-top:3px;font:400 12px/1.4 'Inter',sans-serif;color:var(--text-muted)">
 										{m.configured ? 'Configured' : 'Not set up yet'}
 									</div>
 								</div>

@@ -200,7 +200,7 @@
 	{:else}
 		<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:16px">
 			<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-				<div style="font:600 15px/1 'IBM Plex Sans',sans-serif">Apple Wallet</div>
+				<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif">Apple Wallet</div>
 				<div style="display:flex;gap:6px">
 					<Badge tone={status.data.apple ? 'green' : 'amber'} text={status.data.apple ? 'Configured' : 'Not configured'} />
 					{#if status.data.apple}
@@ -212,7 +212,7 @@
 				</div>
 			</div>
 			{#if !status.data.apple}
-				<div style="font:400 13px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+				<div style="font:400 13px/1.5 'Inter',sans-serif;color:var(--text-muted)">
 					Set these via <code class="mono">npx convex env set NAME value</code>:
 					<code class="mono" style="display:block;margin-top:6px">APPLE_PASS_TYPE_ID, APPLE_TEAM_ID, APPLE_PASS_CERT_PEM, APPLE_PASS_KEY_PEM, APPLE_WWDR_CERT_PEM</code>
 					(optionally <code class="mono">APPLE_PASS_KEY_PASSPHRASE</code> if your key is encrypted).
@@ -222,11 +222,11 @@
 
 		<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:16px">
 			<div style="display:flex;align-items:center;justify-content:space-between">
-				<div style="font:600 15px/1 'IBM Plex Sans',sans-serif">Google Wallet</div>
+				<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif">Google Wallet</div>
 				<Badge tone={status.data.google ? 'green' : 'amber'} text={status.data.google ? 'Configured' : 'Not configured'} />
 			</div>
 			{#if !status.data.google}
-				<div style="font:400 13px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+				<div style="font:400 13px/1.5 'Inter',sans-serif;color:var(--text-muted)">
 					Set these via <code class="mono">npx convex env set NAME value</code>:
 					<code class="mono" style="display:block;margin-top:6px">GOOGLE_WALLET_ISSUER_ID, GOOGLE_WALLET_SERVICE_ACCOUNT_JSON</code>
 					(optionally <code class="mono">GOOGLE_WALLET_CLASS_ID</code>).
@@ -239,14 +239,14 @@
 				<button
 					type="button"
 					onclick={() => (activeTab = 'apple')}
-					style="flex:1;padding:16px 20px;border:none;background:{activeTab === 'apple' ? 'var(--surface)' : 'transparent'};font:600 14px 'IBM Plex Sans',sans-serif;cursor:pointer;border-bottom:2px solid {activeTab === 'apple' ? 'var(--ink)' : 'transparent'}"
+					style="flex:1;padding:16px 20px;border:none;background:{activeTab === 'apple' ? 'var(--surface)' : 'transparent'};font:600 14px 'Inter',sans-serif;cursor:pointer;border-bottom:2px solid {activeTab === 'apple' ? 'var(--ink)' : 'transparent'}"
 				>
 					Apple Wallet design
 				</button>
 				<button
 					type="button"
 					onclick={() => (activeTab = 'google')}
-					style="flex:1;padding:16px 20px;border:none;background:{activeTab === 'google' ? 'var(--surface)' : 'transparent'};font:600 14px 'IBM Plex Sans',sans-serif;cursor:pointer;border-bottom:2px solid {activeTab === 'google' ? 'var(--ink)' : 'transparent'}"
+					style="flex:1;padding:16px 20px;border:none;background:{activeTab === 'google' ? 'var(--surface)' : 'transparent'};font:600 14px 'Inter',sans-serif;cursor:pointer;border-bottom:2px solid {activeTab === 'google' ? 'var(--ink)' : 'transparent'}"
 				>
 					Google Wallet design
 				</button>
@@ -256,14 +256,14 @@
 				{#if template.isLoading}
 					<PageLoading />
 				{:else if activeTab === 'apple'}
-					<div style="font:400 13px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+					<div style="font:400 13px/1.5 'Inter',sans-serif;color:var(--text-muted)">
 						Apple's own logo, banner, colors, and display name — fully independent of Google's tab.
 						Apple passes always regenerate fresh, so a save shows up on the next download
 						automatically.
 					</div>
 
 					<div>
-						<div style="font:500 11px/1 'IBM Plex Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">
+						<div style="font:500 11px/1 'Inter',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">
 							Preview
 						</div>
 						<div
@@ -276,10 +276,10 @@
 									{/if}
 								</div>
 								<div style="text-align:right;flex:none">
-									<div style="font:400 8px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{appleLabelColor}">
+									<div style="font:400 8px/1 'Inter',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{appleLabelColor}">
 										Points
 									</div>
-									<div class="mono" style="margin-top:2px;font:600 14px/1 'IBM Plex Mono',monospace">128</div>
+									<div class="mono" style="margin-top:2px;font:600 14px/1 'JetBrains Mono', monospace">128</div>
 								</div>
 							</div>
 
@@ -291,16 +291,16 @@
 
 							<div style="padding:14px 16px 0;display:flex;gap:18px">
 								<div>
-									<div style="font:400 9px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{appleLabelColor}">
+									<div style="font:400 9px/1 'Inter',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{appleLabelColor}">
 										Name
 									</div>
-									<div style="margin-top:4px;font:500 12px/1 'IBM Plex Sans',sans-serif">Sample Customer</div>
+									<div style="margin-top:4px;font:500 12px/1 'Inter',sans-serif">Sample Customer</div>
 								</div>
 								<div>
-									<div style="font:400 9px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{appleLabelColor}">
+									<div style="font:400 9px/1 'Inter',sans-serif;text-transform:uppercase;letter-spacing:.06em;color:{appleLabelColor}">
 										Status
 									</div>
-									<div style="margin-top:4px;font:500 12px/1 'IBM Plex Sans',sans-serif">Customer</div>
+									<div style="margin-top:4px;font:500 12px/1 'Inter',sans-serif">Customer</div>
 								</div>
 							</div>
 							<div style="padding:16px;display:flex;justify-content:center">
@@ -309,7 +309,7 @@
 								{/if}
 							</div>
 						</div>
-						<div style="margin-top:8px;font:400 12px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+						<div style="margin-top:8px;font:400 12px/1.5 'Inter',sans-serif;color:var(--text-muted)">
 							Approximate mockup, not pixel-exact. "128" / "Customer" are sample values — a real
 							customer's pass shows their actual points/status.
 						</div>
@@ -327,7 +327,7 @@
 							{/if}
 							<input type="file" accept="image/png,image/jpeg" onchange={onAppleLogoSelected} class="input" />
 							{#if appleLogoFile}
-								<span style="font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">Selected: {appleLogoFile.name}</span>
+								<span style="font:400 12px 'Inter',sans-serif;color:var(--text-muted)">Selected: {appleLogoFile.name}</span>
 							{/if}
 						</label>
 						<label class="field">
@@ -341,9 +341,9 @@
 							{/if}
 							<input type="file" accept="image/png,image/jpeg" onchange={onAppleBannerSelected} class="input" />
 							{#if appleBannerFile}
-								<span style="font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">Selected: {appleBannerFile.name}</span>
+								<span style="font:400 12px 'Inter',sans-serif;color:var(--text-muted)">Selected: {appleBannerFile.name}</span>
 							{:else}
-								<span style="font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+								<span style="font:400 12px 'Inter',sans-serif;color:var(--text-muted)">
 									No banner uploaded — the box shows a plain fill of your background color instead.
 								</span>
 							{/if}
@@ -364,10 +364,10 @@
 						</label>
 
 						{#if appleSaveError}
-							<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-rust)">{appleSaveError}</div>
+							<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{appleSaveError}</div>
 						{/if}
 						{#if appleSaveMessage}
-							<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-green)">{appleSaveMessage}</div>
+							<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-green)">{appleSaveMessage}</div>
 						{/if}
 
 						<button type="submit" class="btn btn-primary" style="align-self:flex-start" disabled={appleSaving}>
@@ -375,13 +375,13 @@
 						</button>
 					</form>
 				{:else}
-					<div style="font:400 13px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+					<div style="font:400 13px/1.5 'Inter',sans-serif;color:var(--text-muted)">
 						Google's own logo, banner, colors, and display name — fully independent of Apple's tab.
 						Saving re-syncs your Google Wallet class immediately.
 					</div>
 
 					<div>
-						<div style="font:500 11px/1 'IBM Plex Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">
+						<div style="font:500 11px/1 'Inter',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">
 							Preview
 						</div>
 						<!-- Everything but logo/hero/color is Google's own fixed
@@ -399,29 +399,29 @@
 										<img src={googleLogoPreviewUrl} alt="Logo" style="width:36px;height:36px;object-fit:contain;border-radius:50%;background:#fff;flex:none" />
 									{/if}
 									<div style="min-width:0">
-										<div style="font:600 12px/1.2 'IBM Plex Sans',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+										<div style="font:600 12px/1.2 'Inter',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
 											{googleDisplayName.trim() || 'Norrone Rewards'}
 										</div>
-										<div style="font:400 10px/1 'IBM Plex Sans',sans-serif;opacity:.75;margin-top:2px">
+										<div style="font:400 10px/1 'Inter',sans-serif;opacity:.75;margin-top:2px">
 											{googleDisplayName.trim() || 'Norrone Rewards'} Rewards
 										</div>
 									</div>
 								</div>
 								<div style="display:flex;gap:24px">
 									<div>
-										<div style="font:400 9px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;opacity:.75">
+										<div style="font:400 9px/1 'Inter',sans-serif;text-transform:uppercase;letter-spacing:.06em;opacity:.75">
 											Points
 										</div>
-										<div class="mono" style="margin-top:4px;font:600 22px/1 'IBM Plex Mono',monospace">128</div>
+										<div class="mono" style="margin-top:4px;font:600 22px/1 'JetBrains Mono', monospace">128</div>
 									</div>
 									<div>
-										<div style="font:400 9px/1 'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;opacity:.75">
+										<div style="font:400 9px/1 'Inter',sans-serif;text-transform:uppercase;letter-spacing:.06em;opacity:.75">
 											Status
 										</div>
-										<div class="mono" style="margin-top:4px;font:600 22px/1 'IBM Plex Mono',monospace">Customer</div>
+										<div class="mono" style="margin-top:4px;font:600 22px/1 'JetBrains Mono', monospace">Customer</div>
 									</div>
 								</div>
-								<div style="font:500 12px/1 'IBM Plex Sans',sans-serif">Sample Customer</div>
+								<div style="font:500 12px/1 'Inter',sans-serif">Sample Customer</div>
 							</div>
 							<div style="background:#fff;padding:14px 16px;display:flex;justify-content:center">
 								{#if qrDataUrl}
@@ -429,11 +429,11 @@
 								{/if}
 							</div>
 							<div style="border-top:1px solid rgba(0,0,0,.08);padding:10px 16px;display:flex;justify-content:space-between;align-items:center">
-								<span style="font:500 11px 'IBM Plex Sans',sans-serif;color:#46514b">Details</span>
-								<span style="font:400 10px 'IBM Plex Mono',monospace;color:#6f7a74">Since · Tier ▾</span>
+								<span style="font:500 11px 'Inter',sans-serif;color:#46514b">Details</span>
+								<span style="font:400 10px 'JetBrains Mono', monospace;color:#6f7a74">Since · Tier ▾</span>
 							</div>
 						</div>
-						<div style="margin-top:8px;font:400 12px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+						<div style="margin-top:8px;font:400 12px/1.5 'Inter',sans-serif;color:var(--text-muted)">
 							Approximate mockup, not pixel-exact. Google requires both a small title line and a
 							larger one below it (verified against the live API — neither can be left empty), so
 							the larger line reads "{'{shop} Rewards'}" rather than repeating the shop name twice.
@@ -452,9 +452,9 @@
 							{/if}
 							<input type="file" accept="image/png,image/jpeg" onchange={onGoogleLogoSelected} class="input" />
 							{#if googleLogoFile}
-								<span style="font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">Selected: {googleLogoFile.name}</span>
+								<span style="font:400 12px 'Inter',sans-serif;color:var(--text-muted)">Selected: {googleLogoFile.name}</span>
 							{:else}
-								<span style="font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+								<span style="font:400 12px 'Inter',sans-serif;color:var(--text-muted)">
 									Required by Google to create the class — falls back to a generic Norrone mark if
 									never set.
 								</span>
@@ -471,9 +471,9 @@
 							{/if}
 							<input type="file" accept="image/png,image/jpeg" onchange={onGoogleBannerSelected} class="input" />
 							{#if googleBannerFile}
-								<span style="font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">Selected: {googleBannerFile.name}</span>
+								<span style="font:400 12px 'Inter',sans-serif;color:var(--text-muted)">Selected: {googleBannerFile.name}</span>
 							{:else}
-								<span style="font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+								<span style="font:400 12px 'Inter',sans-serif;color:var(--text-muted)">
 									No banner uploaded — Google shows a plain fill of your background color instead.
 								</span>
 							{/if}
@@ -494,10 +494,10 @@
 						</label>
 
 						{#if googleSaveError}
-							<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-rust)">{googleSaveError}</div>
+							<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{googleSaveError}</div>
 						{/if}
 						{#if googleSaveMessage}
-							<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-green)">{googleSaveMessage}</div>
+							<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-green)">{googleSaveMessage}</div>
 						{/if}
 
 						<button type="submit" class="btn btn-primary" style="align-self:flex-start" disabled={googleSaving}>
@@ -508,7 +508,7 @@
 			</div>
 		</div>
 
-		<div style="font:400 13px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+		<div style="font:400 13px/1.5 'Inter',sans-serif;color:var(--text-muted)">
 			Once a platform is configured above, "Add to Wallet" buttons appear on each customer's
 			detail page.
 		</div>

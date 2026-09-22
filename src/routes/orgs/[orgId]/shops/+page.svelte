@@ -158,7 +158,7 @@
 				<tbody>
 					{#each shops.data as shop (shop._id)}
 						<tr onclick={() => openShop(shop._id)} style="cursor:pointer">
-							<td style="font:500 14px 'IBM Plex Sans',sans-serif;color:var(--ink)">{shop.name}</td>
+							<td style="font:500 14px 'Inter',sans-serif;color:var(--ink)">{shop.name}</td>
 							<td class="mono" style="color:var(--text-muted)">{shop.externalShopId ?? '—'}</td>
 							<td style="color:var(--text-muted)">{shop.regionName ?? '—'}</td>
 							<td class="mono" style="color:var(--text-muted)">{shop.currencyCode ?? '—'}</td>
@@ -209,7 +209,7 @@
 		</div>
 	</form>
 	{#if errorMessage}
-		<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+		<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 	{/if}
 	{#snippet footer()}
 		<button type="button" class="btn btn-ghost" onclick={() => (drawerOpen = false)} disabled={saving}>Cancel</button>
@@ -238,7 +238,7 @@
 							{shopIdCopied ? 'Copied!' : 'Copy'}
 						</button>
 					</div>
-					<span style="font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted);margin-top:4px;display:block">
+					<span style="font:400 12px 'Inter',sans-serif;color:var(--text-muted);margin-top:4px;display:block">
 						Not the same as "External shop ID" below (that's your own reference number). See
 						<a href="/orgs/{organizationId}/api-keys">API Keys</a> for a full reference.
 					</span>
@@ -264,7 +264,7 @@
 		</form>
 	{/if}
 	{#if errorMessage}
-		<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+		<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 	{/if}
 	{#snippet footer()}
 		<button type="button" class="btn btn-ghost" onclick={() => (editOpen = false)} disabled={editSaving}>Cancel</button>

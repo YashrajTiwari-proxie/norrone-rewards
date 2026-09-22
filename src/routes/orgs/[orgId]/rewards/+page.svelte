@@ -152,12 +152,12 @@
 				>
 					<div style="flex:1;min-width:0;padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between">
 						<div>
-							<div style="font:600 15px/1.3 'IBM Plex Sans',sans-serif;color:var(--ink)">{reward.name}</div>
+							<div style="font:600 15px/1.3 'Plus Jakarta Sans',sans-serif;color:var(--ink)">{reward.name}</div>
 							<div style="margin-top:5px" onclick={(e) => e.stopPropagation()} role="presentation">
 								<IdLine id={reward._id} compact />
 							</div>
 							{#if reward.description}
-								<div style="margin-top:7px;font:400 13px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+								<div style="margin-top:7px;font:400 13px/1.5 'Inter',sans-serif;color:var(--text-muted)">
 									{reward.description}
 								</div>
 							{/if}
@@ -171,8 +171,8 @@
 					<div class="stub-end">
 						<div style="text-align:center">
 							<div style="width:34px;height:34px;margin:0 auto;border:1.5px dashed var(--stamp-green);border-radius:50%;transform:rotate(-8deg)"></div>
-							<div style="margin-top:10px;font:500 9px/1.4 'IBM Plex Sans',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--stamp-green)">On the house</div>
-							<div class="mono" style="margin-top:8px;font:500 12px/1 'IBM Plex Mono',monospace;color:var(--text-muted)">{reward.grantedCount} granted</div>
+							<div style="margin-top:10px;font:500 9px/1.4 'Inter',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--stamp-green)">On the house</div>
+							<div class="mono" style="margin-top:8px;font:500 12px/1 'JetBrains Mono', monospace;color:var(--text-muted)">{reward.grantedCount} granted</div>
 						</div>
 					</div>
 				</div>
@@ -208,7 +208,7 @@
 		</div>
 	</form>
 	{#if errorMessage}
-		<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+		<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 	{/if}
 	{#snippet footer()}
 		<button type="button" class="btn btn-ghost" onclick={() => (addOpen = false)} disabled={addSaving}>Cancel</button>

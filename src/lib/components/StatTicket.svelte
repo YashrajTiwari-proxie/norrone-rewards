@@ -26,15 +26,15 @@
 			</div>
 		{/if}
 		<div
-			style="font:500 10px/1 'IBM Plex Sans',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)"
+			style="font:500 10px/1 'Inter',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)"
 		>
 			{label}
 		</div>
 	</div>
-	<div class="mono" style="font:500 {big ? 32 : 30}px/1 'IBM Plex Mono',monospace;letter-spacing:-.02em;color:var(--ink)">
+	<div class="mono" style="font:500 {big ? 32 : 30}px/1 'JetBrains Mono', monospace;letter-spacing:-.02em;color:var(--ink)">
 		{value}
 	</div>
 	{#if note}
-		<div style="font:400 12px/1.4 'IBM Plex Sans',sans-serif;color:var(--text-muted)">{note}</div>
+		<div style="font:400 12px/1.4 'Inter',sans-serif;color:var(--text-muted)">{note}</div>
 	{/if}
 </div>

@@ -216,7 +216,7 @@
 
 {#snippet resourceCrud(title: string, verbPath: string, crud: ReturnType<typeof resourceCrudState>)}
 	<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:14px">
-		<div style="font:600 14px/1 'IBM Plex Sans',sans-serif">{title} — /{verbPath}</div>
+		<div style="font:600 14px/1 'Inter',sans-serif">{title} — /{verbPath}</div>
 		<div style="display:flex;gap:8px;flex-wrap:wrap">
 			<button type="button" class="btn btn-outline" disabled={crud.listSlot.busy} onclick={crud.list}>
 				{#if crud.listSlot.busy}<span class="spinner"></span>{:else}List{/if}
@@ -256,11 +256,11 @@
 	<title>API demo — Norrone Loyalty</title>
 </svelte:head>
 
-<div style="min-height:100vh;background:var(--paper);padding:48px 24px;font-family:'IBM Plex Sans',sans-serif;color:var(--text)">
+<div style="min-height:100vh;background:var(--paper);padding:48px 24px;font-family: 'Inter', sans-serif;color:var(--text)">
 	<div style="max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:24px">
 		<div>
-			<div style="font:600 22px/1.2 'IBM Plex Sans',sans-serif;color:var(--ink)">Public API demo</div>
-			<div style="margin-top:8px;font:400 14px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+			<div style="font:600 22px/1.2 'Plus Jakarta Sans',sans-serif;color:var(--ink)">Public API demo</div>
+			<div style="margin-top:8px;font:400 14px/1.5 'Inter',sans-serif;color:var(--text-muted)">
 				Exercises every endpoint in <code class="mono">docs/API.md</code> directly from the browser —
 				the same requests your own website/POS would send. See also
 				<a href="/wallet-demo">/wallet-demo</a> for the Apple/Google Wallet endpoints specifically.
@@ -268,7 +268,7 @@
 		</div>
 
 		<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:14px">
-			<div style="font:600 14px/1 'IBM Plex Sans',sans-serif">Connection</div>
+			<div style="font:600 14px/1 'Inter',sans-serif">Connection</div>
 			<label class="field">
 				<span class="field-label">API key (secret key needed for anything but reads)</span>
 				<input bind:value={apiKey} type="text" placeholder="sk_… or pk_…" class="input mono" />
@@ -281,7 +281,7 @@
 
 		<!-- Create customer -->
 		<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:14px">
-			<div style="font:600 14px/1 'IBM Plex Sans',sans-serif">Create customer — POST /customers</div>
+			<div style="font:600 14px/1 'Inter',sans-serif">Create customer — POST /customers</div>
 			<label class="field">
 				<span class="field-label">External ID</span>
 				<input bind:value={externalId} type="text" placeholder="e.g. cust-1042" class="input mono" />
@@ -315,8 +315,8 @@
 
 		<!-- Fetch customer -->
 		<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:14px">
-			<div style="font:600 14px/1 'IBM Plex Sans',sans-serif">Fetch customer — GET /customers/:externalId</div>
-			<div style="font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">Uses the external ID above.</div>
+			<div style="font:600 14px/1 'Inter',sans-serif">Fetch customer — GET /customers/:externalId</div>
+			<div style="font:400 12px 'Inter',sans-serif;color:var(--text-muted)">Uses the external ID above.</div>
 			<button
 				type="button"
 				class="btn btn-outline"
@@ -331,7 +331,7 @@
 
 		<!-- Update / delete customer -->
 		<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:14px">
-			<div style="font:600 14px/1 'IBM Plex Sans',sans-serif">Update / delete customer — PUT /customers/:externalId/profile, DELETE /customers/:externalId</div>
+			<div style="font:600 14px/1 'Inter',sans-serif">Update / delete customer — PUT /customers/:externalId/profile, DELETE /customers/:externalId</div>
 			<div style="display:flex;gap:10px;flex-wrap:wrap">
 				<input bind:value={customerName} type="text" placeholder="New name (optional)" class="input" style="flex:1;min-width:140px" />
 				<input bind:value={customerPhone} type="text" placeholder="New phone (optional)" class="input" style="flex:1;min-width:140px" />
@@ -369,7 +369,7 @@
 
 		<!-- Record event -->
 		<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:14px">
-			<div style="font:600 14px/1 'IBM Plex Sans',sans-serif">Record event — PUT /customers/:externalId</div>
+			<div style="font:600 14px/1 'Inter',sans-serif">Record event — PUT /customers/:externalId</div>
 			<div style="display:flex;gap:10px;flex-wrap:wrap">
 				<input bind:value={deltaSpend} type="number" step="any" placeholder="deltaSpend" class="input mono" style="flex:1;min-width:100px" />
 				<input bind:value={deltaVisits} type="number" step="1" placeholder="deltaVisits" class="input mono" style="flex:1;min-width:100px" />
@@ -400,7 +400,7 @@
 
 		<!-- Points -->
 		<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:14px">
-			<div style="font:600 14px/1 'IBM Plex Sans',sans-serif">Points — GET/POST /customers/:externalId/points</div>
+			<div style="font:600 14px/1 'Inter',sans-serif">Points — GET/POST /customers/:externalId/points</div>
 			<div style="display:flex;gap:10px;flex-wrap:wrap">
 				<input bind:value={pointsAmount} type="number" step="any" placeholder="amount (POST only)" class="input mono" style="flex:1;min-width:100px" />
 				<input bind:value={pointsNote} type="text" placeholder="note (optional)" class="input" style="flex:1;min-width:140px" />
@@ -433,7 +433,7 @@
 
 		<!-- Enroll membership -->
 		<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:14px">
-			<div style="font:600 14px/1 'IBM Plex Sans',sans-serif">Enroll membership — POST /customers/:externalId/membership</div>
+			<div style="font:600 14px/1 'Inter',sans-serif">Enroll membership — POST /customers/:externalId/membership</div>
 			<input bind:value={planId} type="text" placeholder="Membership plan ID (from the dashboard, or List below)" class="input mono" />
 			<input bind:value={membershipIdempotencyKey} type="text" placeholder="idempotencyKey (optional)" class="input mono" />
 			<button
@@ -458,7 +458,7 @@
 
 		<!-- Offers -->
 		<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:14px">
-			<div style="font:600 14px/1 'IBM Plex Sans',sans-serif">Offers</div>
+			<div style="font:600 14px/1 'Inter',sans-serif">Offers</div>
 			<div style="display:flex;gap:10px;flex-wrap:wrap">
 				<button
 					type="button"
@@ -483,8 +483,8 @@
 
 		<!-- Redeem coupon -->
 		<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:14px">
-			<div style="font:600 14px/1 'IBM Plex Sans',sans-serif">Redeem coupon — POST /coupons/:code/redeem</div>
-			<div style="font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">No shop ID in this one — only the API key's own organization matters.</div>
+			<div style="font:600 14px/1 'Inter',sans-serif">Redeem coupon — POST /coupons/:code/redeem</div>
+			<div style="font:400 12px 'Inter',sans-serif;color:var(--text-muted)">No shop ID in this one — only the API key's own organization matters.</div>
 			<input bind:value={couponCode} type="text" placeholder="Coupon code (or signed code.signature)" class="input mono" />
 			<button
 				type="button"
@@ -503,10 +503,10 @@
 		</div>
 
 		<div>
-			<div style="font:600 15px/1 'IBM Plex Sans',sans-serif;color:var(--ink);margin:8px 0 14px">
+			<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;color:var(--ink);margin:8px 0 14px">
 				Org-wide resources — list / create / update / delete
 			</div>
-			<div style="font:400 13px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted);margin-bottom:14px">
+			<div style="font:400 13px/1.5 'Inter',sans-serif;color:var(--text-muted);margin-bottom:14px">
 				Unlike customers, these four are org-scoped (not nested under a shop) — see docs/API.md.
 				Paste a full JSON body for Create/Update (a minimal example is pre-filled); grab an ID from List to Update/Delete.
 			</div>
@@ -518,7 +518,7 @@
 			</div>
 		</div>
 
-		<div style="font:400 12px/1.6 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+		<div style="font:400 12px/1.6 'Inter',sans-serif;color:var(--text-muted)">
 			This page only ever talks to <code class="mono">{apiOrigin()}/v1/...</code> — this app's own domain,
 			which transparently proxies through to the backend (see
 			<code class="mono">src/routes/v1/[...path]/+server.ts</code>). Pre-fill via

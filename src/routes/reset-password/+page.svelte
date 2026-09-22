@@ -44,39 +44,39 @@
 	}
 </script>
 
-<div style="min-height:100vh;background:var(--paper);display:grid;place-items:center;padding:40px;font-family:'IBM Plex Sans',sans-serif">
+<div style="min-height:100vh;background:var(--paper);display:grid;place-items:center;padding:40px;font-family: 'Inter', sans-serif">
 	<div style="width:100%;max-width:392px">
 		<div style="display:flex;align-items:center;gap:10px;margin-bottom:34px">
 			<img src="/norrone_rewards.svg" alt="Norrone Rewards" style="width:26px;height:26px;border-radius:6px" />
-			<div style="font:600 15px/1 'IBM Plex Sans',sans-serif;letter-spacing:-.01em;color:var(--ink)">Norrone Rewards</div>
+			<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;letter-spacing:-.01em;color:var(--ink)">Norrone Rewards</div>
 		</div>
 		<div class="card" style="padding:32px">
 			{#if done}
-				<div style="font:600 21px/1.2 'IBM Plex Sans',sans-serif;color:var(--ink);letter-spacing:-.01em">
+				<div style="font:600 21px/1.2 'Plus Jakarta Sans',sans-serif;color:var(--ink);letter-spacing:-.01em">
 					Password updated
 				</div>
-				<div style="margin-top:12px;font:400 14px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+				<div style="margin-top:12px;font:400 14px/1.5 'Inter',sans-serif;color:var(--text-muted)">
 					Taking you to sign in…
 				</div>
 			{:else if error || !token}
-				<div style="font:600 21px/1.2 'IBM Plex Sans',sans-serif;color:var(--ink);letter-spacing:-.01em">
+				<div style="font:600 21px/1.2 'Plus Jakarta Sans',sans-serif;color:var(--ink);letter-spacing:-.01em">
 					Link invalid or expired
 				</div>
-				<div style="margin-top:12px;font:400 14px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+				<div style="margin-top:12px;font:400 14px/1.5 'Inter',sans-serif;color:var(--text-muted)">
 					This password reset link is no longer valid.
 				</div>
-				<div style="margin-top:18px;text-align:center;font:400 13px 'IBM Plex Sans',sans-serif">
+				<div style="margin-top:18px;text-align:center;font:400 13px 'Inter',sans-serif">
 					<a href="/forgot-password">Request a new link</a>
 				</div>
 			{:else}
-				<div style="font:600 21px/1.2 'IBM Plex Sans',sans-serif;color:var(--ink);letter-spacing:-.01em">
+				<div style="font:600 21px/1.2 'Plus Jakarta Sans',sans-serif;color:var(--ink);letter-spacing:-.01em">
 					Set a new password
 				</div>
 				<form onsubmit={submit} style="margin-top:24px;display:flex;flex-direction:column;gap:16px">
 					<label class="field">
 						<span class="field-label">New password</span>
 						<input type="password" bind:value={password} required minlength="8" class="input mono" />
-						<span style="margin-top:5px;font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">At least 8 characters.</span>
+						<span style="margin-top:5px;font:400 12px 'Inter',sans-serif;color:var(--text-muted)">At least 8 characters.</span>
 					</label>
 					<label class="field">
 						<span class="field-label">Confirm new password</span>
@@ -87,7 +87,7 @@
 					</button>
 				</form>
 				{#if errorMessage}
-					<div style="margin-top:14px;font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+					<div style="margin-top:14px;font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 				{/if}
 			{/if}
 		</div>

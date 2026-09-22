@@ -90,11 +90,11 @@
 	<title>Wallet API example — Norrone Loyalty</title>
 </svelte:head>
 
-<div style="min-height:100vh;background:var(--paper);padding:48px 24px;font-family:'IBM Plex Sans',sans-serif;color:var(--text)">
+<div style="min-height:100vh;background:var(--paper);padding:48px 24px;font-family: 'Inter', sans-serif;color:var(--text)">
 	<div style="max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:24px">
 		<div>
-			<div style="font:600 22px/1.2 'IBM Plex Sans',sans-serif;color:var(--ink)">Wallet API example</div>
-			<div style="margin-top:8px;font:400 14px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+			<div style="font:600 22px/1.2 'Plus Jakarta Sans',sans-serif;color:var(--ink)">Wallet API example</div>
+			<div style="margin-top:8px;font:400 14px/1.5 'Inter',sans-serif;color:var(--text-muted)">
 				A minimal, unauthenticated demo of the public wallet-pass endpoints documented in
 				<code class="mono">docs/API.md</code>. Paste any org's own API key (secret or publishable both
 				work) plus a shop ID and a customer's external ID, exactly as that org's own backend or
@@ -117,7 +117,7 @@
 			</label>
 
 			{#if errorMessage}
-				<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+				<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 			{/if}
 
 			<div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -136,7 +136,7 @@
 			{/if}
 		</div>
 
-		<div style="font:400 12px/1.6 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+		<div style="font:400 12px/1.6 'Inter',sans-serif;color:var(--text-muted)">
 			This page only ever talks to <code class="mono">{page.url.origin}/v1/...</code> — the same
 			public API any external integration uses. It has no access to your dashboard session, and nothing
 			you type here is stored anywhere. Tip: the fields above can be pre-filled via

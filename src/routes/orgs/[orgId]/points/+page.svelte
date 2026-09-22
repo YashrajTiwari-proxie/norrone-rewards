@@ -145,7 +145,7 @@
 				<tbody>
 					{#each rules.data as rule (rule._id)}
 						<tr onclick={() => openEdit(rule)} style="cursor:pointer">
-							<td style="font:500 14px 'IBM Plex Sans',sans-serif;color:var(--ink)">{rule.action}</td>
+							<td style="font:500 14px 'Inter',sans-serif;color:var(--ink)">{rule.action}</td>
 							<td class="right mono" style="font-weight:500;color:var(--stamp-amber)">+{rule.pointsPerUnit}</td>
 							<td>
 								{#if rule.memberOnly}
@@ -155,7 +155,7 @@
 								{/if}
 							</td>
 							<td style="color:var(--text-muted)">{rule.scopeName}</td>
-							<td class="right" style="font:500 12px 'IBM Plex Sans',sans-serif;color:var(--stamp-green)">Edit</td>
+							<td class="right" style="font:500 12px 'Inter',sans-serif;color:var(--stamp-green)">Edit</td>
 						</tr>
 					{/each}
 				</tbody>
@@ -195,7 +195,7 @@
 		</div>
 	</form>
 	{#if errorMessage}
-		<div style="font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+		<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 	{/if}
 	{#snippet footer()}
 		<button type="button" class="btn btn-ghost" onclick={() => (addOpen = false)} disabled={addSaving}>Cancel</button>

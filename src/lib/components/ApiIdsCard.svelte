@@ -31,8 +31,8 @@
 
 <div class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:14px">
 	<div>
-		<div style="font:600 14px/1 'IBM Plex Sans',sans-serif">API reference IDs</div>
-		<div style="margin-top:6px;font:400 13px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+		<div style="font:600 14px/1 'Inter',sans-serif">API reference IDs</div>
+		<div style="margin-top:6px;font:400 13px/1.5 'Inter',sans-serif;color:var(--text-muted)">
 			Every call is <code class="mono">/v1/shops/:shopId/...</code> — plan IDs are only needed for
 			<code class="mono">POST .../membership</code>. Not shown anywhere else in the dashboard.
 		</div>

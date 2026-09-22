@@ -19,9 +19,9 @@
 <div class="stub">
 	<div class="stub-body">
 		<div>
-			<div style="font:600 15px/1.3 'IBM Plex Sans',sans-serif;color:var(--ink)">{title}</div>
+			<div style="font:600 15px/1.3 'Plus Jakarta Sans',sans-serif;color:var(--ink)">{title}</div>
 			{#if subtitle}
-				<div class="mono" style="margin-top:6px;font:500 13px/1 'IBM Plex Mono',monospace;letter-spacing:.04em;color:var(--text-muted)">
+				<div class="mono" style="margin-top:6px;font:500 13px/1 'JetBrains Mono', monospace;letter-spacing:.04em;color:var(--text-muted)">
 					{subtitle}
 				</div>
 			{/if}
