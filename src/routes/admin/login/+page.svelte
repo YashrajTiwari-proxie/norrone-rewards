@@ -57,19 +57,19 @@
 	}
 </script>
 
-<div style="min-height:100vh;background:var(--ink);display:grid;place-items:center;padding:40px;font-family: 'Inter', sans-serif">
+<div style="min-height:100vh;background:var(--ink);display:grid;place-items:center;padding:40px;font-family: 'Geist', sans-serif">
 	<div style="width:100%;max-width:392px">
 		<div style="display:flex;align-items:center;gap:10px;margin-bottom:34px;justify-content:center">
 			<img src="/norrone_rewards.svg" alt="Norrone Rewards" style="width:26px;height:26px;border-radius:6px" />
-			<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;letter-spacing:-.01em;color:var(--paper)">
+			<div style="font:600 15px/1 'Bodoni Moda', serif;letter-spacing:-.01em;color:var(--paper)">
 				Norrone Platform Admin
 			</div>
 		</div>
 		<div style="background:var(--ink-2);border:1px solid var(--ink-3);border-radius:12px;padding:32px">
-			<div style="font:600 21px/1.2 'Plus Jakarta Sans',sans-serif;color:var(--paper);letter-spacing:-.01em">
+			<div style="font:600 21px/1.2 'Bodoni Moda', serif;color:var(--paper);letter-spacing:-.01em">
 				Admin sign in
 			</div>
-			<div style="margin-top:8px;font:400 14px/1.5 'Inter',sans-serif;color:var(--ink-4)">
+			<div style="margin-top:8px;font:400 14px/1.5 'Geist', sans-serif;color:var(--ink-4)">
 				For Norrone staff who manage organizations on the platform.
 			</div>
 			<form onsubmit={signIn} style="margin-top:24px;display:flex;flex-direction:column;gap:16px">
@@ -86,10 +86,10 @@
 				</button>
 			</form>
 			{#if errorMessage}
-				<div style="margin-top:14px;font:400 13px 'Inter',sans-serif;color:#F4A48A">{errorMessage}</div>
+				<div style="margin-top:14px;font:400 13px 'Geist', sans-serif;color:#F4A48A">{errorMessage}</div>
 			{/if}
 		</div>
-		<div style="margin-top:20px;font:400 12px/1.6 'Inter',sans-serif;color:var(--ink-4);text-align:center">
+		<div style="margin-top:20px;font:400 12px/1.6 'Geist', sans-serif;color:var(--ink-4);text-align:center">
 			Looking for organization staff sign-in? <a href="/login" style="color:#C6CCD3">Go there instead</a>.
 		</div>
 	</div>

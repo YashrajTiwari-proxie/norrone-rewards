@@ -27,15 +27,15 @@
 	}
 </script>
 
-<div style="min-height:100vh;background:var(--paper);display:grid;place-items:center;padding:40px;font-family: 'Inter', sans-serif">
+<div style="min-height:100vh;background:var(--paper);display:grid;place-items:center;padding:40px;font-family: 'Geist', sans-serif">
 	<div style="width:100%;max-width:392px">
 		<div style="display:flex;align-items:center;gap:10px;margin-bottom:34px">
 			<img src="/norrone_rewards.svg" alt="Norrone Rewards" style="width:26px;height:26px;border-radius:6px" />
-			<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;letter-spacing:-.01em;color:var(--ink)">Norrone Rewards</div>
+			<div style="font:600 15px/1 'Bodoni Moda', serif;letter-spacing:-.01em;color:var(--ink)">Norrone Rewards</div>
 		</div>
 		<div class="card" style="padding:32px">
-			<div style="font:600 21px/1.2 'Plus Jakarta Sans',sans-serif;color:var(--ink);letter-spacing:-.01em">Sign in</div>
-			<div style="margin-top:8px;font:400 14px/1.5 'Inter',sans-serif;color:var(--text-muted)">
+			<div style="font:600 21px/1.2 'Bodoni Moda', serif;color:var(--ink);letter-spacing:-.01em">Sign in</div>
+			<div style="margin-top:8px;font:400 14px/1.5 'Geist', sans-serif;color:var(--text-muted)">
 				Staff access to your rewards program.
 			</div>
 			<form onsubmit={signIn} style="margin-top:24px;display:flex;flex-direction:column;gap:16px">
@@ -52,13 +52,13 @@
 				</button>
 			</form>
 			{#if errorMessage}
-				<div style="margin-top:14px;font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+				<div style="margin-top:14px;font:400 13px 'Geist', sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 			{/if}
-			<div style="margin-top:18px;text-align:center;font:400 13px 'Inter',sans-serif">
+			<div style="margin-top:18px;text-align:center;font:400 13px 'Geist', sans-serif">
 				<a href="/forgot-password">Forgot your password?</a>
 			</div>
 		</div>
-		<div style="margin-top:20px;font:400 12px/1.6 'Inter',sans-serif;color:var(--text-muted);text-align:center">
+		<div style="margin-top:20px;font:400 12px/1.6 'Geist', sans-serif;color:var(--text-muted);text-align:center">
 			Access is granted by an owner or manager at your organization.<br />
 			New to Norrone Rewards? <a href="/signup">Set up your organization</a>.
 		</div>

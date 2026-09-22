@@ -96,8 +96,8 @@
 					{#each data.customers as c (c.id)}
 						<tr onclick={() => goto(`/orgs/${organizationId}/customers/${c.id}`)} style="cursor:pointer">
 							<td>
-								<div style="font:500 14px/1.3 'Inter',sans-serif;color:var(--ink)">{c.name}</div>
-								<div class="mono" style="margin-top:3px;font:400 12px/1 'JetBrains Mono', monospace;color:var(--text-muted)">{c.externalId}</div>
+								<div style="font:500 14px/1.3 'Geist', sans-serif;color:var(--ink)">{c.name}</div>
+								<div class="mono" style="margin-top:3px;font:400 12px/1 'Geist Mono', monospace;color:var(--text-muted)">{c.externalId}</div>
 							</td>
 							<td style="color:var(--text-muted)">{c.shopName}</td>
 							<td>
@@ -117,7 +117,7 @@
 				</tbody>
 			</table>
 			<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0 10px">
-				<div style="font:400 12px 'Inter',sans-serif;color:var(--text-muted)">
+				<div style="font:400 12px 'Geist', sans-serif;color:var(--text-muted)">
 					Showing <span class="mono">{(data.page - 1) * data.pageSize + 1}–{Math.min(data.page * data.pageSize, data.totalCount)}</span>
 					of <span class="mono">{data.totalCount}</span>
 				</div>

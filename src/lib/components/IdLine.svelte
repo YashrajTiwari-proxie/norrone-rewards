@@ -23,7 +23,7 @@
 		<button
 			type="button"
 			onclick={copy}
-			style="background:transparent;border:0;padding:0;cursor:pointer;font:500 11px 'Inter',sans-serif;color:var(--text-muted);text-decoration:underline"
+			style="background:transparent;border:0;padding:0;cursor:pointer;font:500 11px 'Geist', sans-serif;color:var(--text-muted);text-decoration:underline"
 		>
 			{copied ? 'Copied!' : 'Copy'}
 		</button>
@@ -31,7 +31,7 @@
 {:else}
 	<div style="display:grid;grid-template-columns:{label ? '140px ' : ''}1fr auto;gap:10px;align-items:center">
 		{#if label}
-			<span style="font:500 12px 'Inter',sans-serif;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+			<span style="font:500 12px 'Geist', sans-serif;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
 				{label}
 			</span>
 		{/if}

@@ -181,7 +181,7 @@
 {:else}
 	{@const data = detail.data}
 	<div style="padding:34px 40px 72px;max-width:1260px;display:flex;flex-direction:column;gap:34px">
-		<a href="/orgs/{organizationId}/customers" style="align-self:flex-start;font:500 13px 'Inter',sans-serif">
+		<a href="/orgs/{organizationId}/customers" style="align-self:flex-start;font:500 13px 'Geist', sans-serif">
 			← Back to customers
 		</a>
 
@@ -190,8 +190,8 @@
 				<TierStamp name={data.currentTier.name} level={data.currentTier.level} color={tierColor(data.currentTier.name)} size={78} />
 			{/if}
 			<div style="flex:1;min-width:220px">
-				<div style="font:600 22px/1.2 'Plus Jakarta Sans',sans-serif;letter-spacing:-.01em;color:var(--ink)">{data.customer.name}</div>
-				<div style="margin-top:7px;font:400 13px/1.5 'Inter',sans-serif;color:var(--text-muted)">
+				<div style="font:600 22px/1.2 'Bodoni Moda', serif;letter-spacing:-.01em;color:var(--ink)">{data.customer.name}</div>
+				<div style="margin-top:7px;font:400 13px/1.5 'Geist', sans-serif;color:var(--text-muted)">
 					{data.customer.shopName} · <span class="mono">{data.customer.externalId}</span>
 					{#if data.customer.phone} · {data.customer.phone}{/if}
 				</div>
@@ -241,7 +241,7 @@
 		</div>
 
 		<div>
-			<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;margin-bottom:14px">Points earned by month</div>
+			<div style="font:600 15px/1 'Bodoni Moda', serif;margin-bottom:14px">Points earned by month</div>
 			<div class="card" style="padding:24px 28px 20px">
 				<div style="display:flex;align-items:flex-end;gap:14px;height:120px;border-bottom:1px solid var(--line);padding-bottom:2px">
 					{#each data.months as m (m.label)}
@@ -253,8 +253,8 @@
 				<div style="margin-top:10px;display:flex;gap:14px">
 					{#each data.months as m (m.label)}
 						<div style="flex:1;text-align:center">
-							<div class="mono" style="font:500 12px/1 'JetBrains Mono', monospace;color:var(--ink)">{m.total}</div>
-							<div style="margin-top:5px;font:400 11px/1 'Inter',sans-serif;color:var(--text-muted)">{m.label}</div>
+							<div class="mono" style="font:500 12px/1 'Geist Mono', monospace;color:var(--ink)">{m.total}</div>
+							<div style="margin-top:5px;font:400 11px/1 'Geist', sans-serif;color:var(--text-muted)">{m.label}</div>
 						</div>
 					{/each}
 				</div>
@@ -263,9 +263,9 @@
 
 		{#if data.progress}
 			<div>
-				<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;margin-bottom:14px">Progress to {data.progress.nextTierName}</div>
+				<div style="font:600 15px/1 'Bodoni Moda', serif;margin-bottom:14px">Progress to {data.progress.nextTierName}</div>
 				<div class="card" style="padding:24px 28px;display:flex;align-items:center;gap:26px;flex-wrap:wrap">
-					<div style="font:400 13px/1.5 'Inter',sans-serif;color:var(--text-muted);flex:1;min-width:200px">
+					<div style="font:400 13px/1.5 'Geist', sans-serif;color:var(--text-muted);flex:1;min-width:200px">
 						{data.progress.nextTierName} needs <span class="mono" style="color:var(--ink)">{data.progress.target.toLocaleString()}</span> —
 						{data.customer.name} is at <span class="mono" style="color:var(--ink)">{data.progress.actual.toLocaleString()}</span>,
 						<span class="mono" style="color:var(--stamp-amber)">{data.progress.remaining.toLocaleString()}</span> to go.
@@ -276,22 +276,22 @@
 
 		<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:26px">
 			<div>
-				<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;margin-bottom:14px">Rewards earned</div>
+				<div style="font:600 15px/1 'Bodoni Moda', serif;margin-bottom:14px">Rewards earned</div>
 				{#if data.rewards.length === 0}
-					<div style="font:400 13px 'Inter',sans-serif;color:var(--text-muted)">No rewards yet.</div>
+					<div style="font:400 13px 'Geist', sans-serif;color:var(--text-muted)">No rewards yet.</div>
 				{:else}
 					<div style="display:flex;flex-direction:column;gap:12px">
 						{#each data.rewards as r, i (i)}
 							<div class="stub" style="min-height:88px">
 								<div style="flex:1;min-width:0;padding:15px 18px">
-									<div style="font:600 14px/1.3 'Inter',sans-serif;color:var(--ink)">{r.name}</div>
-									<div style="margin-top:5px;font:400 12px/1.4 'Inter',sans-serif;color:var(--text-muted)">
+									<div style="font:600 14px/1.3 'Geist', sans-serif;color:var(--ink)">{r.name}</div>
+									<div style="margin-top:5px;font:400 12px/1.4 'Geist', sans-serif;color:var(--text-muted)">
 										Granted {new Date(r.grantedAt).toLocaleDateString()}
 									</div>
 								</div>
 								<div class="stub-perforation"></div>
 								<div class="stub-end" style="width:104px;flex:0 0 104px">
-									<div style="font:500 9px/1.4 'Inter',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--stamp-green);text-align:center">
+									<div style="font:500 9px/1.4 'Geist', sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--stamp-green);text-align:center">
 										Reward<br />on file
 									</div>
 								</div>
@@ -301,19 +301,19 @@
 				{/if}
 			</div>
 			<div>
-				<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;margin-bottom:14px">Coupons</div>
+				<div style="font:600 15px/1 'Bodoni Moda', serif;margin-bottom:14px">Coupons</div>
 				{#if data.coupons.length === 0}
-					<div style="font:400 13px 'Inter',sans-serif;color:var(--text-muted)">No coupons yet.</div>
+					<div style="font:400 13px 'Geist', sans-serif;color:var(--text-muted)">No coupons yet.</div>
 				{:else}
 					<div class="card" style="padding:4px 18px">
 						{#each data.coupons as c, i (i)}
 							<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid var(--line-2)">
 								<div style="min-width:0">
-									<div style="font:500 13px/1.3 'Inter',sans-serif;color:var(--ink)">{c.name}</div>
-									<div class="mono" style="margin-top:4px;font:400 12px/1 'JetBrains Mono', monospace;color:var(--text-muted)">{c.code}</div>
+									<div style="font:500 13px/1.3 'Geist', sans-serif;color:var(--ink)">{c.name}</div>
+									<div class="mono" style="margin-top:4px;font:400 12px/1 'Geist Mono', monospace;color:var(--text-muted)">{c.code}</div>
 								</div>
 								<div style="display:flex;align-items:center;gap:12px">
-									<span class="mono" style="font:400 12px 'JetBrains Mono', monospace;color:var(--text-muted)">{c.value}</span>
+									<span class="mono" style="font:400 12px 'Geist Mono', monospace;color:var(--text-muted)">{c.value}</span>
 									<Badge tone={couponStatusTone[c.status] ?? 'grey'} text={c.status} />
 								</div>
 							</div>
@@ -338,7 +338,7 @@
 			</div>
 		</form>
 		{#if errorMessage}
-			<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+			<div style="font:400 13px 'Geist', sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 		{/if}
 		{#snippet footer()}
 			<button type="button" class="btn btn-ghost" onclick={() => (adjustOpen = false)} disabled={adjustSaving}>Cancel</button>
@@ -361,7 +361,7 @@
 			</label>
 		</form>
 		{#if errorMessage}
-			<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+			<div style="font:400 13px 'Geist', sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 		{/if}
 		{#snippet footer()}
 			<button type="button" class="btn btn-ghost" onclick={() => (changeTierOpen = false)} disabled={changeTierSaving}>Cancel</button>
@@ -373,7 +373,7 @@
 
 	<Drawer bind:open={grantRewardOpen} title="Grant reward" note="Gives this customer the reward immediately, without checking its eligibility conditions.">
 		{#if data.availableRewards.length === 0}
-			<div style="font:400 13px 'Inter',sans-serif;color:var(--text-muted)">
+			<div style="font:400 13px 'Geist', sans-serif;color:var(--text-muted)">
 				This customer already holds every reward configured for their shop.
 			</div>
 		{:else}
@@ -390,7 +390,7 @@
 			</form>
 		{/if}
 		{#if errorMessage}
-			<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+			<div style="font:400 13px 'Geist', sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 		{/if}
 		{#snippet footer()}
 			<button type="button" class="btn btn-ghost" onclick={() => (grantRewardOpen = false)} disabled={grantRewardSaving}>Cancel</button>
@@ -405,7 +405,7 @@
 	<Drawer bind:open={issueCouponOpen} title="Issue coupon" note="Generates a new coupon code for this customer immediately, without checking its eligibility conditions.">
 		{#if issuedCouponCode}
 			<div style="display:flex;flex-direction:column;gap:10px">
-				<div style="font:400 13px 'Inter',sans-serif;color:var(--text-muted)">Coupon issued — code:</div>
+				<div style="font:400 13px 'Geist', sans-serif;color:var(--text-muted)">Coupon issued — code:</div>
 				<div style="display:flex;gap:8px;align-items:center">
 					<code class="mono" style="flex:1;background:var(--surface-soft);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:16px;letter-spacing:.05em">
 						{issuedCouponCode}
@@ -414,12 +414,12 @@
 						{couponCodeCopied ? 'Copied!' : 'Copy'}
 					</button>
 				</div>
-				<div style="font:400 12px 'Inter',sans-serif;color:var(--text-muted)">
+				<div style="font:400 12px 'Geist', sans-serif;color:var(--text-muted)">
 					Also listed in this customer's Coupons section below.
 				</div>
 			</div>
 		{:else if data.availableCoupons.length === 0}
-			<div style="font:400 13px 'Inter',sans-serif;color:var(--text-muted)">No coupon types configured for this shop yet.</div>
+			<div style="font:400 13px 'Geist', sans-serif;color:var(--text-muted)">No coupon types configured for this shop yet.</div>
 		{:else}
 			<form id="issue-coupon-form" onsubmit={submitIssueCoupon}>
 				<label class="field">
@@ -434,7 +434,7 @@
 			</form>
 		{/if}
 		{#if errorMessage}
-			<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+			<div style="font:400 13px 'Geist', sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 		{/if}
 		{#snippet footer()}
 			{#if issuedCouponCode}
@@ -452,7 +452,7 @@
 
 	<Drawer bind:open={enrollOpen} title="Enroll in membership" note="Starts the plan immediately, applies its benefits, and re-checks tier/reward/coupon eligibility — same as if the customer paid for it through the API.">
 		{#if data.availablePlans.length === 0}
-			<div style="font:400 13px 'Inter',sans-serif;color:var(--text-muted)">
+			<div style="font:400 13px 'Geist', sans-serif;color:var(--text-muted)">
 				No other membership plans available — the customer may already be enrolled in all of them.
 			</div>
 		{:else}
@@ -469,7 +469,7 @@
 			</form>
 		{/if}
 		{#if errorMessage}
-			<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+			<div style="font:400 13px 'Geist', sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 		{/if}
 		{#snippet footer()}
 			<button type="button" class="btn btn-ghost" onclick={() => (enrollOpen = false)} disabled={enrollSaving}>Cancel</button>

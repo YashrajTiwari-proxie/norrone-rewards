@@ -1,29 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;500;600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
 
 :root {
-	--ink: #0f172a;
-	--ink-2: #1e293b;
-	--ink-3: #334155;
-	--ink-4: #64748b;
-	--paper: #f4f3ef;
-	--card: #ffffff;
-	--line: #e2e8f0;
-	--line-2: #f1f5f9;
-	--dash: #cbd5e1;
-	--surface-soft: #f8fafc;
-	--stamp-green: #059669;
-	--stamp-green-bg: #ecfdf5;
-	--stamp-amber: #b45309;
-	--stamp-amber-bg: #fffbeb;
+	/* "Editorial Luxury" — warm parchment canvas, ink-charcoal primary,
+	   acid-lemon accent. See design reference in stitch_rewards_landing_page_redesign. */
+	--ink: #161616;
+	--ink-2: #2a2a2a;
+	--ink-3: #444748;
+	--ink-4: #6e6d68;
+	--paper: #faf8f5;
+	--card: #fffffa;
+	--line: #e5e1d8;
+	--line-2: #efeeeb;
+	--dash: #c4c7c7;
+	--surface-soft: #f4f1ec;
+	--stamp-green: #383b2e;
+	--stamp-green-bg: #e2e4d1;
+	--stamp-amber: #686800;
+	--stamp-amber-bg: #fafa85;
 	--stamp-rust: #ba1a1a;
 	--stamp-rust-bg: #ffdad6;
-	--stamp-grey-bg: #f1f5f9;
-	--text: #0f172a;
-	--text-muted: #64748b;
-	--accent-emerald: #10b981;
-	--accent-indigo: #6366f1;
-	--accent-amber: #f59e0b;
-	--surface-dark: #0b0f19;
+	--stamp-grey-bg: #f5f3f0;
+	--text: #161616;
+	--text-muted: #6e6d68;
+	--accent-emerald: #383b2e;
+	--accent-indigo: #444748;
+	--accent-amber: #686800;
+	--accent-acid: #ffff50;
+	--surface-dark: #121212;
 }
 
 * {
@@ -40,7 +43,7 @@ body {
 }
 
 body {
-	font-family: 'Inter', sans-serif;
+	font-family: 'Geist', sans-serif;
 }
 
 a {
@@ -56,11 +59,11 @@ button,
 input,
 select,
 textarea {
-	font-family: 'Inter', sans-serif;
+	font-family: 'Geist', sans-serif;
 }
 
 .mono {
-	font-family: 'JetBrains Mono', monospace;
+	font-family: 'Geist Mono', monospace;
 }
 
 table {
@@ -70,7 +73,7 @@ table {
 th {
 	text-align: left;
 	padding: 12px 12px 10px 0;
-	font: 500 10px/1 'Inter', sans-serif;
+	font: 500 10px/1 'Geist', sans-serif;
 	letter-spacing: 0.1em;
 	text-transform: uppercase;
 	color: var(--text-muted);
@@ -82,7 +85,7 @@ th.right {
 td {
 	padding: 15px 12px 15px 0;
 	border-bottom: 1px solid var(--line-2);
-	font: 400 13px 'Inter', sans-serif;
+	font: 400 13px 'Geist', sans-serif;
 }
 td.right {
 	text-align: right;
@@ -91,12 +94,12 @@ td.right {
 .card {
 	background: var(--card);
 	border: 1px solid var(--line);
-	border-radius: 12px;
+	border-radius: 20px;
 }
 
 .btn {
-	border-radius: 6px;
-	font: 500 13px 'Inter', sans-serif;
+	border-radius: 999px;
+	font: 500 13px 'Geist', sans-serif;
 	padding: 9px 15px;
 	cursor: pointer;
 	border: 1px solid transparent;
@@ -147,7 +150,7 @@ td.right {
 	background: transparent;
 	border: 0;
 	color: var(--stamp-rust);
-	font: 500 12px 'Inter', sans-serif;
+	font: 500 12px 'Geist', sans-serif;
 	cursor: pointer;
 	padding: 0;
 }
@@ -158,23 +161,23 @@ td.right {
 	gap: 7px;
 }
 .field-label {
-	font: 500 12px/1 'Inter', sans-serif;
+	font: 500 12px/1 'Geist', sans-serif;
 	color: var(--ink);
 }
 .input,
 select.input {
 	height: 38px;
 	padding: 0 11px;
-	background: #fff;
+	background: var(--card);
 	border: 1px solid var(--line);
-	border-radius: 8px;
-	font: 400 14px 'Inter', sans-serif;
+	border-radius: 12px;
+	font: 400 14px 'Geist', sans-serif;
 	color: var(--text);
 	outline: none;
 	width: 100%;
 }
 .input.mono {
-	font-family: 'JetBrains Mono', monospace;
+	font-family: 'Geist Mono', monospace;
 }
 .input-sm {
 	height: 34px;
@@ -184,8 +187,8 @@ select.input {
 .chip {
 	display: inline-block;
 	padding: 4px 9px;
-	border-radius: 7px;
-	font: 500 11px/1 'Inter', sans-serif;
+	border-radius: 999px;
+	font: 500 11px/1 'Geist', sans-serif;
 	white-space: nowrap;
 }
 .chip-green {
@@ -205,7 +208,7 @@ select.input {
 	color: var(--text-muted);
 }
 .chip.mono {
-	font-family: 'JetBrains Mono', monospace;
+	font-family: 'Geist Mono', monospace;
 }
 
 .stamp {
@@ -220,13 +223,13 @@ select.input {
 	text-align: center;
 }
 .stamp-title {
-	font: 600 10px/1 'Inter', sans-serif;
+	font: 600 10px/1 'Geist', sans-serif;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
 }
 .stamp-sub {
 	margin-top: 3px;
-	font: 500 9px/1 'JetBrains Mono', monospace;
+	font: 500 9px/1 'Geist Mono', monospace;
 }
 
 .punch-dot {
@@ -245,7 +248,7 @@ select.input {
 	display: flex;
 	background: var(--card);
 	border: 1px solid var(--line);
-	border-radius: 12px;
+	border-radius: 20px;
 	min-height: 106px;
 }
 .stub-body {
@@ -285,13 +288,13 @@ select.input {
 	place-items: center;
 	padding: 12px;
 	background: var(--surface-soft);
-	border-radius: 0 11px 11px 0;
+	border-radius: 0 19px 19px 0;
 }
 
 .empty-state {
 	background: var(--card);
 	border: 1px solid var(--line);
-	border-radius: 12px;
+	border-radius: 20px;
 	padding: 64px 40px;
 	display: flex;
 	flex-direction: column;
@@ -330,7 +333,7 @@ select.input {
 .drawer-overlay {
 	position: fixed;
 	inset: 0;
-	background: rgba(27, 36, 48, 0.28);
+	background: rgba(22, 22, 22, 0.28);
 	display: flex;
 	justify-content: flex-end;
 	z-index: 40;
@@ -362,18 +365,18 @@ select.input {
 	width: 420px;
 	flex: 0 0 420px;
 	max-width: 100%;
-	background: #fff;
-	box-shadow: -18px 0 40px rgba(27, 36, 48, 0.16);
+	background: var(--card);
+	box-shadow: -18px 0 40px rgba(22, 22, 22, 0.16);
 	display: flex;
 	flex-direction: column;
 	animation: drawerIn 0.18s ease;
-	font-family: 'Inter', sans-serif;
+	font-family: 'Geist', sans-serif;
 }
 
 .dialog-overlay {
 	position: fixed;
 	inset: 0;
-	background: rgba(27, 36, 48, 0.28);
+	background: rgba(22, 22, 22, 0.28);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -394,10 +397,10 @@ select.input {
 .dialog-panel {
 	width: 400px;
 	max-width: 100%;
-	background: #fff;
-	border-radius: 14px;
-	box-shadow: 0 24px 60px rgba(27, 36, 48, 0.28);
+	background: var(--card);
+	border-radius: 20px;
+	box-shadow: 0 24px 60px rgba(22, 22, 22, 0.28);
 	animation: dialogIn 0.16s ease;
-	font-family: 'Inter', sans-serif;
+	font-family: 'Geist', sans-serif;
 	overflow: hidden;
 }

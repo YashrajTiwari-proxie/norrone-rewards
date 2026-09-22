@@ -27,9 +27,9 @@
 		<div class="dialog-panel" style="width:480px" role="dialog" aria-modal="true">
 			<div style="padding:22px 24px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
 				<div>
-					<div style="font:600 17px/1.2 'Plus Jakarta Sans',sans-serif;color:var(--ink)">{title}</div>
+					<div style="font:600 17px/1.2 'Bodoni Moda', serif;color:var(--ink)">{title}</div>
 					{#if note}
-						<div style="margin-top:6px;font:400 13px/1.5 'Inter',sans-serif;color:var(--text-muted)">
+						<div style="margin-top:6px;font:400 13px/1.5 'Geist', sans-serif;color:var(--text-muted)">
 							{note}
 						</div>
 					{/if}

@@ -37,18 +37,18 @@
 	<nav aria-label="Breadcrumb" style="display:flex;align-items:center;gap:6px;overflow:hidden">
 		{#each crumbs as crumb, i (crumb.href)}
 			{#if i > 0}
-				<span style="color:var(--line-2);font:400 12px 'Inter',sans-serif">/</span>
+				<span style="color:var(--line-2);font:400 12px 'Geist', sans-serif">/</span>
 			{/if}
 			{#if i === crumbs.length - 1}
 				<span
-					style="font:500 12px 'Inter',sans-serif;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+					style="font:500 12px 'Geist', sans-serif;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
 				>
 					{crumb.label}
 				</span>
 			{:else}
 				<a
 					href={crumb.href}
-					style="font:400 12px 'Inter',sans-serif;color:var(--text-muted);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+					style="font:400 12px 'Geist', sans-serif;color:var(--text-muted);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
 				>
 					{crumb.label}
 				</a>

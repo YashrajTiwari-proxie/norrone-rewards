@@ -26,8 +26,8 @@
 		></button>
 		<div class="dialog-panel" role="alertdialog" aria-modal="true">
 			<div style="padding:22px 24px 6px">
-				<div style="font:600 16px/1.3 'Plus Jakarta Sans',sans-serif;color:var(--ink)">{title}</div>
-				<div style="margin-top:8px;font:400 13px/1.55 'Inter',sans-serif;color:var(--text-muted)">{body}</div>
+				<div style="font:600 16px/1.3 'Bodoni Moda', serif;color:var(--ink)">{title}</div>
+				<div style="margin-top:8px;font:400 13px/1.55 'Geist', sans-serif;color:var(--text-muted)">{body}</div>
 			</div>
 			<div style="padding:18px 24px 22px;display:flex;gap:10px;justify-content:flex-end">
 				<button type="button" class="btn btn-ghost" onclick={close} disabled={confirming}>Cancel</button>

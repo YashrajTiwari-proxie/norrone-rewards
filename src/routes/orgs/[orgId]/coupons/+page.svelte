@@ -180,7 +180,7 @@
 
 <div style="padding:34px 40px 72px;max-width:1260px;display:flex;flex-direction:column;gap:38px">
 	<div>
-		<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;color:var(--ink);margin-bottom:14px">Coupon types</div>
+		<div style="font:600 15px/1 'Bodoni Moda', serif;color:var(--ink);margin-bottom:14px">Coupon types</div>
 		{#if definitions.isLoading}
 			<PageLoading />
 		{:else if definitions.error}
@@ -206,7 +206,7 @@
 						{#each definitions.data as def (def._id)}
 							<tr onclick={() => openEdit(def)} style="cursor:pointer">
 								<td>
-									<div style="font:500 14px 'Inter',sans-serif;color:var(--ink)">{def.name}</div>
+									<div style="font:500 14px 'Geist', sans-serif;color:var(--ink)">{def.name}</div>
 									<div style="margin-top:3px" onclick={(e) => e.stopPropagation()} role="presentation">
 										<IdLine id={def._id} compact />
 									</div>
@@ -226,7 +226,7 @@
 	</div>
 
 	<div>
-		<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;color:var(--ink);margin-bottom:14px">Issued coupons</div>
+		<div style="font:600 15px/1 'Bodoni Moda', serif;color:var(--ink);margin-bottom:14px">Issued coupons</div>
 		{#if instances.isLoading}
 			<PageLoading />
 		{:else if instances.error}
@@ -252,16 +252,16 @@
 						<div class="stub" style="min-height:126px">
 							<div class="stub-body">
 								<div>
-									<div style="font:600 15px/1.3 'Plus Jakarta Sans',sans-serif;color:var(--ink)">{coupon.defName}</div>
-									<div class="mono" style="margin-top:6px;font:500 14px/1 'JetBrains Mono', monospace;letter-spacing:.05em;color:var(--text-muted)">
+									<div style="font:600 15px/1.3 'Bodoni Moda', serif;color:var(--ink)">{coupon.defName}</div>
+									<div class="mono" style="margin-top:6px;font:500 14px/1 'Geist Mono', monospace;letter-spacing:.05em;color:var(--text-muted)">
 										{coupon.code}
 									</div>
 								</div>
 								<div>
-									<div style="font:400 12px/1.4 'Inter',sans-serif;color:var(--text-muted)">{coupon.holder}</div>
+									<div style="font:400 12px/1.4 'Geist', sans-serif;color:var(--text-muted)">{coupon.holder}</div>
 									<div style="margin-top:9px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
 										<Badge tone={statusTone[coupon.status] ?? 'grey'} text={coupon.status} />
-										<span class="mono" style="font:400 12px 'JetBrains Mono', monospace;color:var(--text-muted)">
+										<span class="mono" style="font:400 12px 'Geist Mono', monospace;color:var(--text-muted)">
 											{new Date(coupon.expiresAt).toLocaleDateString()}
 										</span>
 									</div>
@@ -270,15 +270,15 @@
 							<div class="stub-perforation"></div>
 							<div class="stub-end" style="width:120px;flex:0 0 120px">
 								<div style="text-align:center">
-									<div class="mono" style="font:600 26px/1 'JetBrains Mono', monospace;color:var(--stamp-amber)">{coupon.value}</div>
-									<div style="margin-top:6px;font:500 9px/1 'Inter',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">off</div>
+									<div class="mono" style="font:600 26px/1 'Geist Mono', monospace;color:var(--stamp-amber)">{coupon.value}</div>
+									<div style="margin-top:6px;font:500 9px/1 'Geist', sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">off</div>
 								</div>
 							</div>
 						</div>
 					{/each}
 				</div>
 				<div style="margin-top:22px;display:flex;align-items:center;justify-content:space-between">
-					<div style="font:400 12px 'Inter',sans-serif;color:var(--text-muted)">
+					<div style="font:400 12px 'Geist', sans-serif;color:var(--text-muted)">
 						Showing <span class="mono">{(data.page - 1) * data.pageSize + 1}–{Math.min(data.page * data.pageSize, data.instanceCount)}</span>
 						of <span class="mono">{data.instanceCount}</span> coupons
 					</div>
@@ -302,8 +302,8 @@
 			<label class="field">
 				<span class="field-label">Discount</span>
 				<div style="display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden">
-					<input type="number" bind:value={discountValue} step="any" required min="0" class="mono" style="flex:1;height:38px;padding:0 11px;border:0;outline:none;font:500 14px 'JetBrains Mono', monospace" />
-					<select bind:value={discountType} style="height:38px;border:0;border-left:1px solid var(--line);background:var(--surface-soft);font:500 12px 'Inter',sans-serif;padding:0 9px">
+					<input type="number" bind:value={discountValue} step="any" required min="0" class="mono" style="flex:1;height:38px;padding:0 11px;border:0;outline:none;font:500 14px 'Geist Mono', monospace" />
+					<select bind:value={discountType} style="height:38px;border:0;border-left:1px solid var(--line);background:var(--surface-soft);font:500 12px 'Geist', sans-serif;padding:0 9px">
 						<option value="PERCENTAGE">%</option>
 						<option value="FIXED">₹</option>
 					</select>
@@ -329,7 +329,7 @@
 		</div>
 	</form>
 	{#if errorMessage}
-		<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+		<div style="font:400 13px 'Geist', sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 	{/if}
 	{#snippet footer()}
 		<button type="button" class="btn btn-ghost" onclick={() => (addOpen = false)} disabled={addSaving}>Cancel</button>
@@ -353,8 +353,8 @@
 				<label class="field">
 					<span class="field-label">Discount</span>
 					<div style="display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden">
-						<input type="number" bind:value={discountValue} step="any" required min="0" class="mono" style="flex:1;height:38px;padding:0 11px;border:0;outline:none;font:500 14px 'JetBrains Mono', monospace" />
-						<select bind:value={discountType} style="height:38px;border:0;border-left:1px solid var(--line);background:var(--surface-soft);font:500 12px 'Inter',sans-serif;padding:0 9px">
+						<input type="number" bind:value={discountValue} step="any" required min="0" class="mono" style="flex:1;height:38px;padding:0 11px;border:0;outline:none;font:500 14px 'Geist Mono', monospace" />
+						<select bind:value={discountType} style="height:38px;border:0;border-left:1px solid var(--line);background:var(--surface-soft);font:500 12px 'Geist', sans-serif;padding:0 9px">
 							<option value="PERCENTAGE">%</option>
 							<option value="FIXED">₹</option>
 						</select>

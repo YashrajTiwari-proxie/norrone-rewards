@@ -119,7 +119,7 @@
 				<div style="width:22px;height:22px;background:var(--paper);border-radius:3px;flex:none"></div>
 				{#if !collapsed}
 					<div
-						style="font:600 14px/1 'Inter',sans-serif;color:var(--paper);letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+						style="font:600 14px/1 'Geist', sans-serif;color:var(--paper);letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
 					>
 						{orgName}
 					</div>
@@ -155,11 +155,11 @@
 				>
 					<div>
 						<div
-							style="font:500 9px/1 'Inter',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4)"
+							style="font:500 9px/1 'Geist', sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4)"
 						>
 							Viewing shop
 						</div>
-						<div style="margin-top:5px;font:500 13px/1 'Inter',sans-serif;color:var(--paper)">
+						<div style="margin-top:5px;font:500 13px/1 'Geist', sans-serif;color:var(--paper)">
 							{viewingShopName}
 						</div>
 					</div>
@@ -167,18 +167,18 @@
 				</button>
 				{#if switcherOpen}
 					<div
-						style="position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(27,36,48,.18);z-index:10;overflow:hidden"
+						style="position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(22,22,22,.18);z-index:10;overflow:hidden"
 					>
 						<button
 							onclick={() => pickShop(null)}
-							style="width:100%;text-align:left;padding:9px 12px;background:transparent;border:0;cursor:pointer;font:500 13px 'Inter',sans-serif;color:var(--ink)"
+							style="width:100%;text-align:left;padding:9px 12px;background:transparent;border:0;cursor:pointer;font:500 13px 'Geist', sans-serif;color:var(--ink)"
 						>
 							All shops
 						</button>
 						{#each shops as shop (shop.id)}
 							<button
 								onclick={() => pickShop(shop.id)}
-								style="width:100%;text-align:left;padding:9px 12px;background:transparent;border:0;border-top:1px solid var(--line-2);cursor:pointer;font:500 13px 'Inter',sans-serif;color:var(--ink)"
+								style="width:100%;text-align:left;padding:9px 12px;background:transparent;border:0;border-top:1px solid var(--line-2);cursor:pointer;font:500 13px 'Geist', sans-serif;color:var(--ink)"
 							>
 								{shop.name}
 							</button>
@@ -192,7 +192,7 @@
 	<div style="padding:6px 10px 0">
 		{#if !collapsed}
 			<div
-				style="padding:12px 8px 8px;font:500 9px/1 'Inter',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-4)"
+				style="padding:12px 8px 8px;font:500 9px/1 'Geist', sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-4)"
 			>
 				Program
 			</div>
@@ -204,7 +204,7 @@
 					title={collapsed ? n.label : undefined}
 					style="display:flex;align-items:center;gap:10px;justify-content:{collapsed
 						? 'center'
-						: 'flex-start'};padding:9px 10px;border-radius:8px;text-decoration:none;font:500 13px 'Inter',sans-serif;color:{isActive(
+						: 'flex-start'};padding:9px 10px;border-radius:8px;text-decoration:none;font:500 13px 'Geist', sans-serif;color:{isActive(
 						n.id
 					)
 						? 'var(--paper)'
@@ -217,7 +217,7 @@
 		</div>
 		{#if !collapsed}
 			<div
-				style="padding:20px 8px 8px;font:500 9px/1 'Inter',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-4)"
+				style="padding:20px 8px 8px;font:500 9px/1 'Geist', sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-4)"
 			>
 				Integration
 			</div>
@@ -231,7 +231,7 @@
 					title={collapsed ? n.label : undefined}
 					style="display:flex;align-items:center;gap:10px;justify-content:{collapsed
 						? 'center'
-						: 'flex-start'};padding:9px 10px;border-radius:8px;text-decoration:none;font:500 13px 'Inter',sans-serif;color:{isActive(
+						: 'flex-start'};padding:9px 10px;border-radius:8px;text-decoration:none;font:500 13px 'Geist', sans-serif;color:{isActive(
 						n.id
 					)
 						? 'var(--paper)'
@@ -244,7 +244,7 @@
 		</div>
 		{#if !collapsed}
 			<div
-				style="padding:20px 8px 8px;font:500 9px/1 'Inter',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-4)"
+				style="padding:20px 8px 8px;font:500 9px/1 'Geist', sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-4)"
 			>
 				Docs
 			</div>
@@ -260,7 +260,7 @@
 					title={collapsed ? n.label : undefined}
 					style="display:flex;align-items:center;gap:10px;justify-content:{collapsed
 						? 'center'
-						: 'flex-start'};padding:9px 10px;border-radius:8px;text-decoration:none;font:500 13px 'Inter',sans-serif;color:{isActive(
+						: 'flex-start'};padding:9px 10px;border-radius:8px;text-decoration:none;font:500 13px 'Geist', sans-serif;color:{isActive(
 						n.id
 					)
 						? 'var(--paper)'
@@ -277,18 +277,18 @@
 	<div style="margin-top:auto;padding:16px {collapsed ? '10px' : '18px'};border-top:1px solid var(--ink-2)">
 		{#if !collapsed}
 			<div
-				style="font:500 9px/1 'Inter',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4)"
+				style="font:500 9px/1 'Geist', sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4)"
 			>
 				Signed in as
 			</div>
-			<div style="margin-top:6px;font:500 13px/1.3 'Inter',sans-serif;color:var(--paper);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+			<div style="margin-top:6px;font:500 13px/1.3 'Geist', sans-serif;color:var(--paper);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
 				{staffName}
 			</div>
-			<div style="margin-top:2px;font:400 12px/1.3 'Inter',sans-serif;color:var(--ink-4)">{staffRole}</div>
+			<div style="margin-top:2px;font:400 12px/1.3 'Geist', sans-serif;color:var(--ink-4)">{staffRole}</div>
 			<button
 				type="button"
 				onclick={signOut}
-				style="margin-top:12px;background:transparent;border:1px solid var(--ink-3);color:#C6CCD3;border-radius:9px;padding:6px 11px;font:500 12px 'Inter',sans-serif;cursor:pointer;width:100%"
+				style="margin-top:12px;background:transparent;border:1px solid var(--ink-3);color:#C6CCD3;border-radius:9px;padding:6px 11px;font:500 12px 'Geist', sans-serif;cursor:pointer;width:100%"
 			>
 				Sign out
 			</button>

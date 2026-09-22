@@ -79,8 +79,8 @@
 		</Table>
 
 	<div class="card" style="padding:22px 24px;max-width:560px">
-		<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif">Add someone</div>
-		<div style="margin-top:7px;font:400 13px/1.5 'Inter',sans-serif;color:var(--text-muted)">
+		<div style="font:600 15px/1 'Bodoni Moda', serif">Add someone</div>
+		<div style="margin-top:7px;font:400 13px/1.5 'Geist', sans-serif;color:var(--text-muted)">
 			If they already have an account, they're just added to this organization. Otherwise we
 			create one and email them a temporary password.
 		</div>
@@ -95,10 +95,10 @@
 			</button>
 		</form>
 		{#if errorMessage}
-			<div style="margin-top:10px;font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+			<div style="margin-top:10px;font:400 13px 'Geist', sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 		{/if}
 		{#if successMessage}
-			<div style="margin-top:10px;font:400 13px 'Inter',sans-serif;color:var(--stamp-green)">{successMessage}</div>
+			<div style="margin-top:10px;font:400 13px 'Geist', sans-serif;color:var(--stamp-green)">{successMessage}</div>
 		{/if}
 	</div>
 </div>

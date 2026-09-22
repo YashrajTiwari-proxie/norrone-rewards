@@ -106,7 +106,7 @@
 {#if convexAuth.isLoading}
 	<div style="min-height:100vh;display:grid;place-items:center"><PageLoading /></div>
 {:else if convexAuth.isAuthenticated}
-	<div style="max-width:640px;margin:60px auto;padding:0 24px;font-family:'Inter',sans-serif">
+	<div style="max-width:640px;margin:60px auto;padding:0 24px;font-family:'Geist', sans-serif">
 		{#if orgs.isLoading || (orgs.data && orgs.data.length === 1)}
 			<PageLoading />
 		{:else if orgs.error}
@@ -397,7 +397,7 @@
 <style>
 	.landing {
 		background: var(--paper);
-		font-family: 'Inter', sans-serif;
+		font-family: 'Geist', sans-serif;
 		color: var(--text);
 	}
 	main {
@@ -451,7 +451,7 @@
 		flex: none;
 	}
 	.l-brand-name {
-		font: 600 15px/1 'Plus Jakarta Sans', sans-serif;
+		font: 600 15px/1 'Bodoni Moda', serif;
 		letter-spacing: -0.01em;
 		color: var(--ink);
 	}
@@ -463,7 +463,7 @@
 		justify-content: center;
 	}
 	.l-nav a {
-		font: 400 13px 'Inter', sans-serif;
+		font: 400 13px 'Geist', sans-serif;
 		color: var(--text-muted);
 	}
 	.l-nav a:hover {
@@ -501,13 +501,13 @@
 		gap: 6px;
 		padding: 5px 12px;
 		border-radius: 999px;
-		font: 600 11px/1 'Inter', sans-serif;
+		font: 600 11px/1 'Geist', sans-serif;
 		letter-spacing: 0.02em;
 	}
 	.l-pill-card {
 		background: var(--card);
 		color: var(--ink);
-		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+		box-shadow: 0 1px 3px rgba(22, 22, 22, 0.06);
 	}
 	.l-pill-muted {
 		background: var(--surface-soft);
@@ -521,7 +521,7 @@
 		flex: none;
 	}
 	.l-hero-title {
-		font: 700 44px/1.12 'Plus Jakarta Sans', sans-serif;
+		font: 700 44px/1.12 'Bodoni Moda', serif;
 		letter-spacing: -0.03em;
 		color: var(--ink);
 		max-width: 760px;
@@ -534,7 +534,7 @@
 		color: transparent;
 	}
 	.l-hero-sub {
-		font: 400 17px/1.6 'Inter', sans-serif;
+		font: 400 17px/1.6 'Geist', sans-serif;
 		letter-spacing: -0.01em;
 		color: var(--text-muted);
 		max-width: 580px;
@@ -554,7 +554,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 8px;
-		font: 600 14px 'Inter', sans-serif;
+		font: 600 14px 'Geist', sans-serif;
 	}
 	.l-trust-row {
 		display: flex;
@@ -568,7 +568,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 6px;
-		font: 600 11px/1 'Inter', sans-serif;
+		font: 600 11px/1 'Geist', sans-serif;
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
 		color: var(--text-muted);
@@ -594,7 +594,7 @@
 		background: linear-gradient(180deg, var(--ink-2), var(--surface-dark));
 		color: #fff;
 		overflow: hidden;
-		box-shadow: 0 20px 44px rgba(15, 23, 42, 0.22);
+		box-shadow: 0 20px 44px rgba(22, 22, 22, 0.22);
 	}
 	.l-pass-glow {
 		position: absolute;
@@ -625,11 +625,11 @@
 		color: var(--accent-emerald);
 	}
 	.l-pass-name {
-		font: 600 13px/1.2 'Inter', sans-serif;
+		font: 600 13px/1.2 'Geist', sans-serif;
 		margin: 0;
 	}
 	.l-pass-label {
-		font: 600 9px/1.4 'Inter', sans-serif;
+		font: 600 9px/1.4 'Geist', sans-serif;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		color: rgba(255, 255, 255, 0.5);
@@ -640,7 +640,7 @@
 		border-radius: 999px;
 		background: rgba(16, 185, 129, 0.18);
 		color: var(--accent-emerald);
-		font: 700 9px/1 'Inter', sans-serif;
+		font: 700 9px/1 'Geist', sans-serif;
 		letter-spacing: 0.06em;
 		text-transform: uppercase;
 	}
@@ -670,7 +670,7 @@
 		gap: 4px;
 	}
 	.l-pass-value {
-		font: 600 18px/1.2 'Plus Jakarta Sans', sans-serif;
+		font: 600 18px/1.2 'Bodoni Moda', serif;
 		margin: 2px 0 0;
 	}
 	.l-pass-value-sm {
@@ -680,24 +680,24 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 4px;
-		font: 700 10px/1 'Inter', sans-serif;
+		font: 700 10px/1 'Geist', sans-serif;
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
 		color: var(--accent-amber);
 	}
 	.l-pass-mono {
-		font: 500 11px 'JetBrains Mono', monospace;
+		font: 500 11px 'Geist Mono', monospace;
 		color: rgba(255, 255, 255, 0.55);
 	}
 	.l-pass-points {
 		display: flex;
 		align-items: baseline;
 		gap: 6px;
-		font: 700 30px/1 'Plus Jakarta Sans', sans-serif;
+		font: 700 30px/1 'Bodoni Moda', serif;
 		letter-spacing: -0.02em;
 	}
 	.l-pass-pts {
-		font: 700 11px/1 'Inter', sans-serif;
+		font: 700 11px/1 'Geist', sans-serif;
 		color: var(--accent-emerald);
 	}
 	.l-pass-barcode {
@@ -714,7 +714,7 @@
 		display: flex;
 		align-items: center;
 		gap: 5px;
-		font: 500 10px 'JetBrains Mono', monospace;
+		font: 500 10px 'Geist Mono', monospace;
 		color: var(--text-muted);
 	}
 	.l-pass-push {
@@ -725,13 +725,13 @@
 		background: rgba(255, 255, 255, 0.06);
 		border-radius: 10px;
 		padding: 9px 12px;
-		font: 400 12px 'Inter', sans-serif;
+		font: 400 12px 'Geist', sans-serif;
 	}
 
 	.l-ledger-card {
 		border-radius: 16px;
 		background: var(--card);
-		box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+		box-shadow: 0 12px 32px rgba(22, 22, 22, 0.06);
 		padding: 20px;
 	}
 	.l-ledger-head {
@@ -748,12 +748,12 @@
 		gap: 9px;
 	}
 	.l-ledger-head-left h3 {
-		font: 600 15px 'Plus Jakarta Sans', sans-serif;
+		font: 600 15px 'Bodoni Moda', serif;
 		margin: 0;
 		color: var(--ink);
 	}
 	.l-mono-pill {
-		font: 500 11px 'JetBrains Mono', monospace;
+		font: 500 11px 'Geist Mono', monospace;
 		background: var(--surface-soft);
 		color: var(--ink-3);
 		padding: 4px 9px;
@@ -782,7 +782,7 @@
 	.l-ledger-pos,
 	.l-ledger-tier,
 	.l-ledger-neg {
-		font: 700 12px 'JetBrains Mono', monospace;
+		font: 700 12px 'Geist Mono', monospace;
 		flex: none;
 	}
 	.l-ledger-pos {
@@ -795,14 +795,14 @@
 		color: var(--stamp-rust);
 	}
 	.l-ledger-desc {
-		font: 400 12px 'JetBrains Mono', monospace;
+		font: 400 12px 'Geist Mono', monospace;
 		color: var(--ink);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 	.l-ledger-time {
-		font: 400 11px 'JetBrains Mono', monospace;
+		font: 400 11px 'Geist Mono', monospace;
 		color: var(--text-muted);
 		flex: none;
 	}
@@ -821,7 +821,7 @@
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		font: 400 13px 'Inter', sans-serif;
+		font: 400 13px 'Geist', sans-serif;
 		color: var(--ink);
 	}
 	.l-sim-btn {
@@ -850,11 +850,11 @@
 		gap: 4px;
 	}
 	.l-stat-num {
-		font: 700 28px/1 'Plus Jakarta Sans', sans-serif;
+		font: 700 28px/1 'Bodoni Moda', serif;
 		color: var(--ink);
 	}
 	.l-stat-label {
-		font: 600 10px/1 'Inter', sans-serif;
+		font: 600 10px/1 'Geist', sans-serif;
 		letter-spacing: 0.05em;
 		text-transform: uppercase;
 		color: var(--text-muted);
@@ -883,19 +883,19 @@
 		max-width: 640px;
 	}
 	.l-eyebrow {
-		font: 700 11px/1 'Inter', sans-serif;
+		font: 700 11px/1 'Geist', sans-serif;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		color: var(--accent-emerald);
 	}
 	.l-h2 {
-		font: 600 30px/1.2 'Plus Jakarta Sans', sans-serif;
+		font: 600 30px/1.2 'Bodoni Moda', serif;
 		letter-spacing: -0.015em;
 		color: var(--ink);
 		margin: 8px 0 0;
 	}
 	.l-section-sub {
-		font: 400 15px/1.6 'Inter', sans-serif;
+		font: 400 15px/1.6 'Geist', sans-serif;
 		color: var(--text-muted);
 		max-width: 380px;
 		margin: 8px 0 0;
@@ -912,7 +912,7 @@
 		background: var(--card);
 		border-radius: 14px;
 		padding: 22px;
-		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+		box-shadow: 0 1px 3px rgba(22, 22, 22, 0.04);
 	}
 	.l-feature-icon {
 		width: 40px;
@@ -925,12 +925,12 @@
 		margin-bottom: 14px;
 	}
 	.l-feature-card h3 {
-		font: 600 15px 'Plus Jakarta Sans', sans-serif;
+		font: 600 15px 'Bodoni Moda', serif;
 		color: var(--ink);
 		margin: 0 0 6px;
 	}
 	.l-feature-card p {
-		font: 400 13.5px/1.55 'Inter', sans-serif;
+		font: 400 13.5px/1.55 'Geist', sans-serif;
 		color: var(--text-muted);
 		margin: 0;
 	}
@@ -946,7 +946,7 @@
 		background: var(--card);
 		border-radius: 14px;
 		padding: 22px;
-		box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+		box-shadow: 0 1px 3px rgba(22, 22, 22, 0.04);
 	}
 	.l-step-num {
 		width: 32px;
@@ -955,17 +955,17 @@
 		background: var(--surface-soft);
 		display: grid;
 		place-items: center;
-		font: 600 14px 'Plus Jakarta Sans', sans-serif;
+		font: 600 14px 'Bodoni Moda', serif;
 		color: var(--ink);
 		margin-bottom: 12px;
 	}
 	.l-step-card h3 {
-		font: 600 15px 'Plus Jakarta Sans', sans-serif;
+		font: 600 15px 'Bodoni Moda', serif;
 		color: var(--ink);
 		margin: 0 0 6px;
 	}
 	.l-step-card p {
-		font: 400 13.5px/1.55 'Inter', sans-serif;
+		font: 400 13.5px/1.55 'Geist', sans-serif;
 		color: var(--text-muted);
 		margin: 0;
 	}
@@ -995,12 +995,12 @@
 		margin-top: 2px;
 	}
 	.l-dev-check-title {
-		font: 600 14px 'Inter', sans-serif;
+		font: 600 14px 'Geist', sans-serif;
 		color: var(--ink);
 		margin: 0 0 3px;
 	}
 	.l-dev-check-body {
-		font: 400 13px/1.5 'Inter', sans-serif;
+		font: 400 13px/1.5 'Geist', sans-serif;
 		color: var(--text-muted);
 		margin: 0;
 	}
@@ -1010,7 +1010,7 @@
 		background: var(--surface-dark);
 		color: #fff;
 		overflow: hidden;
-		box-shadow: 0 20px 44px rgba(15, 23, 42, 0.2);
+		box-shadow: 0 20px 44px rgba(22, 22, 22, 0.2);
 	}
 	.l-terminal-bar {
 		padding: 10px 16px;
@@ -1041,7 +1041,7 @@
 	}
 	.l-terminal-path {
 		margin-left: 8px;
-		font: 500 11px 'JetBrains Mono', monospace;
+		font: 500 11px 'Geist Mono', monospace;
 		color: rgba(255, 255, 255, 0.5);
 		border-radius: 0;
 		background: none;
@@ -1059,7 +1059,7 @@
 		background: transparent;
 		border: 0;
 		color: rgba(255, 255, 255, 0.55);
-		font: 500 11px 'JetBrains Mono', monospace;
+		font: 500 11px 'Geist Mono', monospace;
 		cursor: pointer;
 	}
 	.l-terminal-copy:hover {
@@ -1068,7 +1068,7 @@
 	.l-terminal-body {
 		margin: 0;
 		padding: 20px;
-		font: 400 12.5px/1.7 'JetBrains Mono', monospace;
+		font: 400 12.5px/1.7 'Geist Mono', monospace;
 		color: rgba(255, 255, 255, 0.82);
 		overflow-x: auto;
 		white-space: pre;
@@ -1079,7 +1079,7 @@
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		font: 500 11px 'JetBrains Mono', monospace;
+		font: 500 11px 'Geist Mono', monospace;
 		color: var(--accent-emerald);
 	}
 
@@ -1101,7 +1101,7 @@
 		margin: 10px auto 0;
 	}
 	.l-cta-sub {
-		font: 400 16px/1.6 'Inter', sans-serif;
+		font: 400 16px/1.6 'Geist', sans-serif;
 		color: rgba(255, 255, 255, 0.65);
 		max-width: 480px;
 		margin: 16px auto 28px;
@@ -1114,7 +1114,7 @@
 		gap: 8px;
 		background: #fff;
 		color: var(--ink);
-		font: 600 14px 'Inter', sans-serif;
+		font: 600 14px 'Geist', sans-serif;
 	}
 	.l-cta-btn:hover {
 		background: var(--surface-soft);
@@ -1136,7 +1136,7 @@
 	}
 	.l-footer-brand p {
 		margin: 12px 0 0;
-		font: 400 13px/1.6 'Inter', sans-serif;
+		font: 400 13px/1.6 'Geist', sans-serif;
 		color: var(--text-muted);
 		max-width: 260px;
 	}
@@ -1146,14 +1146,14 @@
 		gap: 9px;
 	}
 	.l-footer-heading {
-		font: 700 11px/1 'Inter', sans-serif;
+		font: 700 11px/1 'Geist', sans-serif;
 		letter-spacing: 0.06em;
 		text-transform: uppercase;
 		color: var(--ink);
 		margin-bottom: 4px;
 	}
 	.l-footer-col a {
-		font: 400 13px 'Inter', sans-serif;
+		font: 400 13px 'Geist', sans-serif;
 		color: var(--text-muted);
 	}
 	.l-footer-col a:hover {
@@ -1164,7 +1164,7 @@
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		font: 400 13px 'Inter', sans-serif;
+		font: 400 13px 'Geist', sans-serif;
 		color: var(--text-muted);
 	}
 	.l-footer-trust :global(svg) {
@@ -1175,7 +1175,7 @@
 		margin: 0 auto;
 		padding-top: 20px;
 		border-top: 1px solid var(--line);
-		font: 400 12px 'Inter', sans-serif;
+		font: 400 12px 'Geist', sans-serif;
 		color: var(--text-muted);
 	}
 

@@ -163,7 +163,7 @@
 											style="background:{toneFor(org.name).bg};color:{toneFor(org.name).fg}"
 											>{initialsFor(org.name)}</span
 										>
-											<span style="font:500 14px 'Inter',sans-serif;color:var(--ink)">{org.name}</span>
+											<span style="font:500 14px 'Geist', sans-serif;color:var(--ink)">{org.name}</span>
 										</div>
 									</td>
 									<td class="right mono" data-label="Shops" style="color:var(--ink)">{org.counts.shops}</td>
@@ -204,7 +204,7 @@
 		border-radius: 50%;
 		display: grid;
 		place-items: center;
-		font: 600 11px/1 'Inter', sans-serif;
+		font: 600 11px/1 'Geist', sans-serif;
 	}
 
 	.org-row:hover {
@@ -234,7 +234,7 @@
 		.org-table td.right::before {
 			content: attr(data-label) ': ';
 			color: var(--text-muted);
-			font-family: 'Inter', sans-serif;
+			font-family: 'Geist', sans-serif;
 		}
 	}
 </style>
@@ -274,7 +274,7 @@
 		</div>
 	</form>
 	{#if errorMessage}
-		<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+		<div style="font:400 13px 'Geist', sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 	{/if}
 	{#snippet footer()}
 		<button type="button" class="btn btn-ghost" onclick={() => (addOpen = false)} disabled={saving}>Cancel</button>

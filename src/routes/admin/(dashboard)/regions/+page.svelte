@@ -126,11 +126,11 @@
 				<tbody>
 					{#each regions.data as region (region._id)}
 						<tr onclick={() => openEdit(region)} style="cursor:pointer">
-							<td style="font:500 14px 'Inter',sans-serif;color:var(--ink)">{region.countryName}</td>
+							<td style="font:500 14px 'Geist', sans-serif;color:var(--ink)">{region.countryName}</td>
 							<td class="mono" style="color:var(--text-muted)">{region.isoCode}</td>
 							<td class="mono" style="color:var(--text-muted)">{region.phoneCode}</td>
 							<td class="mono" style="color:var(--text-muted)">{region.currencyCode} ({region.currencySymbol})</td>
-							<td class="right" style="font:500 12px 'Inter',sans-serif;color:var(--stamp-green)">Edit</td>
+							<td class="right" style="font:500 12px 'Geist', sans-serif;color:var(--stamp-green)">Edit</td>
 						</tr>
 					{/each}
 				</tbody>
@@ -164,7 +164,7 @@
 		</div>
 	</form>
 	{#if errorMessage}
-		<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+		<div style="font:400 13px 'Geist', sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 	{/if}
 	{#snippet footer()}
 		<button type="button" class="btn btn-ghost" onclick={() => (addOpen = false)} disabled={addSaving}>Cancel</button>
@@ -203,7 +203,7 @@
 		<button type="button" class="btn-danger-text" style="margin-top:4px" onclick={deleteRegion}>Remove this region</button>
 	{/if}
 	{#if errorMessage}
-		<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+		<div style="font:400 13px 'Geist', sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 	{/if}
 	{#snippet footer()}
 		<button type="button" class="btn btn-ghost" onclick={() => (editOpen = false)} disabled={editSaving}>Cancel</button>

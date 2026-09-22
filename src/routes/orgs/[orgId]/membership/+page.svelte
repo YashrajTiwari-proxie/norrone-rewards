@@ -169,12 +169,12 @@
 					{#each plans.data as plan (plan._id)}
 						<tr onclick={() => openEdit(plan)} style="cursor:pointer">
 							<td>
-								<div style="font:500 14px 'Inter',sans-serif;color:var(--ink)">{plan.name}</div>
+								<div style="font:500 14px 'Geist', sans-serif;color:var(--ink)">{plan.name}</div>
 								<div style="margin-top:3px" onclick={(e) => e.stopPropagation()} role="presentation">
 									<IdLine id={plan._id} compact />
 								</div>
 								{#if plan.benefits.length}
-									<div style="margin-top:4px;font:400 12px/1.4 'Inter',sans-serif;color:var(--text-muted)">
+									<div style="margin-top:4px;font:400 12px/1.4 'Geist', sans-serif;color:var(--text-muted)">
 										{plan.benefits.length} benefit{plan.benefits.length === 1 ? '' : 's'} granted
 									</div>
 								{/if}
@@ -222,7 +222,7 @@
 		</div>
 	</form>
 	{#if errorMessage}
-		<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+		<div style="font:400 13px 'Geist', sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 	{/if}
 	{#snippet footer()}
 		<button type="button" class="btn btn-ghost" onclick={() => (addOpen = false)} disabled={addSaving}>Cancel</button>

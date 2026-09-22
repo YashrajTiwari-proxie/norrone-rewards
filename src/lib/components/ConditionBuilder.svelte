@@ -42,8 +42,8 @@
 </script>
 
 <div style="border-top:1px solid var(--line-2);padding-top:18px">
-	<div style="font:500 12px/1 'Inter',sans-serif">Who qualifies</div>
-	<div style="margin-top:5px;font:400 12px/1.4 'Inter',sans-serif;color:var(--text-muted)">
+	<div style="font:500 12px/1 'Geist', sans-serif">Who qualifies</div>
+	<div style="margin-top:5px;font:400 12px/1.4 'Geist', sans-serif;color:var(--text-muted)">
 		All of these must be true.
 	</div>
 	<div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
@@ -51,7 +51,7 @@
 			<div
 				style="background:var(--surface-soft);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px"
 			>
-				<div style="font:400 13px/1.4 'Inter',sans-serif;color:var(--ink)">
+				<div style="font:400 13px/1.4 'Geist', sans-serif;color:var(--ink)">
 					{metricLabel[condition.metric] ?? condition.metric}
 					{operatorLabel[condition.operator] ?? condition.operator}
 					<span class="mono" style="font-weight:500">{condition.value}</span>
@@ -85,7 +85,7 @@
 			<button
 				type="submit"
 				disabled={adding}
-				style="grid-column:1 / -1;background:transparent;border:1px dashed var(--dash);border-radius:9px;padding:9px 13px;width:100%;font:500 12px 'Inter',sans-serif;color:var(--ink);cursor:pointer"
+				style="grid-column:1 / -1;background:transparent;border:1px dashed var(--dash);border-radius:9px;padding:9px 13px;width:100%;font:500 12px 'Geist', sans-serif;color:var(--ink);cursor:pointer"
 			>
 				+ Add a condition
 			</button>

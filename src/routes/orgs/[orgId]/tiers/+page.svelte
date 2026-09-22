@@ -160,19 +160,19 @@
 				>
 					<TierStamp name={tier.name} level={tier.level} color={stampColors[i % stampColors.length]} />
 					<div style="min-width:0">
-						<div style="font:500 15px/1.2 'Inter',sans-serif;color:var(--ink)">{tier.name}</div>
-						<div style="margin-top:6px;font:400 13px/1.5 'Inter',sans-serif;color:var(--text-muted)">
+						<div style="font:500 15px/1.2 'Geist', sans-serif;color:var(--ink)">{tier.name}</div>
+						<div style="margin-top:6px;font:400 13px/1.5 'Geist', sans-serif;color:var(--text-muted)">
 							{tier.conditionSummary} · {tier.scopeName}
 						</div>
 						<div style="margin-top:4px"><IdLine id={tier._id} compact /></div>
 					</div>
 					<div style="text-align:right">
-						<div style="font:500 10px/1 'Inter',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">Multiplier</div>
-						<div class="mono" style="margin-top:6px;font:500 20px/1 'JetBrains Mono', monospace;color:var(--stamp-amber)">{tier.pointMultiplier}×</div>
+						<div style="font:500 10px/1 'Geist', sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">Multiplier</div>
+						<div class="mono" style="margin-top:6px;font:500 20px/1 'Geist Mono', monospace;color:var(--stamp-amber)">{tier.pointMultiplier}×</div>
 					</div>
 					<div style="text-align:right">
-						<div style="font:500 10px/1 'Inter',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">Customers</div>
-						<div class="mono" style="margin-top:6px;font:500 20px/1 'JetBrains Mono', monospace;color:var(--ink)">{tier.customers}</div>
+						<div style="font:500 10px/1 'Geist', sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">Customers</div>
+						<div class="mono" style="margin-top:6px;font:500 20px/1 'Geist Mono', monospace;color:var(--ink)">{tier.customers}</div>
 					</div>
 					<button class="btn btn-outline" onclick={() => openEdit(tier)}>Edit</button>
 				</div>
@@ -208,7 +208,7 @@
 		</div>
 	</form>
 	{#if errorMessage}
-		<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+		<div style="font:400 13px 'Geist', sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 	{/if}
 	{#snippet footer()}
 		<button type="button" class="btn btn-ghost" onclick={() => (addOpen = false)} disabled={addSaving}>Cancel</button>

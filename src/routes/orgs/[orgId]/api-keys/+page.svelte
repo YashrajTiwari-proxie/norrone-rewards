@@ -93,28 +93,28 @@
 		<div style="background:var(--ink);border-radius:12px;padding:26px 28px">
 			<div style="display:flex;align-items:center;gap:10px">
 				<div style="width:8px;height:8px;border-radius:50%;background:var(--stamp-rust)"></div>
-				<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;color:var(--paper)">Copy this key now</div>
+				<div style="font:600 15px/1 'Bodoni Moda', serif;color:var(--paper)">Copy this key now</div>
 			</div>
-			<div style="margin-top:10px;font:400 13px/1.6 'Inter',sans-serif;color:#A9B2BC;max-width:560px">
+			<div style="margin-top:10px;font:400 13px/1.6 'Geist', sans-serif;color:#A9B2BC;max-width:560px">
 				This is the only time the key will be shown. Once you close this box we keep only a scrambled copy, so we
 				can't show it to you again. If it's lost, revoke it and make a new one.
 			</div>
 			<div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
 				<div
 					class="mono"
-					style="flex:1;min-width:280px;background:#111923;border:1px solid var(--ink-3);border-radius:12px;padding:13px 15px;font:500 14px/1 'JetBrains Mono', monospace;color:var(--paper);overflow:auto;white-space:nowrap"
+					style="flex:1;min-width:280px;background:#111923;border:1px solid var(--ink-3);border-radius:12px;padding:13px 15px;font:500 14px/1 'Geist Mono', monospace;color:var(--paper);overflow:auto;white-space:nowrap"
 				>
 					{newKey}
 				</div>
 				<button
 					onclick={copyKey}
-					style="background:var(--paper);color:var(--ink);border:0;border-radius:9px;padding:12px 16px;font:500 13px 'Inter',sans-serif;cursor:pointer"
+					style="background:var(--paper);color:var(--ink);border:0;border-radius:9px;padding:12px 16px;font:500 13px 'Geist', sans-serif;cursor:pointer"
 				>
 					{copied ? 'Copied!' : 'Copy key'}
 				</button>
 				<button
 					onclick={() => (keyDismissed = true)}
-					style="background:transparent;color:#C6CCD3;border:1px solid var(--ink-3);border-radius:9px;padding:12px 16px;font:500 13px 'Inter',sans-serif;cursor:pointer"
+					style="background:transparent;color:#C6CCD3;border:1px solid var(--ink-3);border-radius:9px;padding:12px 16px;font:500 13px 'Geist', sans-serif;cursor:pointer"
 				>
 					I've saved it
 				</button>
@@ -152,7 +152,7 @@
 							<td class="right mono" style="color:var(--text-muted)">{new Date(key.createdAt).toLocaleDateString()}</td>
 							<td class="right">
 								{#if key.revoked}
-									<span style="font:500 12px 'Inter',sans-serif;color:var(--text-muted)">Revoked</span>
+									<span style="font:500 12px 'Geist', sans-serif;color:var(--text-muted)">Revoked</span>
 								{:else}
 									<button type="button" class="btn-danger-text" onclick={() => confirmRevoke(key.id)}>Revoke</button>
 								{/if}
@@ -163,7 +163,7 @@
 			</Table>
 	{/if}
 	{#if errorMessage}
-		<div style="font:400 13px 'Inter',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
+		<div style="font:400 13px 'Geist', sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 	{/if}
 </div>
 

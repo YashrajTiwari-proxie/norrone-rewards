@@ -78,13 +78,13 @@
 <div style="padding:34px 40px 96px;max-width:900px;display:flex;flex-direction:column;gap:28px">
 	{#if org.data}
 		<div class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:12px">
-			<div style="font:600 14px/1 'Inter',sans-serif">Your connection details</div>
+			<div style="font:600 14px/1 'Geist', sans-serif">Your connection details</div>
 			<IdLine label="Base URL" id={baseUrl} />
 			<IdLine label="Organization ID" id={organizationId} />
 			{#each org.data.shops as shop (shop._id)}
 				<IdLine label={`Shop: ${shop.name}`} id={shop._id} />
 			{/each}
-			<div style="font:400 13px/1.5 'Inter',sans-serif;color:var(--text-muted)">
+			<div style="font:400 13px/1.5 'Geist', sans-serif;color:var(--text-muted)">
 				You'll also need an API key — generate one on the <a href="/orgs/{organizationId}/api-keys">API Keys</a> page.
 				Try every endpoint below live, pre-filled with your own IDs, at <a href="/api-demo?shop={exampleShopId}">/api-demo</a>.
 			</div>
@@ -92,8 +92,8 @@
 	{/if}
 
 	<div>
-		<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;color:var(--ink);margin-bottom:10px">1. Authentication</div>
-		<div style="font:400 14px/1.6 'Inter',sans-serif;color:var(--text)">
+		<div style="font:600 15px/1 'Bodoni Moda', serif;color:var(--ink);margin-bottom:10px">1. Authentication</div>
+		<div style="font:400 14px/1.6 'Geist', sans-serif;color:var(--text)">
 			Every request needs an <code class="mono">Authorization: Bearer &lt;key&gt;</code> header. There are two key types:
 		</div>
 		<Table>
@@ -111,7 +111,7 @@
 					</tr>
 				</tbody>
 			</Table>
-		<div style="margin-top:10px;font:400 13px/1.6 'Inter',sans-serif;color:var(--text-muted)">
+		<div style="margin-top:10px;font:400 13px/1.6 'Geist', sans-serif;color:var(--text-muted)">
 			A key can optionally be scoped to one shop when you generate it. A shop-scoped key gets <code class="mono">403</code>
 			on any request for a different shop. Every response is scoped to your key's own organization — there's no way to
 			reach another organization's data through this API.
@@ -119,8 +119,8 @@
 	</div>
 
 	<div>
-		<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;color:var(--ink);margin-bottom:10px">2. Customers</div>
-		<div style="font:400 14px/1.6 'Inter',sans-serif;color:var(--text-muted);margin-bottom:12px">
+		<div style="font:600 15px/1 'Bodoni Moda', serif;color:var(--ink);margin-bottom:10px">2. Customers</div>
+		<div style="font:400 14px/1.6 'Geist', sans-serif;color:var(--text-muted);margin-bottom:12px">
 			Customers belong to one shop. Paths below are relative to <code class="mono">{baseUrl}</code>.
 		</div>
 		<Table>
@@ -147,14 +147,14 @@
 	</div>
 
 	<div>
-		<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;color:var(--ink);margin-bottom:10px">3. Org-wide resources</div>
-		<div style="font:400 14px/1.6 'Inter',sans-serif;color:var(--text-muted);margin-bottom:12px">
+		<div style="font:600 15px/1 'Bodoni Moda', serif;color:var(--ink);margin-bottom:10px">3. Org-wide resources</div>
+		<div style="font:400 14px/1.6 'Geist', sans-serif;color:var(--text-muted);margin-bottom:12px">
 			Membership plans, tiers, rewards, and coupon types aren't nested under a shop — each can optionally target one
 			shop via its own <code class="mono">shopId</code> field, or apply to all shops. All four work the same way:
 		</div>
 		{#each [['membership-plans', 'Membership plans'], ['tiers', 'Tiers'], ['rewards', 'Rewards'], ['coupons', 'Coupon types']] as [resource, label] (resource)}
 			<div style="margin-bottom:14px">
-				<div style="font:500 13px/1 'Inter',sans-serif;color:var(--ink);margin-bottom:8px">{label}</div>
+				<div style="font:500 13px/1 'Geist', sans-serif;color:var(--ink);margin-bottom:8px">{label}</div>
 				<Table>
 						<tbody>
 							{#each resourceRows(resource) as r (r.method + r.path)}
@@ -169,14 +169,14 @@
 					</Table>
 			</div>
 		{/each}
-		<div style="font:400 13px/1.6 'Inter',sans-serif;color:var(--text-muted)">
+		<div style="font:400 13px/1.6 'Geist', sans-serif;color:var(--text-muted)">
 			Example — create a membership plan:
 		</div>
 		<pre class="mono" style="margin-top:8px;background:var(--surface-soft);padding:12px 14px;border-radius:8px;font-size:12.5px;overflow-x:auto">curl -X POST {baseUrl}/membership-plans \
   -H "Authorization: Bearer sk_..." \
   -H "Content-Type: application/json" \
   -d '{'{'} "name": "Gold Membership", "price": 29.99, "pointMultiplier": 2 {'}'}'</pre>
-		<div style="margin-top:6px;font:400 12px/1.6 'Inter',sans-serif;color:var(--text-muted)">
+		<div style="margin-top:6px;font:400 12px/1.6 'Geist', sans-serif;color:var(--text-muted)">
 			(Using your plan for reference: <code class="mono">{examplePlanId}</code> is enrolled with
 			<code class="mono">POST {baseUrl}/shops/{exampleShopId}/customers/:externalId/membership</code>, body
 			<code class="mono">{'{'} "planId": "{examplePlanId}" {'}'}</code>.)
@@ -184,7 +184,7 @@
 	</div>
 
 	<div>
-		<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;color:var(--ink);margin-bottom:10px">4. Redeeming a coupon</div>
+		<div style="font:600 15px/1 'Bodoni Moda', serif;color:var(--ink);margin-bottom:10px">4. Redeeming a coupon</div>
 		<Table>
 				<tbody>
 					{#each couponActionRows as r (r.method + r.path)}
@@ -200,8 +200,8 @@
 	</div>
 
 	<div>
-		<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;color:var(--ink);margin-bottom:10px">5. Idempotency</div>
-		<div style="font:400 14px/1.6 'Inter',sans-serif;color:var(--text-muted)">
+		<div style="font:600 15px/1 'Bodoni Moda', serif;color:var(--ink);margin-bottom:10px">5. Idempotency</div>
+		<div style="font:400 14px/1.6 'Geist', sans-serif;color:var(--text-muted)">
 			The "record event" and "enroll membership" endpoints accept an optional <code class="mono">idempotencyKey</code>
 			string in the body. Retrying the identical request with the same key (e.g. after a network timeout) applies its
 			effects exactly once — later calls return the current state with <code class="mono">"idempotent": true</code>
@@ -210,8 +210,8 @@
 	</div>
 
 	<div>
-		<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;color:var(--ink);margin-bottom:10px">6. Errors</div>
-		<div style="font:400 14px/1.6 'Inter',sans-serif;color:var(--text-muted);margin-bottom:12px">
+		<div style="font:600 15px/1 'Bodoni Moda', serif;color:var(--ink);margin-bottom:10px">6. Errors</div>
+		<div style="font:400 14px/1.6 'Geist', sans-serif;color:var(--text-muted);margin-bottom:12px">
 			Every error is <code class="mono">{'{'} "error": "&lt;message or code&gt;" {'}'}</code> with a matching HTTP status.
 		</div>
 		<Table>
@@ -228,8 +228,8 @@
 	</div>
 
 	<div>
-		<div style="font:600 15px/1 'Plus Jakarta Sans',sans-serif;color:var(--ink);margin-bottom:10px">7. Rate limits</div>
-		<div style="font:400 14px/1.6 'Inter',sans-serif;color:var(--text-muted)">
+		<div style="font:600 15px/1 'Bodoni Moda', serif;color:var(--ink);margin-bottom:10px">7. Rate limits</div>
+		<div style="font:400 14px/1.6 'Geist', sans-serif;color:var(--text-muted)">
 			Each API key gets <strong>120 requests/minute sustained, burst up to 200</strong>. Exceeding it returns
 			<code class="mono">429</code> with a <code class="mono">Retry-After</code> header (seconds until it's safe to
 			retry). One key being rate-limited never affects another key, even on the same organization — back off and
