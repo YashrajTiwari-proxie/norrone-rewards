@@ -11,6 +11,7 @@ import authSchema from "./betterAuth/schema";
 import { trustedAuthz, PLATFORM_TENANT_ID } from "./authzConfig";
 import { trustedOrigins } from "./lib/trustedOrigins";
 import { rateLimiter } from "./lib/rateLimit";
+import { sendEmail } from "./lib/email";
 
 const siteUrl = process.env.SITE_URL ?? "http://127.0.0.1:5173";
 
@@ -122,7 +123,23 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>): BetterAuthOptions
 		}
 	},
 	emailAndPassword: {
-		enabled: true
+		enabled: true,
+		// Better Auth builds `url` as `${baseURL}/reset-password/:token?callbackURL=...`
+		// — its own GET route that validates the token then redirects to
+		// our /reset-password page with ?token=... attached (see
+		// requestPasswordResetCallback in better-auth's password routes).
+		// We just relay that URL as-is; no need to construct it ourselves.
+		sendResetPassword: async ({ user, url }) => {
+			await sendEmail({
+				to: user.email,
+				subject: "Reset your Norrone Rewards password",
+				html: `
+					<p>Someone requested a password reset for your Norrone Rewards account.</p>
+					<p><a href="${url}">Reset your password</a></p>
+					<p>If you didn't request this, you can safely ignore this email.</p>
+				`
+			});
+		}
 	},
 	plugins: [convex({ authConfig })]
 });

@@ -340,12 +340,13 @@ editable afterward per shop) via the Shops page in the org dashboard.
 
 ### Known gaps
 
-- **Transactional email is wired up for staff invites only.** `convex/lib/email.ts`
-  sends via Resend (needs `RESEND_API_KEY`, see env var table) — staff "Add someone"
-  (`convex/staff.ts`) auto-creates a Better Auth account with a generated password and
-  emails it when the invitee doesn't already have one. `/forgot-password` and platform
-  admin "add admin" are not wired to this yet and still degrade to an honest error
-  message rather than silently failing.
+- **Transactional email is wired up for staff invites and self-serve password reset.**
+  `convex/lib/email.ts` sends via Resend (needs `RESEND_API_KEY`, see env var table) —
+  staff "Add someone" (`convex/staff.ts`) auto-creates a Better Auth account with a
+  generated password and emails it when the invitee doesn't already have one; `/forgot-password`
+  → `/reset-password` calls Better Auth's `sendResetPassword` (`convex/auth.ts`), which
+  uses the same sender. Platform admin "add admin" is not wired to this yet and still
+  degrades to an honest error message rather than silently failing.
 - **Wallet passes (Apple/Google) are built but need real credentials.** The full
   pipeline exists — `convex/wallet.ts` (pass data + config status + signed-link
   action), `convex/walletNode.ts` (Apple `.pkpass` build + PKCS#7 signing, `"use node"`),
