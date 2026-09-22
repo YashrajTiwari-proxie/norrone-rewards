@@ -29,20 +29,25 @@
 		return false;
 	}
 
+	let step = $state<1 | 2>(1);
+
+	let name = $state('');
+	let email = $state('');
+	let password = $state('');
+	let confirmPassword = $state('');
+
 	let orgName = $state('');
 	let phoneNumber = $state('');
 	let website = $state('');
 	let address = $state('');
 	let regionId = $state('');
 	let currencyCode = $state('');
-	let name = $state('');
-	let email = $state('');
-	let password = $state('');
-	let confirmPassword = $state('');
-	let creating = $state(false);
+
+	let submittingStep1 = $state(false);
+	let submittingStep2 = $state(false);
 	let errorMessage = $state<string | null>(null);
 
-	async function create(event: SubmitEvent) {
+	async function submitAccount(event: SubmitEvent) {
 		event.preventDefault();
 		errorMessage = null;
 
@@ -55,24 +60,29 @@
 			return;
 		}
 
-		creating = true;
-
+		submittingStep1 = true;
 		const { error: signUpError } = await auth.authClient.signUp.email({ email, password, name });
 		if (signUpError) {
 			errorMessage = signUpError.message?.toLowerCase().includes('already')
 				? 'An account with this email already exists. Try signing in instead.'
 				: 'Failed to create your account. Please try again.';
-			creating = false;
+			submittingStep1 = false;
 			return;
 		}
 		await auth.refreshSession();
 		const convexReady = await waitForConvexAuth();
+		submittingStep1 = false;
 		if (!convexReady) {
 			errorMessage = 'Your account was created, but signing you in is taking longer than expected. Please sign in.';
-			creating = false;
 			return;
 		}
+		step = 2;
+	}
 
+	async function submitOrganization(event: SubmitEvent) {
+		event.preventDefault();
+		errorMessage = null;
+		submittingStep2 = true;
 		try {
 			const { organizationId } = await createSelfServe({
 				name: orgName.trim(),
@@ -82,10 +92,10 @@
 				regionId: (regionId || undefined) as Id<'regions'> | undefined,
 				currencyCode: currencyCode.trim() ? currencyCode.trim().toUpperCase() : undefined
 			});
-			await goto(`/orgs/${organizationId}`);
+			await goto(`/orgs/${organizationId}/shops`);
 		} catch {
 			errorMessage = 'Your account was created, but setting up your organization failed. Please sign in and try again.';
-			creating = false;
+			submittingStep2 = false;
 		}
 	}
 </script>
@@ -97,56 +107,81 @@
 			<div style="font:600 15px/1 'IBM Plex Sans',sans-serif;letter-spacing:-.01em;color:var(--ink)">Norrone Rewards</div>
 		</div>
 		<div class="card" style="padding:32px">
-			<div style="font:600 21px/1.2 'IBM Plex Sans',sans-serif;color:var(--ink);letter-spacing:-.01em">
-				Set up your organization
+			<div style="display:flex;align-items:center;gap:8px;margin-bottom:20px">
+				<div style="flex:1;height:4px;border-radius:2px;background:var(--ink)"></div>
+				<div style="flex:1;height:4px;border-radius:2px;background:{step === 2 ? 'var(--ink)' : 'var(--line)'}"></div>
 			</div>
-			<div style="margin-top:8px;font:400 14px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
-				Create your own rewards program — you'll be the owner.
+			<div style="font:500 11px/1 'IBM Plex Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)">
+				Step {step} of 2
 			</div>
-			<form onsubmit={create} style="margin-top:24px;display:flex;flex-direction:column;gap:16px">
-				<label class="field">
-					<span class="field-label">Organization name</span>
-					<input type="text" bind:value={orgName} placeholder="Kettle &amp; Coal" required class="input" />
-				</label>
-				<label class="field">
-					<span class="field-label">Phone number</span>
-					<input type="tel" bind:value={phoneNumber} placeholder="+91 98200 12345" required class="input" />
-				</label>
-				<label class="field">
-					<span class="field-label">Website (optional)</span>
-					<input type="url" bind:value={website} placeholder="https://kettleandcoal.com" class="input" />
-				</label>
-				<label class="field">
-					<span class="field-label">Address</span>
-					<input type="text" bind:value={address} required class="input" />
-				</label>
-				<RegionCurrencyFields regions={regions.data ?? []} bind:regionId bind:currencyCode />
-				<label class="field">
-					<span class="field-label">Your name</span>
-					<input type="text" bind:value={name} required class="input" />
-				</label>
-				<label class="field">
-					<span class="field-label">Work email</span>
-					<input type="email" bind:value={email} placeholder="you@restaurant.com" required class="input" />
-				</label>
-				<label class="field">
-					<span class="field-label">Password</span>
-					<input type="password" bind:value={password} placeholder="At least 8 characters" required minlength="8" class="input mono" />
-				</label>
-				<label class="field">
-					<span class="field-label">Confirm password</span>
-					<input type="password" bind:value={confirmPassword} required minlength="8" class="input mono" />
-				</label>
-				<button type="submit" class="btn btn-primary" style="width:100%;height:40px" disabled={creating}>
-					{#if creating}<span class="spinner"></span>Creating your organization…{:else}Create organization{/if}
-				</button>
-			</form>
+
+			{#if step === 1}
+				<div style="margin-top:8px;font:600 21px/1.2 'IBM Plex Sans',sans-serif;color:var(--ink);letter-spacing:-.01em">
+					Create your account
+				</div>
+				<div style="margin-top:8px;font:400 14px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+					You'll be the owner of your organization.
+				</div>
+				<form onsubmit={submitAccount} style="margin-top:24px;display:flex;flex-direction:column;gap:16px">
+					<label class="field">
+						<span class="field-label">Your name</span>
+						<input type="text" bind:value={name} required class="input" />
+					</label>
+					<label class="field">
+						<span class="field-label">Work email</span>
+						<input type="email" bind:value={email} required class="input" />
+					</label>
+					<label class="field">
+						<span class="field-label">Password</span>
+						<input type="password" bind:value={password} required minlength="8" class="input mono" />
+						<span style="margin-top:5px;font:400 12px 'IBM Plex Sans',sans-serif;color:var(--text-muted)">At least 8 characters.</span>
+					</label>
+					<label class="field">
+						<span class="field-label">Confirm password</span>
+						<input type="password" bind:value={confirmPassword} required minlength="8" class="input mono" />
+					</label>
+					<button type="submit" class="btn btn-primary" style="width:100%;height:40px" disabled={submittingStep1}>
+						{#if submittingStep1}<span class="spinner"></span>Creating your account…{:else}Continue{/if}
+					</button>
+				</form>
+			{:else}
+				<div style="margin-top:8px;font:600 21px/1.2 'IBM Plex Sans',sans-serif;color:var(--ink);letter-spacing:-.01em">
+					Set up your organization
+				</div>
+				<div style="margin-top:8px;font:400 14px/1.5 'IBM Plex Sans',sans-serif;color:var(--text-muted)">
+					A few details about your business.
+				</div>
+				<form onsubmit={submitOrganization} style="margin-top:24px;display:flex;flex-direction:column;gap:16px">
+					<label class="field">
+						<span class="field-label">Organization name</span>
+						<input type="text" bind:value={orgName} required class="input" />
+					</label>
+					<label class="field">
+						<span class="field-label">Phone number</span>
+						<input type="tel" bind:value={phoneNumber} required class="input" />
+					</label>
+					<label class="field">
+						<span class="field-label">Website (optional)</span>
+						<input type="url" bind:value={website} class="input" />
+					</label>
+					<label class="field">
+						<span class="field-label">Address</span>
+						<input type="text" bind:value={address} required class="input" />
+					</label>
+					<RegionCurrencyFields regions={regions.data ?? []} bind:regionId bind:currencyCode />
+					<button type="submit" class="btn btn-primary" style="width:100%;height:40px" disabled={submittingStep2}>
+						{#if submittingStep2}<span class="spinner"></span>Creating your organization…{:else}Create organization{/if}
+					</button>
+				</form>
+			{/if}
 			{#if errorMessage}
 				<div style="margin-top:14px;font:400 13px 'IBM Plex Sans',sans-serif;color:var(--stamp-rust)">{errorMessage}</div>
 			{/if}
-			<div style="margin-top:18px;text-align:center;font:400 13px 'IBM Plex Sans',sans-serif">
-				Already have an account? <a href="/login">Sign in</a>
-			</div>
+			{#if step === 1}
+				<div style="margin-top:18px;text-align:center;font:400 13px 'IBM Plex Sans',sans-serif">
+					Already have an account? <a href="/login">Sign in</a>
+				</div>
+			{/if}
 		</div>
 	</div>
 </div>

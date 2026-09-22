@@ -40,9 +40,14 @@
 	let integrationNav = $derived([
 		{ id: 'shops', label: 'Shops', href: `/orgs/${orgId}/shops`, icon: 'store' },
 		{ id: 'api-keys', label: 'API Keys', href: `/orgs/${orgId}/api-keys`, icon: 'key' },
-		{ id: 'api-docs', label: 'API Docs', href: `/orgs/${orgId}/api-docs`, icon: 'book' },
 		{ id: 'wallet', label: 'Wallet Pass', href: `/orgs/${orgId}/wallet`, icon: 'wallet' },
 		{ id: 'staff', label: 'Staff', href: `/orgs/${orgId}/staff`, icon: 'staff' }
+	]);
+
+	let docsNav = $derived([
+		{ id: 'api-docs', label: 'API Docs', href: `/orgs/${orgId}/api-docs`, icon: 'book', external: false },
+		{ id: 'api-demo', label: 'API Demo', href: '/api-demo', icon: 'search', external: true },
+		{ id: 'wallet-demo', label: 'Wallet Demo', href: '/wallet-demo', icon: 'wallet', external: true }
 	]);
 
 	function isActive(id: string) {
@@ -109,16 +114,38 @@
 		: '248px'};background:var(--ink);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;overflow-x:hidden;align-self:flex-start;transition:width .15s ease,flex-basis .15s ease"
 >
 	<div style="padding:22px 18px 18px;{collapsed ? 'padding-left:16px;padding-right:16px' : ''}">
-		<div style="display:flex;align-items:center;gap:9px;justify-content:{collapsed ? 'center' : 'flex-start'}">
-			<div style="width:22px;height:22px;background:var(--paper);border-radius:3px;flex:none"></div>
+		<div style="display:flex;align-items:center;gap:9px;justify-content:{collapsed ? 'center' : 'space-between'}">
+			<div style="display:flex;align-items:center;gap:9px;min-width:0">
+				<div style="width:22px;height:22px;background:var(--paper);border-radius:3px;flex:none"></div>
+				{#if !collapsed}
+					<div
+						style="font:600 14px/1 'IBM Plex Sans',sans-serif;color:var(--paper);letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+					>
+						{orgName}
+					</div>
+				{/if}
+			</div>
 			{#if !collapsed}
-				<div
-					style="font:600 14px/1 'IBM Plex Sans',sans-serif;color:var(--paper);letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1"
+				<button
+					type="button"
+					onclick={toggleCollapsed}
+					title="Collapse sidebar"
+					style="width:22px;height:22px;border-radius:6px;background:transparent;border:0;color:var(--ink-4);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none"
 				>
-					{orgName}
-				</div>
+					<Icon name="chevronLeft" size={13} />
+				</button>
 			{/if}
 		</div>
+		{#if collapsed}
+			<button
+				type="button"
+				onclick={toggleCollapsed}
+				title="Expand sidebar"
+				style="margin-top:10px;width:100%;height:22px;border-radius:6px;background:transparent;border:0;color:var(--ink-4);cursor:pointer;display:flex;align-items:center;justify-content:center"
+			>
+				<Icon name="chevronRight" size={13} />
+			</button>
+		{/if}
 
 		{#if !collapsed}
 			<div style="margin-top:16px;position:relative" bind:this={switcherEl}>
@@ -215,16 +242,37 @@
 				</a>
 			{/each}
 		</div>
+		{#if !collapsed}
+			<div
+				style="padding:20px 8px 8px;font:500 9px/1 'IBM Plex Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-4)"
+			>
+				Docs
+			</div>
+		{:else}
+			<div style="height:14px"></div>
+		{/if}
+		<div style="display:flex;flex-direction:column;gap:1px">
+			{#each docsNav as n (n.id)}
+				<a
+					href={n.href}
+					target={n.external ? '_blank' : undefined}
+					rel={n.external ? 'noopener' : undefined}
+					title={collapsed ? n.label : undefined}
+					style="display:flex;align-items:center;gap:10px;justify-content:{collapsed
+						? 'center'
+						: 'flex-start'};padding:9px 10px;border-radius:8px;text-decoration:none;font:500 13px 'IBM Plex Sans',sans-serif;color:{isActive(
+						n.id
+					)
+						? 'var(--paper)'
+						: '#C6CCD3'};background:{isActive(n.id) ? 'var(--ink-2)' : 'transparent'}"
+				>
+					<Icon name={n.icon} size={15} />
+					{#if !collapsed}<span style="flex:1">{n.label}</span>{/if}
+					{#if !collapsed && n.external}<Icon name="chevronRight" size={11} />{/if}
+				</a>
+			{/each}
+		</div>
 	</div>
-
-	<button
-		type="button"
-		onclick={toggleCollapsed}
-		title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-		style="margin:14px auto 0;width:28px;height:28px;border-radius:8px;background:var(--ink-2);border:0;color:#C6CCD3;cursor:pointer;display:flex;align-items:center;justify-content:center"
-	>
-		<Icon name={collapsed ? 'chevronRight' : 'chevronLeft'} size={14} />
-	</button>
 
 	<div style="margin-top:auto;padding:16px {collapsed ? '10px' : '18px'};border-top:1px solid var(--ink-2)">
 		{#if !collapsed}

@@ -35,7 +35,6 @@
 		bind:value={currencyCode}
 		maxlength="3"
 		class="input mono"
-		placeholder="INR"
 		style="text-transform:uppercase"
 	/>
 </label>
