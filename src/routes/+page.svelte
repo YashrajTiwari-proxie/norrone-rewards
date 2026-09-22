@@ -45,9 +45,9 @@
 			body: 'Customers add a real wallet pass that updates live as their points and tier change.'
 		},
 		{
-			icon: 'terminal',
-			title: 'A public API',
-			body: 'Plug your website or POS straight in — every action available over a documented REST API.'
+			icon: 'smartphone',
+			title: 'No app required',
+			body: "Everything lives in the wallet your customers already have. Nothing to download, nothing to manage."
 		},
 		{
 			icon: 'store',
@@ -66,6 +66,29 @@
 	let heroPoints = $state(2450);
 	function simulateSpend() {
 		heroPoints += 150;
+	}
+
+	/**
+	 * Scroll-reveal: fades + slides an element in the first time it enters
+	 * the viewport. Runs on load too for anything already visible (e.g. the
+	 * hero mockups), which doubles as a subtle entrance animation.
+	 */
+	function reveal(node: HTMLElement, opts: { delay?: number } = {}) {
+		node.classList.add('reveal');
+		if (opts.delay) node.style.transitionDelay = `${opts.delay}ms`;
+		const io = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (entry.isIntersecting) {
+						entry.target.classList.add('reveal-visible');
+						io.unobserve(entry.target);
+					}
+				}
+			},
+			{ threshold: 0.15 }
+		);
+		io.observe(node);
+		return { destroy: () => io.disconnect() };
 	}
 
 	let copyLabel = $state('Copy snippet');
@@ -110,9 +133,8 @@
 				</div>
 				<nav class="l-nav">
 					<a href="#features">Features</a>
-					<a href="#architecture">Loyalty Architecture</a>
+					<a href="#how-it-works">How it works</a>
 					<a href="#wallet">Apple &amp; Google Wallet</a>
-					<a href="/api-demo">API Docs</a>
 				</nav>
 				<div class="l-header-cta">
 					<a href="/login" class="btn btn-ghost">Sign in</a>
@@ -124,16 +146,15 @@
 		<main>
 			<section class="l-hero">
 				<div class="l-hero-pills">
-					<span class="l-pill l-pill-card"><span class="l-live-dot"></span>v1 REST API Live</span>
-					<span class="l-pill l-pill-muted"><Icon name="wallet" size={14} />Apple &amp; Google Wallet Ready</span>
-					<span class="l-pill l-pill-card l-pill-hide-sm">Multi-shop architecture</span>
+					<span class="l-pill l-pill-card"><span class="l-live-dot"></span>Works with Apple &amp; Google Wallet</span>
+					<span class="l-pill l-pill-muted l-pill-hide-sm">Built for multi-shop businesses</span>
 				</div>
 				<h1 class="l-hero-title">
 					Loyalty programs your customers <span class="l-hero-title-accent">actually use</span>
 				</h1>
 				<p class="l-hero-sub">
-					Points, tiers, rewards, coupons, and real Apple &amp; Google Wallet passes — run across every shop, driven by
-					a public API your website or POS can call directly.
+					Points, tiers, rewards, and coupons — with a real wallet pass your customers already carry. No app to
+					download, nothing extra to manage.
 				</p>
 				<div class="l-hero-cta">
 					<a href="/signup" class="btn btn-primary l-hero-btn">
@@ -141,18 +162,14 @@
 						<Icon name="arrowRight" size={16} />
 					</a>
 					<a href="/login" class="btn btn-outline l-hero-btn">Sign in</a>
-					<a href="/api-demo" class="l-text-link l-hero-btn">
-						<Icon name="terminal" size={16} />
-						<span>Explore API Docs</span>
-					</a>
 				</div>
 				<div class="l-trust-row">
-					<span><Icon name="sync" size={14} />Syncs across POS, web &amp; mobile</span>
-					<span><Icon name="smartphone" size={14} />Zero app install needed</span>
-					<span><Icon name="bolt" size={14} />&lt;45ms ledger response</span>
+					<span><Icon name="sync" size={14} />Works with your existing POS &amp; website</span>
+					<span><Icon name="smartphone" size={14} />No app to install</span>
+					<span><Icon name="bolt" size={14} />Updates in real time</span>
 				</div>
 
-				<div class="l-mockups" id="wallet">
+				<div class="l-mockups" id="wallet" use:reveal>
 					<div class="l-pass-card">
 						<div class="l-pass-glow"></div>
 						<div class="l-pass-head">
@@ -206,9 +223,9 @@
 						<div class="l-ledger-head">
 							<div class="l-ledger-head-left">
 								<span class="l-live-dot"></span>
-								<h3>Live ledger ingestion stream</h3>
+								<h3>Recent activity</h3>
 							</div>
-							<span class="l-mono-pill">POST /v1/events/spend</span>
+							<span class="l-mono-pill">Live</span>
 						</div>
 						<div class="l-ledger-rows">
 							<div class="l-ledger-row">
@@ -229,8 +246,8 @@
 							</div>
 						</div>
 						<div class="l-ledger-sim">
-							<div class="l-ledger-sim-left"><Icon name="bolt" size={16} />Test real-time propagation:</div>
-							<button type="button" class="btn btn-primary l-sim-btn" onclick={simulateSpend}>Simulate +150 PTS spend</button>
+							<div class="l-ledger-sim-left"><Icon name="bolt" size={16} />See it update live:</div>
+							<button type="button" class="btn btn-primary l-sim-btn" onclick={simulateSpend}>Simulate a purchase</button>
 						</div>
 					</div>
 				</div>
@@ -238,24 +255,24 @@
 
 			<section class="l-stats">
 				<div class="l-stats-grid">
-					<div><span class="l-stat-num">99.99%</span><span class="l-stat-label">Uptime SLA</span></div>
-					<div><span class="l-stat-num">&lt;45ms</span><span class="l-stat-label">Global API latency</span></div>
-					<div><span class="l-stat-num">100%</span><span class="l-stat-label">Native pass compatibility</span></div>
-					<div><span class="l-stat-num">0 Apps</span><span class="l-stat-label">Install overhead</span></div>
+					<div use:reveal><span class="l-stat-num">99.99%</span><span class="l-stat-label">Uptime</span></div>
+					<div use:reveal={{ delay: 60 }}><span class="l-stat-num">Instant</span><span class="l-stat-label">Point updates</span></div>
+					<div use:reveal={{ delay: 120 }}><span class="l-stat-num">100%</span><span class="l-stat-label">Wallet compatibility</span></div>
+					<div use:reveal={{ delay: 180 }}><span class="l-stat-num">0 Apps</span><span class="l-stat-label">To install</span></div>
 				</div>
 			</section>
 
 			<section class="l-section" id="features">
 				<div class="l-section-head">
 					<div>
-						<span class="l-eyebrow">Modular architecture</span>
-						<h2 class="l-h2">Engineered for immediate consumer adoption</h2>
+						<span class="l-eyebrow">Why teams choose Norrone</span>
+						<h2 class="l-h2">Everything your loyalty program needs</h2>
 					</div>
-					<p class="l-section-sub">Everything required to power automated rewards across every register or online cart.</p>
+					<p class="l-section-sub">No technical setup required to run it day-to-day — just tell it the rules, and it takes care of the rest.</p>
 				</div>
 				<div class="l-feature-grid">
-					{#each features as f (f.title)}
-						<div class="l-feature-card">
+					{#each features as f, i (f.title)}
+						<div class="l-feature-card" use:reveal={{ delay: i * 70 }}>
 							<div class="l-feature-icon"><Icon name={f.icon} size={20} /></div>
 							<h3>{f.title}</h3>
 							<p>{f.body}</p>
@@ -264,15 +281,15 @@
 				</div>
 			</section>
 
-			<section class="l-section l-section-tinted" id="architecture">
+			<section class="l-section l-section-tinted" id="how-it-works">
 				<div class="l-section-head l-section-head-center">
-					<span class="l-eyebrow">Implementation</span>
-					<h2 class="l-h2">How modern brands deploy Norrone in hours</h2>
-					<p class="l-section-sub">A turnkey ledger with frictionless POS and wallet integrations.</p>
+					<span class="l-eyebrow">Getting started</span>
+					<h2 class="l-h2">Up and running in a few simple steps</h2>
+					<p class="l-section-sub">No developer required to launch — connect your existing tools and go live the same day.</p>
 				</div>
 				<div class="l-steps-grid">
-					{#each steps as s (s.n)}
-						<div class="l-step-card">
+					{#each steps as s, i (s.n)}
+						<div class="l-step-card" use:reveal={{ delay: i * 70 }}>
 							<div class="l-step-num">{s.n}</div>
 							<h3>{s.title}</h3>
 							<p>{s.body}</p>
@@ -282,30 +299,31 @@
 			</section>
 
 			<section class="l-section l-dev-grid">
-				<div>
-					<span class="l-eyebrow">Developer first</span>
-					<h2 class="l-h2">Simple REST contracts. Guaranteed zero state drift.</h2>
+				<div use:reveal>
+					<span class="l-eyebrow">For developers</span>
+					<h2 class="l-h2">One simple API. Everything else is handled for you.</h2>
 					<p class="l-section-sub" style="margin-top:12px">
-						Every reward event is idempotent and auditable. Plug in with standard cURL requests from Node, Python, or Go.
+						Grant points, issue coupons, and update wallet passes with a single API call — from your website, POS, or
+						mobile app.
 					</p>
 					<div class="l-dev-checks">
 						<div>
 							<Icon name="checkCircle" size={20} />
 							<div>
-								<p class="l-dev-check-title">Idempotent transactions</p>
-								<p class="l-dev-check-body">Prevent duplicate point grants even with spotty POS internet connections.</p>
+								<p class="l-dev-check-title">Safe to retry</p>
+								<p class="l-dev-check-body">A flaky connection won't ever grant the same points twice.</p>
 							</div>
 						</div>
 						<div>
 							<Icon name="checkCircle" size={20} />
 							<div>
-								<p class="l-dev-check-title">Automated pass signing</p>
-								<p class="l-dev-check-body">Norrone handles Apple APNs certificates and Google Cloud credentials automatically.</p>
+								<p class="l-dev-check-title">Wallet passes handled for you</p>
+								<p class="l-dev-check-body">Norrone manages Apple and Google's certificates automatically.</p>
 							</div>
 						</div>
 					</div>
 				</div>
-				<div class="l-terminal">
+				<div class="l-terminal" use:reveal={{ delay: 120 }}>
 					<div class="l-terminal-bar">
 						<div class="l-terminal-dots"><span></span><span></span><span></span><span class="l-terminal-path">POST /v1/passes/issue</span></div>
 						<button type="button" class="l-terminal-copy" onclick={copySnippet}>
@@ -329,12 +347,11 @@
 			</section>
 
 			<section class="l-section">
-				<div class="l-cta-card">
+				<div class="l-cta-card" use:reveal>
 					<span class="l-eyebrow l-eyebrow-light">Launch in less than a day</span>
 					<h2 class="l-h2 l-h2-light">Ready to launch loyalty customers will actually keep in their pocket?</h2>
 					<p class="l-cta-sub">
-						Get your production API keys, design your branded wallet pass, and test your first point grant in under 15
-						minutes.
+						Get set up, design your branded wallet pass, and welcome your first member in under 15 minutes.
 					</p>
 					<a href="/signup" class="btn l-cta-btn">
 						<span>Set up your organization</span>
@@ -386,6 +403,26 @@
 	main {
 		display: flex;
 		flex-direction: column;
+	}
+
+	/* Scroll reveal */
+	:global(.reveal) {
+		opacity: 0;
+		transform: translateY(22px);
+		transition:
+			opacity 0.6s cubic-bezier(0.16, 0.8, 0.3, 1),
+			transform 0.6s cubic-bezier(0.16, 0.8, 0.3, 1);
+	}
+	:global(.reveal-visible) {
+		opacity: 1;
+		transform: none;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		:global(.reveal) {
+			opacity: 1;
+			transform: none;
+			transition: none;
+		}
 	}
 
 	/* Header */
@@ -518,17 +555,6 @@
 		align-items: center;
 		gap: 8px;
 		font: 600 14px 'Inter', sans-serif;
-	}
-	.l-text-link {
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-		color: var(--text-muted);
-		font: 500 14px 'Inter', sans-serif;
-	}
-	.l-text-link:hover {
-		color: var(--ink);
-		text-decoration: none;
 	}
 	.l-trust-row {
 		display: flex;
@@ -1196,8 +1222,7 @@
 			flex-direction: column;
 			align-items: stretch;
 		}
-		.l-hero-btn,
-		.l-text-link {
+		.l-hero-btn {
 			width: 100%;
 			justify-content: center;
 		}
