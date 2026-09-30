@@ -3,6 +3,7 @@
 	import RegionCurrencyFields from '$lib/components/RegionCurrencyFields.svelte';
 	import { getPlatformAuthContext } from '$lib/platformAuth';
 	import { useQuery, useMutation, useAuth } from 'convex-svelte';
+	import { ConvexError } from 'convex/values';
 	import { api } from '../../../convex/_generated/api';
 	import { goto } from '$app/navigation';
 	import type { Id } from '../../../convex/_generated/dataModel';
@@ -109,8 +110,13 @@
 				currencyCode: currencyCode.trim() ? currencyCode.trim().toUpperCase() : undefined
 			});
 			await goto(`/orgs/${organizationId}/shops`);
-		} catch {
-			errorMessage = 'Your account was created, but setting up your organization failed. Please sign in and try again.';
+		} catch (err) {
+			if (err instanceof ConvexError && (err.data as { code?: string })?.code === 'ALREADY_HAS_ORGANIZATION') {
+				errorMessage = 'This account already belongs to an organization.';
+				setTimeout(() => goto('/orgs'), 1200);
+			} else {
+				errorMessage = 'Your account was created, but setting up your organization failed. Please sign in and try again.';
+			}
 			submittingStep2 = false;
 		}
 	}

@@ -75,7 +75,15 @@ export default defineSchema({
 	})
 		.index("by_organization", ["organizationId"])
 		.index("by_organization_and_user", ["organizationId", "authUserId"]) // unique (organization_id, user_id) in the old schema
-		.index("by_user", ["authUserId"]), // "which orgs is this person staff at" — the multi-org case Postgres's organization_staff already supported
+		// "which org(s) is this person staff at" — as of the one-email-one-org
+		// rule (enforced in organizations.createSelfServe and
+		// staff.attachRole, not here — Convex has no unique-column
+		// constraint), a normal signup/invite never produces more than one
+		// active row per authUserId. Platform-admin support tooling
+		// (adminOrganizations.ts, devTools.ts) can still bypass that for
+		// recovery scenarios, which is why this stays a non-unique index
+		// rather than assuming exactly one row.
+		.index("by_user", ["authUserId"]),
 
 	shops: defineTable({
 		organizationId: v.id("organizations"),
@@ -306,5 +314,103 @@ export default defineSchema({
 		pushToken: v.string()
 	})
 		.index("by_device_type_serial", ["deviceLibraryIdentifier", "passTypeIdentifier", "serialNumber"])
-		.index("by_serial", ["serialNumber"])
+		.index("by_serial", ["serialNumber"]),
+
+	// --- NEWSLETTER / CAMPAIGNS -----------------------------------------
+	// Platform-level marketing list (landing-page signups), not per-org
+	// customer data — unrelated to the `customers` table above. See
+	// plan.md's "Email campaigns / newsletter" section for the full design.
+
+	newsletterSubscribers: defineTable({
+		email: v.string(), // normalized: trim + lowercase — unique, checked via by_email on insert
+		status: v.union(v.literal("subscribed"), v.literal("unsubscribed"), v.literal("bounced")),
+		source: v.optional(v.string()), // e.g. "landing-footer" — free-form, where the signup came from
+		unsubscribeToken: v.string(), // random, used in the one-click unsubscribe link — unique, checked via by_unsubscribe_token
+		subscribedAt: v.number(),
+		unsubscribedAt: v.optional(v.number())
+	})
+		.index("by_email", ["email"])
+		.index("by_unsubscribe_token", ["unsubscribeToken"])
+		.index("by_status", ["status"]),
+
+	// Reusable block-based email templates. organizationId is optional so
+	// the same builder/renderer can be reused for a future "org emails its
+	// own customers" feature without a schema migration — absent means
+	// platform-level (Norrone's own marketing), which is the only path
+	// actually built today. Sending identity (the "from" address) is never
+	// per-org regardless — always the one shared EMAIL_FROM.
+	emailTemplates: defineTable({
+		organizationId: v.optional(v.id("organizations")),
+		name: v.string(),
+		blocks: v.array(v.any()), // ordered content blocks — see convex/lib/emailBlocks.ts for the shape
+		isDefault: v.optional(v.boolean()),
+		updatedAt: v.number()
+	}).index("by_organization", ["organizationId"]),
+
+	// A single send. `blocks` is snapshotted from a template at creation
+	// time (or edited directly) so later template edits never retroactively
+	// change a campaign that's already scheduled or sent.
+	campaigns: defineTable({
+		organizationId: v.optional(v.id("organizations")),
+		kind: v.union(v.literal("newsletter"), v.literal("promotion")),
+		subject: v.string(),
+		blocks: v.array(v.any()),
+		status: v.union(
+			v.literal("draft"),
+			v.literal("scheduled"),
+			v.literal("sending"),
+			v.literal("sent"),
+			v.literal("canceled")
+		),
+		// Org campaigns only (undefined on a platform campaign, which has no
+		// tiers/plans to target) — absent or every field empty means "every
+		// customer with an email on file", same as before this existed.
+		// `customerIds`, when non-empty, is an explicit hand-picked list and
+		// overrides every other field (that's how a single-recipient or a
+		// specific-multi-recipient send is expressed). Otherwise tierIds and
+		// membershipPlanIds are each OR'd internally (any matching tier/plan)
+		// and every set field is AND'd together — see
+		// convex/lib/audience.ts's computeOrgAudienceEmails.
+		audience: v.optional(
+			v.object({
+				tierIds: v.optional(v.array(v.id("tiers"))),
+				membershipPlanIds: v.optional(v.array(v.id("membershipPlans"))),
+				pointsMin: v.optional(v.number()),
+				pointsMax: v.optional(v.number()),
+				customerIds: v.optional(v.array(v.id("customers")))
+			})
+		),
+		scheduledAt: v.optional(v.number()),
+		batchSize: v.number(), // recipients per batch — see convex/newsletter.ts's processBatch
+		batchIntervalMs: v.number(), // pause between batches, paces us under Resend's rate limit
+		totalRecipients: v.optional(v.number()),
+		sentCount: v.optional(v.number()),
+		failedCount: v.optional(v.number()),
+		createdBy: v.string(), // authUserId
+		sentAt: v.optional(v.number())
+	})
+		.index("by_status", ["status"])
+		.index("by_organization", ["organizationId"]),
+
+	// The actual send queue — one row per (campaign, subscriber). This is
+	// what makes batch sending resumable: a `processBatch` run that's
+	// interrupted (deploy, error, timeout) just leaves rows "pending", and
+	// the next run picks up exactly where it left off via
+	// by_campaign_and_status — nothing is lost or double-sent.
+	// `subscriberId` is set for platform campaigns (recipient drawn from
+	// newsletterSubscribers), `customerId` for org campaigns (recipient
+	// drawn from that org's own customers) — exactly one of the two is set,
+	// never both. `email` is denormalized at insert time so processBatch
+	// and stats never have to branch on which one it is.
+	campaignRecipients: defineTable({
+		campaignId: v.id("campaigns"),
+		email: v.string(),
+		subscriberId: v.optional(v.id("newsletterSubscribers")),
+		customerId: v.optional(v.id("customers")),
+		status: v.union(v.literal("pending"), v.literal("sent"), v.literal("failed"), v.literal("skipped")),
+		error: v.optional(v.string()),
+		sentAt: v.optional(v.number())
+	})
+		.index("by_campaign_and_status", ["campaignId", "status"])
+		.index("by_campaign_and_email", ["campaignId", "email"])
 });

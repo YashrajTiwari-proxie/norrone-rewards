@@ -34,7 +34,16 @@ export const permissions = definePermissions({
 	passTemplates: { read: true, write: true },
 	// Platform-admin-only surface — checked exclusively under PLATFORM_TENANT_ID.
 	platform: { read: true, write: true },
-	regions: { read: true, write: true }
+	regions: { read: true, write: true },
+	// The marketing newsletter (subscribers/templates/campaigns). Checked
+	// under PLATFORM_TENANT_ID for Norrone's own marketing list, and under
+	// a real org's tenant for that org's own campaigns to its customers —
+	// both paths share the same permission keys. `send` is separate from
+	// `write` so drafting/editing a campaign is distinguishable from
+	// actually dispatching it to real recipients. Sending identity is
+	// always the one shared EMAIL_FROM regardless of tenant — see
+	// convex/newsletter.ts.
+	newsletter: { read: true, write: true, send: true }
 });
 
 // Role ladder: staff < manager < owner. Norrone's existing free-text
@@ -52,7 +61,8 @@ export const roles = defineRoles(permissions, {
 		rewards: ["read"],
 		coupons: ["read"],
 		membershipPlans: ["read"],
-		passTemplates: ["read"]
+		passTemplates: ["read"],
+		newsletter: ["read"]
 	},
 	manager: {
 		inherits: "staff",
@@ -63,7 +73,8 @@ export const roles = defineRoles(permissions, {
 		coupons: ["write"],
 		membershipPlans: ["write"],
 		passTemplates: ["write"],
-		staff: ["read"]
+		staff: ["read"],
+		newsletter: ["write", "send"]
 	},
 	owner: {
 		inherits: "manager",
@@ -79,7 +90,8 @@ export const roles = defineRoles(permissions, {
 	platformAdmin: {
 		platform: ["read", "write"],
 		regions: ["read", "write"],
-		organizations: ["read", "write", "create"]
+		organizations: ["read", "write", "create"],
+		newsletter: ["read", "write", "send"]
 	}
 });
 

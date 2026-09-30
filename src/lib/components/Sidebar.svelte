@@ -34,7 +34,8 @@
 		{ id: 'tiers', label: 'Tiers', href: `/orgs/${orgId}/tiers`, icon: 'layers' },
 		{ id: 'points', label: 'Points', href: `/orgs/${orgId}/points`, icon: 'coin' },
 		{ id: 'rewards', label: 'Rewards', href: `/orgs/${orgId}/rewards`, icon: 'gift' },
-		{ id: 'coupons', label: 'Coupons', href: `/orgs/${orgId}/coupons`, icon: 'ticket' }
+		{ id: 'coupons', label: 'Coupons', href: `/orgs/${orgId}/coupons`, icon: 'ticket' },
+		{ id: 'newsletter', label: 'Newsletter', href: `/orgs/${orgId}/newsletter`, icon: 'mail' }
 	]);
 
 	let integrationNav = $derived([

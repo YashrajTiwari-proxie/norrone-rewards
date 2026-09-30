@@ -89,6 +89,23 @@ export const createSelfServe = mutation({
 	handler: async (ctx, args) => {
 		const authUserId = await requireAuthUserId(ctx);
 
+		// One email, one organization — an account that already belongs to
+		// one shouldn't silently pick up a second (this is exactly how the
+		// "recover orphaned accounts" path below could go wrong: it's meant
+		// for a signed-in user with *zero* orgs, e.g. their last one was
+		// deleted, not for someone who already has one).
+		const existingMembership = await ctx.db
+			.query("organizationStaff")
+			.withIndex("by_user", (q) => q.eq("authUserId", authUserId))
+			.filter((q) => q.eq(q.field("isActive"), true))
+			.first();
+		if (existingMembership) {
+			throw new ConvexError({
+				code: "ALREADY_HAS_ORGANIZATION",
+				message: "This account already belongs to an organization. Sign in instead of creating a new one."
+			});
+		}
+
 		const organizationId = await ctx.db.insert("organizations", args);
 		await ctx.db.insert("organizationStaff", {
 			organizationId,

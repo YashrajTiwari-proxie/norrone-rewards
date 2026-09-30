@@ -395,6 +395,13 @@ select.input {
 	}
 }
 .dialog-panel {
+	/* Must out-stack the overlay's full-screen close button (position:fixed,
+	   z-index:auto) — a positioned element paints above a static one
+	   regardless of DOM order, so without this every click inside the
+	   panel's content hit the close button instead and dismissed the
+	   dialog. */
+	position: relative;
+	z-index: 1;
 	width: 400px;
 	max-width: 100%;
 	background: var(--card);

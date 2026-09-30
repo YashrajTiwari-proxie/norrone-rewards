@@ -12,9 +12,12 @@ type Permission = PermissionArg<typeof permissions>;
 /**
  * Identity from the verified session — never from a client-supplied
  * argument. Unlike admin-panel-v2, no organizationId is embedded as a JWT
- * claim: a Norrone user can be staff at more than one organization, so
+ * claim: normal signup/invite now enforces one org per email
+ * (organizations.createSelfServe, staff.attachRole), but that's a
+ * write-path rule, not a schema constraint — platform-admin support
+ * tooling can still leave an account staffed at more than one org — so
  * which org a request concerns is always an explicit function argument,
- * checked against this authUserId via authz — never inferred from the
+ * checked against this authUserId via authz, never inferred from the
  * session itself.
  */
 export async function requireAuthUserId(ctx: {

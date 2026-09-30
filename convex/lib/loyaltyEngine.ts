@@ -61,7 +61,7 @@ export async function generateCouponCode(ctx: ReadCtx): Promise<string> {
 	throw new Error("Failed to generate a unique coupon code after 5 attempts");
 }
 
-async function latestCustomerTier(ctx: ReadCtx, customerId: Id<"customers">) {
+export async function latestCustomerTier(ctx: ReadCtx, customerId: Id<"customers">) {
 	return await ctx.db
 		.query("customerTier")
 		.withIndex("by_customer", (q) => q.eq("customerId", customerId))

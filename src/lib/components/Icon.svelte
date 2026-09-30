@@ -44,7 +44,14 @@
 		bell: 'M6 8a6 6 0 1112 0c0 7 3 9 3 9H3s3-2 3-9zM10.3 21a2 2 0 003.4 0',
 		sync: 'M21 12a9 9 0 01-15.3 6.5M3 12a9 9 0 0115.3-6.5M3 6v5h5M21 18v-5h-5',
 		arrowRight: 'M5 12h14M13 6l6 6-6 6',
-		checkCircle: 'M12 2a10 10 0 100 20 10 10 0 000-20zM8 12l2.5 2.5L16 9'
+		checkCircle: 'M12 2a10 10 0 100 20 10 10 0 000-20zM8 12l2.5 2.5L16 9',
+		mail: 'M2 6a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM2 6l10 7 10-7',
+		grip: 'M9 5h.01M9 12h.01M9 19h.01M15 5h.01M15 12h.01M15 19h.01',
+		type: 'M4 7V4h16v3M9 20h6M12 4v16',
+		alignLeft: 'M17 10H3M21 6H3M21 14H3M17 18H3',
+		image: 'M3 3h18v18H3V3zM3 16l5-5 4 4 3-3 6 6M8.5 9a1.5 1.5 0 100-3 1.5 1.5 0 000 3z',
+		link: 'M10 13a5 5 0 007.07 0l2.83-2.83a5 5 0 00-7.07-7.07l-1.5 1.5M14 11a5 5 0 00-7.07 0L4.1 13.83a5 5 0 007.07 7.07l1.5-1.5',
+		minus: 'M5 12h14'
 	};
 
 	let { name, size = 16 }: { name: keyof typeof paths | string; size?: number } = $props();

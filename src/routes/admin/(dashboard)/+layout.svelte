@@ -13,6 +13,7 @@
 
 	let onOrgsList = $derived(page.url.pathname === '/admin');
 	let onRegions = $derived(page.url.pathname.startsWith('/admin/regions'));
+	let onNewsletter = $derived(page.url.pathname.startsWith('/admin/newsletter'));
 
 	async function signOut() {
 		await auth.authClient.signOut();
@@ -60,6 +61,14 @@
 						: '#C6CCD3'};background:{onRegions ? 'var(--ink-2)' : 'transparent'}"
 				>
 					Regions
+				</a>
+				<a
+					href="/admin/newsletter"
+					style="display:flex;align-items:center;padding:9px 10px;border-radius:8px;text-decoration:none;font:500 13px 'Geist', sans-serif;color:{onNewsletter
+						? 'var(--paper)'
+						: '#C6CCD3'};background:{onNewsletter ? 'var(--ink-2)' : 'transparent'}"
+				>
+					Newsletter
 				</a>
 			</div>
 

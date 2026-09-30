@@ -38,5 +38,12 @@ export const rateLimiter = new RateLimiter(components.rateLimiter, {
 	// handles that). Sharded for the same reason as apiRequest above —
 	// several browser tabs/devices signing into the same account at once
 	// is a real, not even adversarial, scenario.
-	accountSignInAttempt: { kind: "token bucket", rate: 5, period: 5 * MINUTE, capacity: 5, shards: 3 }
+	accountSignInAttempt: { kind: "token bucket", rate: 5, period: 5 * MINUTE, capacity: 5, shards: 3 },
+
+	// Newsletter subscribe form on the public landing page — keyed by the
+	// submitted email itself. Loose (5/hour) since a genuine visitor only
+	// ever submits once; this is purely a backstop against a script
+	// hammering the form to spam a single address with repeated welcome
+	// emails, not a high-traffic path that needs sharding.
+	newsletterSubscribe: { kind: "token bucket", rate: 5, period: 60 * MINUTE, capacity: 5 }
 });

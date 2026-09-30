@@ -7,12 +7,24 @@ import {
 	evaluateAndGrant,
 	updateCustomerStats,
 	enrollMembership,
-	redeemCoupon
+	redeemCoupon,
+	type EvaluateAndGrantResult
 } from "./lib/loyaltyEngine";
 
 /** See customerGrants.ts's identical helper — this is the public-API-triggered path (real POS activity), the most important one for auto-updating passes. */
 function schedulePassUpdate(ctx: MutationCtx, customerId: Id<"customers">) {
 	ctx.scheduler.runAfter(0, internal.walletNode.pushWalletUpdates, { customerId });
+}
+
+/** See customerGrants.ts's identical helper — fires the one automatic email covering everything newly granted in this call, if anything was. */
+function scheduleGrantEmail(ctx: MutationCtx, customerId: Id<"customers">, result: EvaluateAndGrantResult) {
+	if (result.tiers.length === 0 && result.rewards.length === 0 && result.coupons.length === 0) return;
+	ctx.scheduler.runAfter(0, internal.transactional.sendGrantEmail, {
+		customerId,
+		tiers: result.tiers,
+		rewardIds: result.rewards.map((r) => r.id),
+		couponCodes: result.coupons.map((c) => c.code)
+	});
 }
 
 /**
@@ -35,6 +47,7 @@ export const evaluateAndGrantAction = internalMutation({
 	handler: async (ctx, args) => {
 		const result = await evaluateAndGrant(ctx, args.customerId);
 		schedulePassUpdate(ctx, args.customerId);
+		scheduleGrantEmail(ctx, args.customerId, result);
 		return result;
 	}
 });
@@ -50,6 +63,9 @@ export const updateCustomerStatsAction = internalMutation({
 	handler: async (ctx, args) => {
 		const result = await updateCustomerStats(ctx, args);
 		schedulePassUpdate(ctx, args.customerId);
+		if (!("idempotent" in result)) {
+			scheduleGrantEmail(ctx, args.customerId, result.newlyGranted);
+		}
 		return result;
 	}
 });
@@ -63,6 +79,13 @@ export const enrollMembershipAction = internalMutation({
 	handler: async (ctx, args) => {
 		const result = await enrollMembership(ctx, args);
 		schedulePassUpdate(ctx, args.customerId);
+		if (!("idempotent" in result)) {
+			ctx.scheduler.runAfter(0, internal.transactional.sendMembershipEmail, {
+				customerId: args.customerId,
+				planId: args.planId
+			});
+			scheduleGrantEmail(ctx, args.customerId, result.newlyGranted);
+		}
 		return result;
 	}
 });

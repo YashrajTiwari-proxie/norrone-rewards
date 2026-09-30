@@ -1,27 +1,45 @@
 <script lang="ts">
-	import { useQuery, useAuth } from 'convex-svelte';
+	import { useQuery, useAuth, useMutation } from 'convex-svelte';
 	import { api } from '../../convex/_generated/api';
-	import { getPlatformAuthContext } from '$lib/platformAuth';
+	import { ConvexError } from 'convex/values';
 	import { goto } from '$app/navigation';
 	import PageLoading from '$lib/components/PageLoading.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 
-	const auth = getPlatformAuthContext();
 	const convexAuth = useAuth();
+	const subscribeToNewsletter = useMutation(api.newsletter.subscribe);
+
+	let newsletterEmail = $state('');
+	let newsletterState = $state<'idle' | 'submitting' | 'done' | 'error'>('idle');
+	let newsletterError = $state<string | null>(null);
+
+	async function submitNewsletter(event: SubmitEvent) {
+		event.preventDefault();
+		newsletterState = 'submitting';
+		newsletterError = null;
+		try {
+			await subscribeToNewsletter({ email: newsletterEmail.trim(), source: 'landing-footer' });
+			newsletterState = 'done';
+		} catch (err) {
+			newsletterError = err instanceof ConvexError ? (err.data as { message?: string })?.message ?? null : null;
+			newsletterError ??= 'Something went wrong. Please try again.';
+			newsletterState = 'error';
+		}
+	}
 	const orgs = useQuery(api.organizations.myOrganizations, () => (convexAuth.isAuthenticated ? {} : 'skip'));
 
 	// Staff belong to exactly one org in the common case — skip the picker
-	// and land straight in their shops instead of an intermediate list.
+	// and land straight in their shops. Anyone else authenticated (no org,
+	// or several) goes to the dedicated /orgs picker instead of rendering
+	// an org list inline on the marketing homepage.
 	$effect(() => {
-		if (orgs.data && orgs.data.length === 1) {
+		if (!orgs.data) return;
+		if (orgs.data.length === 1) {
 			goto(`/orgs/${orgs.data[0]._id}/shops`, { replaceState: true });
+		} else {
+			goto('/orgs', { replaceState: true });
 		}
 	});
-
-	async function logOut() {
-		await auth.authClient.signOut();
-		await goto('/login');
-	}
 
 	const features = [
 		{
@@ -106,23 +124,9 @@
 {#if convexAuth.isLoading}
 	<div style="min-height:100vh;display:grid;place-items:center"><PageLoading /></div>
 {:else if convexAuth.isAuthenticated}
-	<div style="max-width:640px;margin:60px auto;padding:0 24px;font-family:'Geist', sans-serif">
-		{#if orgs.isLoading || (orgs.data && orgs.data.length === 1)}
-			<PageLoading />
-		{:else if orgs.error}
-			<p>Failed to load organizations: {orgs.error.message}</p>
-		{:else if orgs.data.length === 0}
-			<p>No organizations yet — ask an owner to add you as staff, or <a href="/signup">create one</a>.</p>
-		{:else}
-			<h1>Your organizations</h1>
-			<ul>
-				{#each orgs.data as org (org._id)}
-					<li><a href="/orgs/{org._id}/shops">{org.name}</a> <span style="color:var(--text-muted)">({org.role})</span></li>
-				{/each}
-			</ul>
-			<button type="button" class="btn" onclick={logOut}>Log out</button>
-		{/if}
-	</div>
+	<!-- Redirects to /orgs/<id>/shops (one org) or /orgs (zero/several) —
+	     see the $effect above. This just covers the moment in between. -->
+	<div style="min-height:100vh;display:grid;place-items:center"><PageLoading /></div>
 {:else}
 	<div class="landing">
 		<header class="l-header">
@@ -362,6 +366,31 @@
 		</main>
 
 		<footer class="l-footer">
+			<div class="l-newsletter-strip">
+				<div>
+					<div class="l-newsletter-title">Stay in the loop</div>
+					<div class="l-newsletter-sub">Product updates, every so often. No spam.</div>
+				</div>
+				{#if newsletterState === 'done'}
+					<div class="l-newsletter-done"><Icon name="checkCircle" size={16} />You're subscribed — check your inbox.</div>
+				{:else}
+					<form onsubmit={submitNewsletter} class="l-newsletter-form">
+						<input
+							type="email"
+							bind:value={newsletterEmail}
+							required
+							placeholder="you@email.com"
+							class="input l-newsletter-input"
+						/>
+						<button type="submit" class="btn btn-primary" disabled={newsletterState === 'submitting'}>
+							{#if newsletterState === 'submitting'}<span class="spinner"></span>Subscribing…{:else}Subscribe{/if}
+						</button>
+					</form>
+				{/if}
+			</div>
+			{#if newsletterState === 'error' && newsletterError}
+				<div class="l-newsletter-error">{newsletterError}</div>
+			{/if}
 			<div class="l-footer-grid">
 				<div class="l-footer-brand">
 					<div class="l-brand">
@@ -1126,6 +1155,46 @@
 		background: var(--surface-soft);
 		padding: 48px 24px 28px;
 	}
+	.l-newsletter-strip {
+		max-width: 1120px;
+		margin: 0 auto 32px;
+		padding-bottom: 32px;
+		border-bottom: 1px solid var(--line);
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 18px;
+	}
+	.l-newsletter-title {
+		font: 600 18px 'Bodoni Moda', serif;
+		color: var(--ink);
+	}
+	.l-newsletter-sub {
+		margin-top: 4px;
+		font: 400 13px 'Geist', sans-serif;
+		color: var(--text-muted);
+	}
+	.l-newsletter-form {
+		display: flex;
+		gap: 8px;
+	}
+	.l-newsletter-input {
+		width: 240px;
+	}
+	.l-newsletter-done {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font: 500 14px 'Geist', sans-serif;
+		color: var(--stamp-green);
+	}
+	.l-newsletter-error {
+		max-width: 1120px;
+		margin: -20px auto 24px;
+		font: 400 13px 'Geist', sans-serif;
+		color: var(--stamp-rust);
+	}
 	.l-footer-grid {
 		max-width: 1120px;
 		margin: 0 auto;
@@ -1252,6 +1321,16 @@
 		.l-footer-grid {
 			grid-template-columns: 1fr;
 			gap: 24px;
+		}
+		.l-newsletter-strip {
+			flex-direction: column;
+			align-items: stretch;
+		}
+		.l-newsletter-form {
+			flex-direction: column;
+		}
+		.l-newsletter-input {
+			width: 100%;
 		}
 	}
 </style>

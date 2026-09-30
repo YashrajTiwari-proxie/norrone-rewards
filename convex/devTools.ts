@@ -1,9 +1,10 @@
-import { internalMutation, internalQuery } from "./_generated/server";
+import { internalMutation, internalQuery, internalAction } from "./_generated/server";
 import { v } from "convex/values";
 import { components, internal } from "./_generated/api";
 import { generateApiKey, hashApiKey } from "./lib/apiKeys";
 import { generateCouponCode } from "./lib/loyaltyEngine";
-import { trustedAuthz } from "./authzConfig";
+import { trustedAuthz, authz } from "./authzConfig";
+import type { Id } from "./_generated/dataModel";
 
 // Every org-tenant-scoped table — cleared by resetAndSeedDemo below.
 // Deliberately excludes `regions` (platform-wide reference data, not
@@ -278,6 +279,14 @@ export const deleteGrantedBenefit = internalMutation({
 	}
 });
 
+/** Revokes one organizationStaff row by id — dev-only cleanup for a stray test membership, not a staff-management feature (there's no client-facing "remove staff" mutation yet). */
+export const revokeOrgStaffMembership = internalMutation({
+	args: { membershipId: v.id("organizationStaff") },
+	handler: async (ctx, args) => {
+		await ctx.db.delete(args.membershipId);
+	}
+});
+
 /**
  * One-off repair for the resetAndSeedDemo bug above: it inserted
  * organizationStaff rows (the display cache) without also granting the
@@ -298,6 +307,37 @@ export const repairMissingAuthzGrants = internalMutation({
 			granted++;
 		}
 		return { granted };
+	}
+});
+
+export const listDistinctOrgStaffOrgs = internalQuery({
+	args: {},
+	handler: async (ctx): Promise<Id<"organizations">[]> => {
+		const rows = await ctx.db.query("organizationStaff").collect();
+		return [...new Set(rows.map((r) => r.organizationId))];
+	}
+});
+
+/**
+ * Re-materializes effectivePermissions for every org tenant against the
+ * *current* roles/permissions definitions in authzConfig.ts. Needed
+ * because authz-tenant-kit bakes a role's permission set into each
+ * assignment at grant time — adding a permission to an existing role in
+ * code (e.g. `newsletter` on `manager`/`owner`) doesn't retroactively
+ * apply to staff who were assigned that role before the change. Run via
+ * `npx convex run devTools:syncOrgRoles` after any authzConfig.ts role
+ * change; safe to re-run.
+ */
+export const syncOrgRoles = internalAction({
+	args: {},
+	handler: async (ctx): Promise<{ organizations: number; usersProcessed: number }> => {
+		const organizationIds: Id<"organizations">[] = await ctx.runQuery(internal.devTools.listDistinctOrgStaffOrgs, {});
+		let usersProcessed = 0;
+		for (const organizationId of organizationIds) {
+			const result = await authz.withTenant(organizationId).syncRoles(ctx);
+			usersProcessed += result.usersProcessed;
+		}
+		return { organizations: organizationIds.length, usersProcessed };
 	}
 });
 

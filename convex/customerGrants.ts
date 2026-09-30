@@ -4,11 +4,28 @@ import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { requireAuthUserId } from "./lib/authz";
 import { authz } from "./authzConfig";
-import { evaluateAndGrant, applyGrantedBenefits, generateCouponCode, enrollMembership as enrollMembershipEngine } from "./lib/loyaltyEngine";
+import {
+	evaluateAndGrant,
+	applyGrantedBenefits,
+	generateCouponCode,
+	enrollMembership as enrollMembershipEngine,
+	type EvaluateAndGrantResult
+} from "./lib/loyaltyEngine";
 
 /** Fire-and-forget — a customer with no saved wallet pass on either platform is the common case, not an error. See walletNode.ts's pushWalletUpdates. */
 function schedulePassUpdate(ctx: MutationCtx, customerId: Id<"customers">) {
 	ctx.scheduler.runAfter(0, internal.walletNode.pushWalletUpdates, { customerId });
+}
+
+/** See engine.ts's identical helper — fires the one automatic email covering everything newly granted in this call, if anything was. */
+function scheduleGrantEmail(ctx: MutationCtx, customerId: Id<"customers">, result: EvaluateAndGrantResult) {
+	if (result.tiers.length === 0 && result.rewards.length === 0 && result.coupons.length === 0) return;
+	ctx.scheduler.runAfter(0, internal.transactional.sendGrantEmail, {
+		customerId,
+		tiers: result.tiers,
+		rewardIds: result.rewards.map((r) => r.id),
+		couponCodes: result.coupons.map((c) => c.code)
+	});
 }
 
 /**
@@ -55,6 +72,7 @@ async function adjustPointsHandler(ctx: MutationCtx, customerId: Id<"customers">
 	// so re-run the same auto-grant check the API path triggers.
 	const result = await evaluateAndGrant(ctx, customerId);
 	schedulePassUpdate(ctx, customerId);
+	scheduleGrantEmail(ctx, customerId, result);
 	return result;
 }
 
@@ -109,8 +127,14 @@ export const manualGrantTier = mutation({
 		if (currentTierRow?.tierId !== args.tierId) {
 			await ctx.db.insert("customerTier", { customerId: args.customerId, tierId: args.tierId, source: "MANUAL" });
 			// Match what an auto-grant would do: apply the tier's own benefits too.
-			await applyGrantedBenefits(ctx, args.customerId, "TIER", args.tierId);
+			const benefits = await applyGrantedBenefits(ctx, args.customerId, "TIER", args.tierId);
 			schedulePassUpdate(ctx, args.customerId);
+			ctx.scheduler.runAfter(0, internal.transactional.sendGrantEmail, {
+				customerId: args.customerId,
+				tiers: [{ id: tier._id, name: tier.name }],
+				rewardIds: benefits.rewards.map((r) => r.id),
+				couponCodes: benefits.coupons.map((c) => c.code)
+			});
 		}
 	}
 });
@@ -133,6 +157,12 @@ export const manualGrantReward = mutation({
 			.first();
 		if (!existing) {
 			await ctx.db.insert("customerRewards", { customerId: args.customerId, rewardId: args.rewardId });
+			ctx.scheduler.runAfter(0, internal.transactional.sendGrantEmail, {
+				customerId: args.customerId,
+				tiers: [],
+				rewardIds: [args.rewardId],
+				couponCodes: []
+			});
 		}
 	}
 });
@@ -157,6 +187,12 @@ export const manualGrantCoupon = mutation({
 			code,
 			status: "ISSUED",
 			expiresAt: Date.now() + couponDef.validityDays * 24 * 60 * 60 * 1000
+		});
+		ctx.scheduler.runAfter(0, internal.transactional.sendGrantEmail, {
+			customerId: args.customerId,
+			tiers: [],
+			rewardIds: [],
+			couponCodes: [code]
 		});
 
 		// The code was previously discarded here — the customer detail
@@ -183,6 +219,13 @@ export const enrollMembership = mutation({
 
 		const result = await enrollMembershipEngine(ctx, { customerId: args.customerId, planId: args.planId });
 		schedulePassUpdate(ctx, args.customerId);
+		if (!("idempotent" in result)) {
+			ctx.scheduler.runAfter(0, internal.transactional.sendMembershipEmail, {
+				customerId: args.customerId,
+				planId: args.planId
+			});
+			scheduleGrantEmail(ctx, args.customerId, result.newlyGranted);
+		}
 		return result;
 	}
 });
@@ -196,6 +239,7 @@ export const reevaluateGrants = mutation({
 		await assertOrgStaffCanGrant(ctx, customer.organizationId);
 		const result = await evaluateAndGrant(ctx, args.customerId);
 		schedulePassUpdate(ctx, args.customerId);
+		scheduleGrantEmail(ctx, args.customerId, result);
 		return result;
 	}
 });

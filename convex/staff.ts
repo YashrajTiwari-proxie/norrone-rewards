@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { internal, components } from "./_generated/api";
 import { internalMutation } from "./_generated/server";
 import { orgStaffQuery, orgStaffMutation, orgStaffAction } from "./lib/authz";
@@ -65,6 +65,21 @@ export const attachRole = internalMutation({
 		if (existing) {
 			await ctx.db.patch(existing._id, { role: args.role, isActive: true });
 		} else {
+			// One email, one organization — reject inviting someone who's
+			// already active staff somewhere else, rather than silently
+			// giving them a second org. Re-inviting them into *this* org
+			// (the `existing` branch above) is unaffected.
+			const elsewhere = await ctx.db
+				.query("organizationStaff")
+				.withIndex("by_user", (q) => q.eq("authUserId", args.authUserId))
+				.filter((q) => q.eq(q.field("isActive"), true))
+				.first();
+			if (elsewhere) {
+				throw new ConvexError({
+					code: "ALREADY_HAS_ORGANIZATION",
+					message: "This email already belongs to another organization."
+				});
+			}
 			await ctx.db.insert("organizationStaff", {
 				organizationId: args.organizationId,
 				authUserId: args.authUserId,
